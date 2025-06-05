@@ -1,0 +1,11 @@
+id,idade,renda,score_credito,historico_pagamento,emprego_tempo,valor_emprestimo,taxa_juros,status_emprestimo
+1,35,50000,750,"['atraso_30', 'em_dia', 'em_dia', 'em_dia']",5,25000,12.5,aprovado
+2,42,75000,820,"['em_dia', 'em_dia', 'em_dia', 'em_dia']",8,50000,10.2,aprovado
+3,28,45000,680,"['atraso_60', 'atraso_30', 'em_dia', 'em_dia']",2,10000,15.8,reprovado
+4,51,90000,880,"['em_dia', 'em_dia', 'em_dia', 'em_dia']",15,75000,9.5,aprovado
+5,33,60000,720,"['atraso_30', 'em_dia', 'em_dia', 'em_dia']",4,30000,13.2,aprovado
+6,47,82000,850,"['em_dia', 'em_dia', 'em_dia', 'em_dia']",12,60000,9.8,aprovado
+7,31,48000,650,"['atraso_90', 'atraso_30', 'em_dia', 'em_dia']",3,15000,16.5,reprovado
+8,39,68000,790,"['em_dia', 'em_dia', 'em_dia', 'em_dia']",7,40000,11.8,aprovado
+9,45,72000,830,"['atraso_30', 'em_dia', 'em_dia', 'em_dia']",9,55000,10.5,aprovado
+10,29,39000,620,"['atraso_60', 'atraso_60', 'atraso_30', 'em_dia']",1,8000,18.2,reprovado
