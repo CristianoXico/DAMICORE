@@ -1,0 +1,96 @@
+# Dados e modelos grandes (serão versionados explicitamente)
+# data/
+# models/
+
+# Arquivos de sistema e ambientes virtuais
+.DS_Store
+Thumbs.db
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDEs e editores
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs e arquivos de sistema
+logs/
+*.log
+
+# Arquivos temporários
+.tmp/
+.temp/
+
+# Arquivos de cache do DVC
+.dvc/cache/
+.dvc/tmp/
+
+# Arquivos de configuração local
+.env
+.env.*
+!.env.example
+
+# Arquivos de dados grandes (serão versionados explicitamente)
+# *.h5
+# *.hdf5
+# *.npy
+# *.npz
+# *.pkl
+# *.pickle
+# *.csv
+# *.tsv
+# *.xlsx
+# *.xls
+# *.db
+# *.sqlite
+# *.sqlite3
+# *.db-journal
+# *.sql
+# *.sqlite3-journal
+# *.db-wal
+# *.db-shm
+
+# Arquivos de mídia grandes (serão versionados explicitamente)
+# *.jpg
+# *.jpeg
+# *.png
+# *.gif
+# *.bmp
+# *.tiff
+# *.mp4
+# *.avi
+# *.mov
+# *.wmv
+# *.flv
+# *.mkv
+# *.mp3
+# *.wav
+# *.ogg
+
+# Arquivos compactados (serão versionados explicitamente)
+# *.zip
+# *.tar.gz
+# *.tar
+# *.tgz
+# *.rar
+# *.7z
