@@ -1,5 +1,32 @@
+# Python
 __pycache__/
-*.pyc
-.ipynb_checkpoints/
-.env
-.DS_Store
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Project specific
+data/
+results*/
+*.npy
+*.csv
+
+# IDE
+.vscode/
+.idea/
+*.swp
