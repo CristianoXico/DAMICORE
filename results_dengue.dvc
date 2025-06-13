@@ -1,0 +1,6 @@
+outs:
+- md5: 4bb963592474a7a7eadfd729095382c9.dir
+  size: 82883072
+  nfiles: 2
+  hash: md5
+  path: results_dengue
