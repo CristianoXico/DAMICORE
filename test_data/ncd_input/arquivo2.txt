@@ -1,0 +1,3 @@
+Este é o segundo arquivo de teste para o DAMICORE.
+Ele contém um texto ligeiramente diferente para teste.
+A similaridade será calculada usando compressão.

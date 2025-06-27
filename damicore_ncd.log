@@ -1,0 +1,1636 @@
+2025-06-23 14:43:56,671 - damicore_ncd - INFO - Iniciando geração de matriz NCD com os parâmetros: input_dir=C:\Users\55179\AppData\Local\Temp\damicore_test_2fc990xr\medium, compressor=gzip, max_workers=2, cleanup=True
+2025-06-23 14:43:56,671 - damicore_ncd - INFO - Encontrados 10 arquivos em C:\Users\55179\AppData\Local\Temp\damicore_test_2fc990xr\medium
+2025-06-23 14:43:56,672 - damicore_ncd - INFO - Tamanho total dos arquivos: 0.00 MB
+2025-06-23 14:43:56,672 - damicore_ncd - INFO - Iniciando processamento com compressor: gzip
+2025-06-23 14:43:56,672 - damicore_ncd - INFO - Iniciando processamento do diretório: C:\Users\55179\AppData\Local\Temp\damicore_test_2fc990xr\medium
+2025-06-23 14:43:56,673 - damicore_ncd - INFO - Encontrados 10 arquivos para processar
+2025-06-23 14:43:56,683 - damicore_ncd - INFO - 10/10 arquivos copiados para processamento
+2025-06-23 14:43:56,684 - damicore_ncd - INFO - Processando 10 arquivos de C:\Users\55179\AppData\Local\Temp\damicore_input_ss5kalct
+2025-06-23 14:43:56,685 - damicore_ncd - INFO - Iniciando execução do DAMICORE com compressor gzip
+2025-06-23 14:43:56,877 - damicore_ncd - INFO - Execução do DAMICORE concluída em 0.19 segundos
+2025-06-23 14:43:56,877 - damicore_ncd - WARNING - Avisos/erros do DAMICORE:
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 10, in <module>
+    import igraph
+ModuleNotFoundError: No module named 'igraph'
+
+2025-06-23 14:43:56,877 - damicore_ncd - ERROR - DAMICORE falhou com código de saída 1:
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 10, in <module>
+    import igraph
+ModuleNotFoundError: No module named 'igraph'
+2025-06-23 14:43:56,878 - damicore_ncd - ERROR - Falha ao executar o DAMICORE
+2025-06-23 14:43:56,878 - damicore_ncd - ERROR - Erro durante o processamento: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 307, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:43:56,881 - damicore_ncd - ERROR - Erro ao gerar matriz NCD: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 652, in generate_ncd_matrix
+    results = process_directory(
+              ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 307, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:43:56,885 - damicore_ncd - INFO - Iniciando geração de matriz NCD com os parâmetros: input_dir=C:\Users\55179\AppData\Local\Temp\damicore_test_2fc990xr\small, compressor=gzip, max_workers=2, cleanup=True
+2025-06-23 14:43:56,885 - damicore_ncd - INFO - Encontrados 4 arquivos em C:\Users\55179\AppData\Local\Temp\damicore_test_2fc990xr\small
+2025-06-23 14:43:56,885 - damicore_ncd - INFO - Tamanho total dos arquivos: 0.00 MB
+2025-06-23 14:43:56,886 - damicore_ncd - INFO - Iniciando processamento com compressor: gzip
+2025-06-23 14:43:56,886 - damicore_ncd - INFO - Iniciando processamento do diretório: C:\Users\55179\AppData\Local\Temp\damicore_test_2fc990xr\small
+2025-06-23 14:43:56,886 - damicore_ncd - INFO - Encontrados 4 arquivos para processar
+2025-06-23 14:43:56,890 - damicore_ncd - INFO - 4/4 arquivos copiados para processamento
+2025-06-23 14:43:56,891 - damicore_ncd - INFO - Processando 4 arquivos de C:\Users\55179\AppData\Local\Temp\damicore_input_vvb4g2ki
+2025-06-23 14:43:56,892 - damicore_ncd - INFO - Iniciando execução do DAMICORE com compressor gzip
+2025-06-23 14:43:57,042 - damicore_ncd - INFO - Execução do DAMICORE concluída em 0.15 segundos
+2025-06-23 14:43:57,042 - damicore_ncd - WARNING - Avisos/erros do DAMICORE:
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 10, in <module>
+    import igraph
+ModuleNotFoundError: No module named 'igraph'
+
+2025-06-23 14:43:57,043 - damicore_ncd - ERROR - DAMICORE falhou com código de saída 1:
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 10, in <module>
+    import igraph
+ModuleNotFoundError: No module named 'igraph'
+2025-06-23 14:43:57,043 - damicore_ncd - ERROR - Falha ao executar o DAMICORE
+2025-06-23 14:43:57,043 - damicore_ncd - ERROR - Erro durante o processamento: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 307, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:43:57,045 - damicore_ncd - ERROR - Erro ao gerar matriz NCD: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 652, in generate_ncd_matrix
+    results = process_directory(
+              ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 307, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:43:57,074 - damicore_ncd - INFO - Iniciando geração de matriz NCD com os parâmetros: input_dir=C:\Users\55179\AppData\Local\Temp\ncd_comparison_dqbdzri1\data, compressor=gzip, max_workers=1, cleanup=True
+2025-06-23 14:43:57,074 - damicore_ncd - INFO - Encontrados 4 arquivos em C:\Users\55179\AppData\Local\Temp\ncd_comparison_dqbdzri1\data
+2025-06-23 14:43:57,074 - damicore_ncd - INFO - Tamanho total dos arquivos: 0.00 MB
+2025-06-23 14:43:57,075 - damicore_ncd - INFO - Iniciando processamento com compressor: gzip
+2025-06-23 14:43:57,075 - damicore_ncd - INFO - Iniciando processamento do diretório: C:\Users\55179\AppData\Local\Temp\ncd_comparison_dqbdzri1\data
+2025-06-23 14:43:57,075 - damicore_ncd - INFO - Encontrados 4 arquivos para processar
+2025-06-23 14:43:57,079 - damicore_ncd - INFO - 4/4 arquivos copiados para processamento
+2025-06-23 14:43:57,080 - damicore_ncd - INFO - Processando 4 arquivos de C:\Users\55179\AppData\Local\Temp\damicore_input_6z_z3d_v
+2025-06-23 14:43:57,081 - damicore_ncd - INFO - Iniciando execução do DAMICORE com compressor gzip
+2025-06-23 14:43:57,233 - damicore_ncd - INFO - Execução do DAMICORE concluída em 0.15 segundos
+2025-06-23 14:43:57,233 - damicore_ncd - WARNING - Avisos/erros do DAMICORE:
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 10, in <module>
+    import igraph
+ModuleNotFoundError: No module named 'igraph'
+
+2025-06-23 14:43:57,233 - damicore_ncd - ERROR - DAMICORE falhou com código de saída 1:
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 10, in <module>
+    import igraph
+ModuleNotFoundError: No module named 'igraph'
+2025-06-23 14:43:57,234 - damicore_ncd - ERROR - Falha ao executar o DAMICORE
+2025-06-23 14:43:57,234 - damicore_ncd - ERROR - Erro durante o processamento: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 307, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:43:57,236 - damicore_ncd - ERROR - Erro ao gerar matriz NCD: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 652, in generate_ncd_matrix
+    results = process_directory(
+              ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 307, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:43:57,436 - damicore_ncd - INFO - Iniciando geração de matriz NCD com os parâmetros: input_dir=C:\Users\55179\AppData\Local\Temp\tmppr12qvtq\data, compressor=gzip, max_workers=2, cleanup=True
+2025-06-23 14:43:57,437 - damicore_ncd - INFO - Encontrados 4 arquivos em C:\Users\55179\AppData\Local\Temp\tmppr12qvtq\data
+2025-06-23 14:43:57,437 - damicore_ncd - INFO - Tamanho total dos arquivos: 0.00 MB
+2025-06-23 14:43:57,437 - damicore_ncd - INFO - Iniciando processamento com compressor: gzip
+2025-06-23 14:43:57,437 - damicore_ncd - INFO - Iniciando processamento do diretório: C:\Users\55179\AppData\Local\Temp\tmppr12qvtq\data
+2025-06-23 14:43:57,437 - damicore_ncd - INFO - Encontrados 4 arquivos para processar
+2025-06-23 14:43:57,441 - damicore_ncd - INFO - 4/4 arquivos copiados para processamento
+2025-06-23 14:43:57,442 - damicore_ncd - INFO - Processando 4 arquivos de C:\Users\55179\AppData\Local\Temp\damicore_input_wyrlkhkk
+2025-06-23 14:43:57,442 - damicore_ncd - INFO - Iniciando execução do DAMICORE com compressor gzip
+2025-06-23 14:43:57,615 - damicore_ncd - INFO - Execução do DAMICORE concluída em 0.17 segundos
+2025-06-23 14:43:57,615 - damicore_ncd - WARNING - Avisos/erros do DAMICORE:
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 10, in <module>
+    import igraph
+ModuleNotFoundError: No module named 'igraph'
+
+2025-06-23 14:43:57,615 - damicore_ncd - ERROR - DAMICORE falhou com código de saída 1:
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 10, in <module>
+    import igraph
+ModuleNotFoundError: No module named 'igraph'
+2025-06-23 14:43:57,616 - damicore_ncd - ERROR - Falha ao executar o DAMICORE
+2025-06-23 14:43:57,616 - damicore_ncd - ERROR - Erro durante o processamento: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 307, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:43:57,618 - damicore_ncd - ERROR - Erro ao gerar matriz NCD: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 652, in generate_ncd_matrix
+    results = process_directory(
+              ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 307, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:45:06,286 - damicore_ncd - INFO - Iniciando geração de matriz NCD com os parâmetros: input_dir=C:\Users\55179\AppData\Local\Temp\damicore_test_nxvpwv2u\medium, compressor=gzip, max_workers=2, cleanup=True
+2025-06-23 14:45:06,287 - damicore_ncd - INFO - Encontrados 10 arquivos em C:\Users\55179\AppData\Local\Temp\damicore_test_nxvpwv2u\medium
+2025-06-23 14:45:06,287 - damicore_ncd - INFO - Tamanho total dos arquivos: 0.00 MB
+2025-06-23 14:45:06,288 - damicore_ncd - INFO - Iniciando processamento com compressor: gzip
+2025-06-23 14:45:06,288 - damicore_ncd - INFO - Iniciando processamento do diretório: C:\Users\55179\AppData\Local\Temp\damicore_test_nxvpwv2u\medium
+2025-06-23 14:45:06,288 - damicore_ncd - INFO - Encontrados 10 arquivos para processar
+2025-06-23 14:45:06,299 - damicore_ncd - INFO - 10/10 arquivos copiados para processamento
+2025-06-23 14:45:06,300 - damicore_ncd - INFO - Processando 10 arquivos de C:\Users\55179\AppData\Local\Temp\damicore_input_12y5gori
+2025-06-23 14:45:06,301 - damicore_ncd - INFO - Iniciando execução do DAMICORE com compressor gzip
+2025-06-23 14:45:07,170 - damicore_ncd - INFO - Execução do DAMICORE concluída em 0.87 segundos
+2025-06-23 14:45:07,171 - damicore_ncd - WARNING - Avisos/erros do DAMICORE:
+usage: damicore.py [-h] [-c {gzip,bzip2,ppmd}] [-P {concat,interleave}]
+                   [-o OUTPUT] [-f {csv,phylip}] [--slowness SLOWNESS]
+                   [--model-order MODEL_ORDER] [--memory MEMORY]
+                   [--block-size BLOCK_SIZE] [--serial | --parallel] [-v]
+                   [--no-verbose] [-V] [--ncd-output NCD_OUTPUT]
+                   [--tree-output TREE_OUTPUT] [--graph-image GRAPH_IMAGE]
+                   directory
+damicore.py: error: unrecognized arguments: --force
+
+2025-06-23 14:45:07,171 - damicore_ncd - ERROR - DAMICORE falhou com código de saída 2:
+usage: damicore.py [-h] [-c {gzip,bzip2,ppmd}] [-P {concat,interleave}]
+                   [-o OUTPUT] [-f {csv,phylip}] [--slowness SLOWNESS]
+                   [--model-order MODEL_ORDER] [--memory MEMORY]
+                   [--block-size BLOCK_SIZE] [--serial | --parallel] [-v]
+                   [--no-verbose] [-V] [--ncd-output NCD_OUTPUT]
+                   [--tree-output TREE_OUTPUT] [--graph-image GRAPH_IMAGE]
+                   directory
+damicore.py: error: unrecognized arguments: --force
+2025-06-23 14:45:07,172 - damicore_ncd - ERROR - Falha ao executar o DAMICORE
+2025-06-23 14:45:07,172 - damicore_ncd - ERROR - Erro durante o processamento: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 307, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:45:07,176 - damicore_ncd - ERROR - Erro ao gerar matriz NCD: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 652, in generate_ncd_matrix
+    results = process_directory(
+              ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 307, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:45:07,178 - damicore_ncd - INFO - Iniciando geração de matriz NCD com os parâmetros: input_dir=C:\Users\55179\AppData\Local\Temp\damicore_test_nxvpwv2u\small, compressor=gzip, max_workers=2, cleanup=True
+2025-06-23 14:45:07,179 - damicore_ncd - INFO - Encontrados 4 arquivos em C:\Users\55179\AppData\Local\Temp\damicore_test_nxvpwv2u\small
+2025-06-23 14:45:07,179 - damicore_ncd - INFO - Tamanho total dos arquivos: 0.00 MB
+2025-06-23 14:45:07,179 - damicore_ncd - INFO - Iniciando processamento com compressor: gzip
+2025-06-23 14:45:07,179 - damicore_ncd - INFO - Iniciando processamento do diretório: C:\Users\55179\AppData\Local\Temp\damicore_test_nxvpwv2u\small
+2025-06-23 14:45:07,180 - damicore_ncd - INFO - Encontrados 4 arquivos para processar
+2025-06-23 14:45:07,183 - damicore_ncd - INFO - 4/4 arquivos copiados para processamento
+2025-06-23 14:45:07,184 - damicore_ncd - INFO - Processando 4 arquivos de C:\Users\55179\AppData\Local\Temp\damicore_input_gm_51gr0
+2025-06-23 14:45:07,185 - damicore_ncd - INFO - Iniciando execução do DAMICORE com compressor gzip
+2025-06-23 14:45:07,403 - damicore_ncd - INFO - Execução do DAMICORE concluída em 0.22 segundos
+2025-06-23 14:45:07,403 - damicore_ncd - WARNING - Avisos/erros do DAMICORE:
+usage: damicore.py [-h] [-c {gzip,bzip2,ppmd}] [-P {concat,interleave}]
+                   [-o OUTPUT] [-f {csv,phylip}] [--slowness SLOWNESS]
+                   [--model-order MODEL_ORDER] [--memory MEMORY]
+                   [--block-size BLOCK_SIZE] [--serial | --parallel] [-v]
+                   [--no-verbose] [-V] [--ncd-output NCD_OUTPUT]
+                   [--tree-output TREE_OUTPUT] [--graph-image GRAPH_IMAGE]
+                   directory
+damicore.py: error: unrecognized arguments: --force
+
+2025-06-23 14:45:07,403 - damicore_ncd - ERROR - DAMICORE falhou com código de saída 2:
+usage: damicore.py [-h] [-c {gzip,bzip2,ppmd}] [-P {concat,interleave}]
+                   [-o OUTPUT] [-f {csv,phylip}] [--slowness SLOWNESS]
+                   [--model-order MODEL_ORDER] [--memory MEMORY]
+                   [--block-size BLOCK_SIZE] [--serial | --parallel] [-v]
+                   [--no-verbose] [-V] [--ncd-output NCD_OUTPUT]
+                   [--tree-output TREE_OUTPUT] [--graph-image GRAPH_IMAGE]
+                   directory
+damicore.py: error: unrecognized arguments: --force
+2025-06-23 14:45:07,405 - damicore_ncd - ERROR - Falha ao executar o DAMICORE
+2025-06-23 14:45:07,405 - damicore_ncd - ERROR - Erro durante o processamento: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 307, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:45:07,406 - damicore_ncd - ERROR - Erro ao gerar matriz NCD: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 652, in generate_ncd_matrix
+    results = process_directory(
+              ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 307, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:45:07,436 - damicore_ncd - INFO - Iniciando geração de matriz NCD com os parâmetros: input_dir=C:\Users\55179\AppData\Local\Temp\ncd_comparison_0ccotsp1\data, compressor=gzip, max_workers=1, cleanup=True
+2025-06-23 14:45:07,436 - damicore_ncd - INFO - Encontrados 4 arquivos em C:\Users\55179\AppData\Local\Temp\ncd_comparison_0ccotsp1\data
+2025-06-23 14:45:07,436 - damicore_ncd - INFO - Tamanho total dos arquivos: 0.00 MB
+2025-06-23 14:45:07,437 - damicore_ncd - INFO - Iniciando processamento com compressor: gzip
+2025-06-23 14:45:07,437 - damicore_ncd - INFO - Iniciando processamento do diretório: C:\Users\55179\AppData\Local\Temp\ncd_comparison_0ccotsp1\data
+2025-06-23 14:45:07,437 - damicore_ncd - INFO - Encontrados 4 arquivos para processar
+2025-06-23 14:45:07,440 - damicore_ncd - INFO - 4/4 arquivos copiados para processamento
+2025-06-23 14:45:07,441 - damicore_ncd - INFO - Processando 4 arquivos de C:\Users\55179\AppData\Local\Temp\damicore_input_w2km6nb9
+2025-06-23 14:45:07,443 - damicore_ncd - INFO - Iniciando execução do DAMICORE com compressor gzip
+2025-06-23 14:45:07,664 - damicore_ncd - INFO - Execução do DAMICORE concluída em 0.22 segundos
+2025-06-23 14:45:07,664 - damicore_ncd - WARNING - Avisos/erros do DAMICORE:
+usage: damicore.py [-h] [-c {gzip,bzip2,ppmd}] [-P {concat,interleave}]
+                   [-o OUTPUT] [-f {csv,phylip}] [--slowness SLOWNESS]
+                   [--model-order MODEL_ORDER] [--memory MEMORY]
+                   [--block-size BLOCK_SIZE] [--serial | --parallel] [-v]
+                   [--no-verbose] [-V] [--ncd-output NCD_OUTPUT]
+                   [--tree-output TREE_OUTPUT] [--graph-image GRAPH_IMAGE]
+                   directory
+damicore.py: error: unrecognized arguments: --force
+
+2025-06-23 14:45:07,665 - damicore_ncd - ERROR - DAMICORE falhou com código de saída 2:
+usage: damicore.py [-h] [-c {gzip,bzip2,ppmd}] [-P {concat,interleave}]
+                   [-o OUTPUT] [-f {csv,phylip}] [--slowness SLOWNESS]
+                   [--model-order MODEL_ORDER] [--memory MEMORY]
+                   [--block-size BLOCK_SIZE] [--serial | --parallel] [-v]
+                   [--no-verbose] [-V] [--ncd-output NCD_OUTPUT]
+                   [--tree-output TREE_OUTPUT] [--graph-image GRAPH_IMAGE]
+                   directory
+damicore.py: error: unrecognized arguments: --force
+2025-06-23 14:45:07,665 - damicore_ncd - ERROR - Falha ao executar o DAMICORE
+2025-06-23 14:45:07,665 - damicore_ncd - ERROR - Erro durante o processamento: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 307, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:45:07,666 - damicore_ncd - ERROR - Erro ao gerar matriz NCD: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 652, in generate_ncd_matrix
+    results = process_directory(
+              ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 307, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:45:07,776 - damicore_ncd - INFO - Iniciando geração de matriz NCD com os parâmetros: input_dir=C:\Users\55179\AppData\Local\Temp\tmpvxrgjges\data, compressor=gzip, max_workers=2, cleanup=True
+2025-06-23 14:45:07,776 - damicore_ncd - INFO - Encontrados 4 arquivos em C:\Users\55179\AppData\Local\Temp\tmpvxrgjges\data
+2025-06-23 14:45:07,777 - damicore_ncd - INFO - Tamanho total dos arquivos: 0.00 MB
+2025-06-23 14:45:07,777 - damicore_ncd - INFO - Iniciando processamento com compressor: gzip
+2025-06-23 14:45:07,777 - damicore_ncd - INFO - Iniciando processamento do diretório: C:\Users\55179\AppData\Local\Temp\tmpvxrgjges\data
+2025-06-23 14:45:07,777 - damicore_ncd - INFO - Encontrados 4 arquivos para processar
+2025-06-23 14:45:07,780 - damicore_ncd - INFO - 4/4 arquivos copiados para processamento
+2025-06-23 14:45:07,781 - damicore_ncd - INFO - Processando 4 arquivos de C:\Users\55179\AppData\Local\Temp\damicore_input_3ri45urr
+2025-06-23 14:45:07,781 - damicore_ncd - INFO - Iniciando execução do DAMICORE com compressor gzip
+2025-06-23 14:45:07,993 - damicore_ncd - INFO - Execução do DAMICORE concluída em 0.21 segundos
+2025-06-23 14:45:07,993 - damicore_ncd - WARNING - Avisos/erros do DAMICORE:
+usage: damicore.py [-h] [-c {gzip,bzip2,ppmd}] [-P {concat,interleave}]
+                   [-o OUTPUT] [-f {csv,phylip}] [--slowness SLOWNESS]
+                   [--model-order MODEL_ORDER] [--memory MEMORY]
+                   [--block-size BLOCK_SIZE] [--serial | --parallel] [-v]
+                   [--no-verbose] [-V] [--ncd-output NCD_OUTPUT]
+                   [--tree-output TREE_OUTPUT] [--graph-image GRAPH_IMAGE]
+                   directory
+damicore.py: error: unrecognized arguments: --force
+
+2025-06-23 14:45:07,993 - damicore_ncd - ERROR - DAMICORE falhou com código de saída 2:
+usage: damicore.py [-h] [-c {gzip,bzip2,ppmd}] [-P {concat,interleave}]
+                   [-o OUTPUT] [-f {csv,phylip}] [--slowness SLOWNESS]
+                   [--model-order MODEL_ORDER] [--memory MEMORY]
+                   [--block-size BLOCK_SIZE] [--serial | --parallel] [-v]
+                   [--no-verbose] [-V] [--ncd-output NCD_OUTPUT]
+                   [--tree-output TREE_OUTPUT] [--graph-image GRAPH_IMAGE]
+                   directory
+damicore.py: error: unrecognized arguments: --force
+2025-06-23 14:45:07,994 - damicore_ncd - ERROR - Falha ao executar o DAMICORE
+2025-06-23 14:45:07,994 - damicore_ncd - ERROR - Erro durante o processamento: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 307, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:45:07,995 - damicore_ncd - ERROR - Erro ao gerar matriz NCD: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 652, in generate_ncd_matrix
+    results = process_directory(
+              ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 307, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:46:43,028 - damicore_ncd - INFO - Iniciando geração de matriz NCD com os parâmetros: input_dir=C:\Users\55179\AppData\Local\Temp\damicore_test_bw68r01z\medium, compressor=gzip, max_workers=2, cleanup=True
+2025-06-23 14:46:43,029 - damicore_ncd - INFO - Encontrados 10 arquivos em C:\Users\55179\AppData\Local\Temp\damicore_test_bw68r01z\medium
+2025-06-23 14:46:43,029 - damicore_ncd - INFO - Tamanho total dos arquivos: 0.00 MB
+2025-06-23 14:46:43,029 - damicore_ncd - INFO - Iniciando processamento com compressor: gzip
+2025-06-23 14:46:43,029 - damicore_ncd - INFO - Iniciando processamento do diretório: C:\Users\55179\AppData\Local\Temp\damicore_test_bw68r01z\medium
+2025-06-23 14:46:43,030 - damicore_ncd - INFO - Encontrados 10 arquivos para processar
+2025-06-23 14:46:43,036 - damicore_ncd - INFO - 10/10 arquivos copiados para processamento
+2025-06-23 14:46:43,036 - damicore_ncd - INFO - Processando 10 arquivos de C:\Users\55179\AppData\Local\Temp\damicore_input_raij6q57
+2025-06-23 14:46:43,037 - damicore_ncd - INFO - Iniciando execução do DAMICORE com compressor gzip
+2025-06-23 14:46:44,878 - damicore_ncd - INFO - Execução do DAMICORE concluída em 1.84 segundos
+2025-06-23 14:46:44,878 - damicore_ncd - WARNING - Avisos/erros do DAMICORE:
+Performing NCD distance matrix calculation...
+Compressing individual files...
+
+[                    ]   0 %
+[                    ]   0 %
+[##                  ]  10 %
+[####                ]  20 %
+[######              ]  30 %
+[########            ]  40 %
+[##########          ]  50 %
+[############        ]  60 %
+[##############      ]  70 %
+[################    ]  80 %
+[##################  ]  90 %
+Compressing file pairs...
+
+[                    ]   0 %
+[                    ]   0 %
+[                    ]   2 %
+[#                   ]   4 %
+[#                   ]   7 %
+[##                  ]   9 %
+[##                  ]  11 %
+[###                 ]  13 %
+[###                 ]  16 %
+[####                ]  18 %
+[####                ]  20 %
+[####                ]  22 %
+[#####               ]  24 %
+[#####               ]  27 %
+[######              ]  29 %
+[######              ]  31 %
+[#######             ]  33 %
+[#######             ]  36 %
+[########            ]  38 %
+[########            ]  40 %
+[########            ]  42 %
+[#########           ]  44 %
+[#########           ]  47 %
+[##########          ]  49 %
+[##########          ]  51 %
+[###########         ]  53 %
+[###########         ]  56 %
+[############        ]  58 %
+[############        ]  60 %
+[############        ]  62 %
+[#############       ]  64 %
+[#############       ]  67 %
+[##############      ]  69 %
+[##############      ]  71 %
+[###############     ]  73 %
+[###############     ]  76 %
+[################    ]  78 %
+[################    ]  80 %
+[################    ]  82 %
+[#################   ]  84 %
+[#################   ]  87 %
+[##################  ]  89 %
+[##################  ]  91 %
+[################### ]  93 %
+[################### ]  96 %
+[####################]  98 %
+
+Simplifying graph...
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 84, in <module>
+    d = clustering(a.directory,
+        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 22, in clustering
+    tree = nj.neighbor_joining(m, ids)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\tree_simplification.py", line 117, in neighbor_joining
+    q = calculate_q(m, s)
+        ^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\tree_simplification.py", line 44, in calculate_q
+    q[i][j] = (n - 2) * dij - sums[i] - sums[j]
+                              ~~~~^^^
+TypeError: 'map' object is not subscriptable
+
+2025-06-23 14:46:44,878 - damicore_ncd - ERROR - DAMICORE falhou com código de saída 1:
+Performing NCD distance matrix calculation...
+Compressing individual files...
+
+[                    ]   0 %
+[                    ]   0 %
+[##                  ]  10 %
+[####                ]  20 %
+[######              ]  30 %
+[########            ]  40 %
+[##########          ]  50 %
+[############        ]  60 %
+[##############      ]  70 %
+[################    ]  80 %
+[##################  ]  90 %
+Compressing file pairs...
+
+[                    ]   0 %
+[                    ]   0 %
+[                    ]   2 %
+[#                   ]   4 %
+[#                   ]   7 %
+[##                  ]   9 %
+[##                  ]  11 %
+[###                 ]  13 %
+[###                 ]  16 %
+[####                ]  18 %
+[####                ]  20 %
+[####                ]  22 %
+[#####               ]  24 %
+[#####               ]  27 %
+[######              ]  29 %
+[######              ]  31 %
+[#######             ]  33 %
+[#######             ]  36 %
+[########            ]  38 %
+[########            ]  40 %
+[########            ]  42 %
+[#########           ]  44 %
+[#########           ]  47 %
+[##########          ]  49 %
+[##########          ]  51 %
+[###########         ]  53 %
+[###########         ]  56 %
+[############        ]  58 %
+[############        ]  60 %
+[############        ]  62 %
+[#############       ]  64 %
+[#############       ]  67 %
+[##############      ]  69 %
+[##############      ]  71 %
+[###############     ]  73 %
+[###############     ]  76 %
+[################    ]  78 %
+[################    ]  80 %
+[################    ]  82 %
+[#################   ]  84 %
+[#################   ]  87 %
+[##################  ]  89 %
+[##################  ]  91 %
+[################### ]  93 %
+[################### ]  96 %
+[####################]  98 %
+
+Simplifying graph...
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 84, in <module>
+    d = clustering(a.directory,
+        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 22, in clustering
+    tree = nj.neighbor_joining(m, ids)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\tree_simplification.py", line 117, in neighbor_joining
+    q = calculate_q(m, s)
+        ^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\tree_simplification.py", line 44, in calculate_q
+    q[i][j] = (n - 2) * dij - sums[i] - sums[j]
+                              ~~~~^^^
+TypeError: 'map' object is not subscriptable
+2025-06-23 14:46:44,880 - damicore_ncd - ERROR - Falha ao executar o DAMICORE
+2025-06-23 14:46:44,881 - damicore_ncd - ERROR - Erro durante o processamento: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 306, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:46:44,885 - damicore_ncd - ERROR - Erro ao gerar matriz NCD: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 651, in generate_ncd_matrix
+    results = process_directory(
+              ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 306, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:46:44,889 - damicore_ncd - INFO - Iniciando geração de matriz NCD com os parâmetros: input_dir=C:\Users\55179\AppData\Local\Temp\damicore_test_bw68r01z\small, compressor=gzip, max_workers=2, cleanup=True
+2025-06-23 14:46:44,889 - damicore_ncd - INFO - Encontrados 4 arquivos em C:\Users\55179\AppData\Local\Temp\damicore_test_bw68r01z\small
+2025-06-23 14:46:44,890 - damicore_ncd - INFO - Tamanho total dos arquivos: 0.00 MB
+2025-06-23 14:46:44,890 - damicore_ncd - INFO - Iniciando processamento com compressor: gzip
+2025-06-23 14:46:44,890 - damicore_ncd - INFO - Iniciando processamento do diretório: C:\Users\55179\AppData\Local\Temp\damicore_test_bw68r01z\small
+2025-06-23 14:46:44,891 - damicore_ncd - INFO - Encontrados 4 arquivos para processar
+2025-06-23 14:46:44,895 - damicore_ncd - INFO - 4/4 arquivos copiados para processamento
+2025-06-23 14:46:44,896 - damicore_ncd - INFO - Processando 4 arquivos de C:\Users\55179\AppData\Local\Temp\damicore_input_ee31q5ee
+2025-06-23 14:46:44,897 - damicore_ncd - INFO - Iniciando execução do DAMICORE com compressor gzip
+2025-06-23 14:46:45,966 - damicore_ncd - INFO - Execução do DAMICORE concluída em 1.07 segundos
+2025-06-23 14:46:45,967 - damicore_ncd - WARNING - Avisos/erros do DAMICORE:
+Performing NCD distance matrix calculation...
+Compressing individual files...
+
+[                    ]   0 %
+[                    ]   0 %
+[#####               ]  25 %
+[##########          ]  50 %
+[###############     ]  75 %
+Compressing file pairs...
+
+[                    ]   0 %
+[                    ]   0 %
+[###                 ]  17 %
+[#######             ]  33 %
+[##########          ]  50 %
+[#############       ]  67 %
+[#################   ]  83 %
+
+Simplifying graph...
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 84, in <module>
+    d = clustering(a.directory,
+        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 22, in clustering
+    tree = nj.neighbor_joining(m, ids)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\tree_simplification.py", line 117, in neighbor_joining
+    q = calculate_q(m, s)
+        ^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\tree_simplification.py", line 44, in calculate_q
+    q[i][j] = (n - 2) * dij - sums[i] - sums[j]
+                              ~~~~^^^
+TypeError: 'map' object is not subscriptable
+
+2025-06-23 14:46:45,967 - damicore_ncd - ERROR - DAMICORE falhou com código de saída 1:
+Performing NCD distance matrix calculation...
+Compressing individual files...
+
+[                    ]   0 %
+[                    ]   0 %
+[#####               ]  25 %
+[##########          ]  50 %
+[###############     ]  75 %
+Compressing file pairs...
+
+[                    ]   0 %
+[                    ]   0 %
+[###                 ]  17 %
+[#######             ]  33 %
+[##########          ]  50 %
+[#############       ]  67 %
+[#################   ]  83 %
+
+Simplifying graph...
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 84, in <module>
+    d = clustering(a.directory,
+        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 22, in clustering
+    tree = nj.neighbor_joining(m, ids)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\tree_simplification.py", line 117, in neighbor_joining
+    q = calculate_q(m, s)
+        ^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\tree_simplification.py", line 44, in calculate_q
+    q[i][j] = (n - 2) * dij - sums[i] - sums[j]
+                              ~~~~^^^
+TypeError: 'map' object is not subscriptable
+2025-06-23 14:46:45,968 - damicore_ncd - ERROR - Falha ao executar o DAMICORE
+2025-06-23 14:46:45,968 - damicore_ncd - ERROR - Erro durante o processamento: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 306, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:46:45,969 - damicore_ncd - ERROR - Erro ao gerar matriz NCD: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 651, in generate_ncd_matrix
+    results = process_directory(
+              ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 306, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:46:45,995 - damicore_ncd - INFO - Iniciando geração de matriz NCD com os parâmetros: input_dir=C:\Users\55179\AppData\Local\Temp\ncd_comparison_g5n1kwuo\data, compressor=gzip, max_workers=1, cleanup=True
+2025-06-23 14:46:45,996 - damicore_ncd - INFO - Encontrados 4 arquivos em C:\Users\55179\AppData\Local\Temp\ncd_comparison_g5n1kwuo\data
+2025-06-23 14:46:45,996 - damicore_ncd - INFO - Tamanho total dos arquivos: 0.00 MB
+2025-06-23 14:46:45,996 - damicore_ncd - INFO - Iniciando processamento com compressor: gzip
+2025-06-23 14:46:45,996 - damicore_ncd - INFO - Iniciando processamento do diretório: C:\Users\55179\AppData\Local\Temp\ncd_comparison_g5n1kwuo\data
+2025-06-23 14:46:45,997 - damicore_ncd - INFO - Encontrados 4 arquivos para processar
+2025-06-23 14:46:46,000 - damicore_ncd - INFO - 4/4 arquivos copiados para processamento
+2025-06-23 14:46:46,001 - damicore_ncd - INFO - Processando 4 arquivos de C:\Users\55179\AppData\Local\Temp\damicore_input_51_6l47u
+2025-06-23 14:46:46,001 - damicore_ncd - INFO - Iniciando execução do DAMICORE com compressor gzip
+2025-06-23 14:46:47,063 - damicore_ncd - INFO - Execução do DAMICORE concluída em 1.06 segundos
+2025-06-23 14:46:47,063 - damicore_ncd - WARNING - Avisos/erros do DAMICORE:
+Performing NCD distance matrix calculation...
+Compressing individual files...
+
+[                    ]   0 %
+[                    ]   0 %
+[#####               ]  25 %
+[##########          ]  50 %
+[###############     ]  75 %
+Compressing file pairs...
+
+[                    ]   0 %
+[                    ]   0 %
+[###                 ]  17 %
+[#######             ]  33 %
+[##########          ]  50 %
+[#############       ]  67 %
+[#################   ]  83 %
+
+Simplifying graph...
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 84, in <module>
+    d = clustering(a.directory,
+        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 22, in clustering
+    tree = nj.neighbor_joining(m, ids)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\tree_simplification.py", line 117, in neighbor_joining
+    q = calculate_q(m, s)
+        ^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\tree_simplification.py", line 44, in calculate_q
+    q[i][j] = (n - 2) * dij - sums[i] - sums[j]
+                              ~~~~^^^
+TypeError: 'map' object is not subscriptable
+
+2025-06-23 14:46:47,063 - damicore_ncd - ERROR - DAMICORE falhou com código de saída 1:
+Performing NCD distance matrix calculation...
+Compressing individual files...
+
+[                    ]   0 %
+[                    ]   0 %
+[#####               ]  25 %
+[##########          ]  50 %
+[###############     ]  75 %
+Compressing file pairs...
+
+[                    ]   0 %
+[                    ]   0 %
+[###                 ]  17 %
+[#######             ]  33 %
+[##########          ]  50 %
+[#############       ]  67 %
+[#################   ]  83 %
+
+Simplifying graph...
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 84, in <module>
+    d = clustering(a.directory,
+        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 22, in clustering
+    tree = nj.neighbor_joining(m, ids)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\tree_simplification.py", line 117, in neighbor_joining
+    q = calculate_q(m, s)
+        ^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\tree_simplification.py", line 44, in calculate_q
+    q[i][j] = (n - 2) * dij - sums[i] - sums[j]
+                              ~~~~^^^
+TypeError: 'map' object is not subscriptable
+2025-06-23 14:46:47,064 - damicore_ncd - ERROR - Falha ao executar o DAMICORE
+2025-06-23 14:46:47,064 - damicore_ncd - ERROR - Erro durante o processamento: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 306, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:46:47,065 - damicore_ncd - ERROR - Erro ao gerar matriz NCD: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 651, in generate_ncd_matrix
+    results = process_directory(
+              ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 306, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:46:47,201 - damicore_ncd - INFO - Iniciando geração de matriz NCD com os parâmetros: input_dir=C:\Users\55179\AppData\Local\Temp\tmpxuipljhv\data, compressor=gzip, max_workers=2, cleanup=True
+2025-06-23 14:46:47,202 - damicore_ncd - INFO - Encontrados 4 arquivos em C:\Users\55179\AppData\Local\Temp\tmpxuipljhv\data
+2025-06-23 14:46:47,202 - damicore_ncd - INFO - Tamanho total dos arquivos: 0.00 MB
+2025-06-23 14:46:47,202 - damicore_ncd - INFO - Iniciando processamento com compressor: gzip
+2025-06-23 14:46:47,202 - damicore_ncd - INFO - Iniciando processamento do diretório: C:\Users\55179\AppData\Local\Temp\tmpxuipljhv\data
+2025-06-23 14:46:47,202 - damicore_ncd - INFO - Encontrados 4 arquivos para processar
+2025-06-23 14:46:47,205 - damicore_ncd - INFO - 4/4 arquivos copiados para processamento
+2025-06-23 14:46:47,205 - damicore_ncd - INFO - Processando 4 arquivos de C:\Users\55179\AppData\Local\Temp\damicore_input_yi37k05a
+2025-06-23 14:46:47,206 - damicore_ncd - INFO - Iniciando execução do DAMICORE com compressor gzip
+2025-06-23 14:46:48,256 - damicore_ncd - INFO - Execução do DAMICORE concluída em 1.05 segundos
+2025-06-23 14:46:48,257 - damicore_ncd - WARNING - Avisos/erros do DAMICORE:
+Performing NCD distance matrix calculation...
+Compressing individual files...
+
+[                    ]   0 %
+[                    ]   0 %
+[#####               ]  25 %
+[##########          ]  50 %
+[###############     ]  75 %
+Compressing file pairs...
+
+[                    ]   0 %
+[                    ]   0 %
+[###                 ]  17 %
+[#######             ]  33 %
+[##########          ]  50 %
+[#############       ]  67 %
+[#################   ]  83 %
+
+Simplifying graph...
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 84, in <module>
+    d = clustering(a.directory,
+        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 22, in clustering
+    tree = nj.neighbor_joining(m, ids)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\tree_simplification.py", line 117, in neighbor_joining
+    q = calculate_q(m, s)
+        ^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\tree_simplification.py", line 44, in calculate_q
+    q[i][j] = (n - 2) * dij - sums[i] - sums[j]
+                              ~~~~^^^
+TypeError: 'map' object is not subscriptable
+
+2025-06-23 14:46:48,257 - damicore_ncd - ERROR - DAMICORE falhou com código de saída 1:
+Performing NCD distance matrix calculation...
+Compressing individual files...
+
+[                    ]   0 %
+[                    ]   0 %
+[#####               ]  25 %
+[##########          ]  50 %
+[###############     ]  75 %
+Compressing file pairs...
+
+[                    ]   0 %
+[                    ]   0 %
+[###                 ]  17 %
+[#######             ]  33 %
+[##########          ]  50 %
+[#############       ]  67 %
+[#################   ]  83 %
+
+Simplifying graph...
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 84, in <module>
+    d = clustering(a.directory,
+        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 22, in clustering
+    tree = nj.neighbor_joining(m, ids)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\tree_simplification.py", line 117, in neighbor_joining
+    q = calculate_q(m, s)
+        ^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\tree_simplification.py", line 44, in calculate_q
+    q[i][j] = (n - 2) * dij - sums[i] - sums[j]
+                              ~~~~^^^
+TypeError: 'map' object is not subscriptable
+2025-06-23 14:46:48,258 - damicore_ncd - ERROR - Falha ao executar o DAMICORE
+2025-06-23 14:46:48,258 - damicore_ncd - ERROR - Erro durante o processamento: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 306, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:46:48,260 - damicore_ncd - ERROR - Erro ao gerar matriz NCD: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 651, in generate_ncd_matrix
+    results = process_directory(
+              ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 306, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:47:47,236 - damicore_ncd - INFO - Iniciando geração de matriz NCD com os parâmetros: input_dir=C:\Users\55179\AppData\Local\Temp\damicore_test_u6fg6qf_\medium, compressor=gzip, max_workers=2, cleanup=True
+2025-06-23 14:47:47,236 - damicore_ncd - INFO - Encontrados 10 arquivos em C:\Users\55179\AppData\Local\Temp\damicore_test_u6fg6qf_\medium
+2025-06-23 14:47:47,237 - damicore_ncd - INFO - Tamanho total dos arquivos: 0.00 MB
+2025-06-23 14:47:47,237 - damicore_ncd - INFO - Iniciando processamento com compressor: gzip
+2025-06-23 14:47:47,237 - damicore_ncd - INFO - Iniciando processamento do diretório: C:\Users\55179\AppData\Local\Temp\damicore_test_u6fg6qf_\medium
+2025-06-23 14:47:47,237 - damicore_ncd - INFO - Encontrados 10 arquivos para processar
+2025-06-23 14:47:47,244 - damicore_ncd - INFO - 10/10 arquivos copiados para processamento
+2025-06-23 14:47:47,245 - damicore_ncd - INFO - Processando 10 arquivos de C:\Users\55179\AppData\Local\Temp\damicore_input_gfz4uml5
+2025-06-23 14:47:47,246 - damicore_ncd - INFO - Iniciando execução do DAMICORE com compressor gzip
+2025-06-23 14:47:48,639 - damicore_ncd - INFO - Execução do DAMICORE concluída em 1.39 segundos
+2025-06-23 14:47:48,639 - damicore_ncd - WARNING - Avisos/erros do DAMICORE:
+Performing NCD distance matrix calculation...
+Compressing individual files...
+
+[                    ]   0 %
+[                    ]   0 %
+[##                  ]  10 %
+[####                ]  20 %
+[######              ]  30 %
+[########            ]  40 %
+[##########          ]  50 %
+[############        ]  60 %
+[##############      ]  70 %
+[################    ]  80 %
+[##################  ]  90 %
+Compressing file pairs...
+
+[                    ]   0 %
+[                    ]   0 %
+[                    ]   2 %
+[#                   ]   4 %
+[#                   ]   7 %
+[##                  ]   9 %
+[##                  ]  11 %
+[###                 ]  13 %
+[###                 ]  16 %
+[####                ]  18 %
+[####                ]  20 %
+[####                ]  22 %
+[#####               ]  24 %
+[#####               ]  27 %
+[######              ]  29 %
+[######              ]  31 %
+[#######             ]  33 %
+[#######             ]  36 %
+[########            ]  38 %
+[########            ]  40 %
+[########            ]  42 %
+[#########           ]  44 %
+[#########           ]  47 %
+[##########          ]  49 %
+[##########          ]  51 %
+[###########         ]  53 %
+[###########         ]  56 %
+[############        ]  58 %
+[############        ]  60 %
+[############        ]  62 %
+[#############       ]  64 %
+[#############       ]  67 %
+[##############      ]  69 %
+[##############      ]  71 %
+[###############     ]  73 %
+[###############     ]  76 %
+[################    ]  78 %
+[################    ]  80 %
+[################    ]  82 %
+[#################   ]  84 %
+[#################   ]  87 %
+[##################  ]  89 %
+[##################  ]  91 %
+[################### ]  93 %
+[################### ]  96 %
+[####################]  98 %
+
+Simplifying graph...
+
+Clustering elements...
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 84, in <module>
+    d = clustering(a.directory,
+        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 25, in clustering
+    g = to_graph(tree)
+        ^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\tree.py", line 77, in to_graph
+    c = tree.content if tree.content is not None else str(serial.next())
+                                                          ^^^^^^^^^^^
+AttributeError: 'itertools.count' object has no attribute 'next'
+
+2025-06-23 14:47:48,640 - damicore_ncd - ERROR - DAMICORE falhou com código de saída 1:
+Performing NCD distance matrix calculation...
+Compressing individual files...
+
+[                    ]   0 %
+[                    ]   0 %
+[##                  ]  10 %
+[####                ]  20 %
+[######              ]  30 %
+[########            ]  40 %
+[##########          ]  50 %
+[############        ]  60 %
+[##############      ]  70 %
+[################    ]  80 %
+[##################  ]  90 %
+Compressing file pairs...
+
+[                    ]   0 %
+[                    ]   0 %
+[                    ]   2 %
+[#                   ]   4 %
+[#                   ]   7 %
+[##                  ]   9 %
+[##                  ]  11 %
+[###                 ]  13 %
+[###                 ]  16 %
+[####                ]  18 %
+[####                ]  20 %
+[####                ]  22 %
+[#####               ]  24 %
+[#####               ]  27 %
+[######              ]  29 %
+[######              ]  31 %
+[#######             ]  33 %
+[#######             ]  36 %
+[########            ]  38 %
+[########            ]  40 %
+[########            ]  42 %
+[#########           ]  44 %
+[#########           ]  47 %
+[##########          ]  49 %
+[##########          ]  51 %
+[###########         ]  53 %
+[###########         ]  56 %
+[############        ]  58 %
+[############        ]  60 %
+[############        ]  62 %
+[#############       ]  64 %
+[#############       ]  67 %
+[##############      ]  69 %
+[##############      ]  71 %
+[###############     ]  73 %
+[###############     ]  76 %
+[################    ]  78 %
+[################    ]  80 %
+[################    ]  82 %
+[#################   ]  84 %
+[#################   ]  87 %
+[##################  ]  89 %
+[##################  ]  91 %
+[################### ]  93 %
+[################### ]  96 %
+[####################]  98 %
+
+Simplifying graph...
+
+Clustering elements...
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 84, in <module>
+    d = clustering(a.directory,
+        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 25, in clustering
+    g = to_graph(tree)
+        ^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\tree.py", line 77, in to_graph
+    c = tree.content if tree.content is not None else str(serial.next())
+                                                          ^^^^^^^^^^^
+AttributeError: 'itertools.count' object has no attribute 'next'
+2025-06-23 14:47:48,640 - damicore_ncd - ERROR - Falha ao executar o DAMICORE
+2025-06-23 14:47:48,640 - damicore_ncd - ERROR - Erro durante o processamento: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 306, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:47:48,643 - damicore_ncd - ERROR - Erro ao gerar matriz NCD: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 651, in generate_ncd_matrix
+    results = process_directory(
+              ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 306, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:47:48,645 - damicore_ncd - INFO - Iniciando geração de matriz NCD com os parâmetros: input_dir=C:\Users\55179\AppData\Local\Temp\damicore_test_u6fg6qf_\small, compressor=gzip, max_workers=2, cleanup=True
+2025-06-23 14:47:48,646 - damicore_ncd - INFO - Encontrados 4 arquivos em C:\Users\55179\AppData\Local\Temp\damicore_test_u6fg6qf_\small
+2025-06-23 14:47:48,646 - damicore_ncd - INFO - Tamanho total dos arquivos: 0.00 MB
+2025-06-23 14:47:48,646 - damicore_ncd - INFO - Iniciando processamento com compressor: gzip
+2025-06-23 14:47:48,646 - damicore_ncd - INFO - Iniciando processamento do diretório: C:\Users\55179\AppData\Local\Temp\damicore_test_u6fg6qf_\small
+2025-06-23 14:47:48,647 - damicore_ncd - INFO - Encontrados 4 arquivos para processar
+2025-06-23 14:47:48,650 - damicore_ncd - INFO - 4/4 arquivos copiados para processamento
+2025-06-23 14:47:48,650 - damicore_ncd - INFO - Processando 4 arquivos de C:\Users\55179\AppData\Local\Temp\damicore_input_6qs8ue_m
+2025-06-23 14:47:48,651 - damicore_ncd - INFO - Iniciando execução do DAMICORE com compressor gzip
+2025-06-23 14:47:49,886 - damicore_ncd - INFO - Execução do DAMICORE concluída em 1.23 segundos
+2025-06-23 14:47:49,886 - damicore_ncd - WARNING - Avisos/erros do DAMICORE:
+Performing NCD distance matrix calculation...
+Compressing individual files...
+
+[                    ]   0 %
+[                    ]   0 %
+[#####               ]  25 %
+[##########          ]  50 %
+[###############     ]  75 %
+Compressing file pairs...
+
+[                    ]   0 %
+[                    ]   0 %
+[###                 ]  17 %
+[#######             ]  33 %
+[##########          ]  50 %
+[#############       ]  67 %
+[#################   ]  83 %
+
+Simplifying graph...
+
+Clustering elements...
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 84, in <module>
+    d = clustering(a.directory,
+        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 25, in clustering
+    g = to_graph(tree)
+        ^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\tree.py", line 77, in to_graph
+    c = tree.content if tree.content is not None else str(serial.next())
+                                                          ^^^^^^^^^^^
+AttributeError: 'itertools.count' object has no attribute 'next'
+
+2025-06-23 14:47:49,886 - damicore_ncd - ERROR - DAMICORE falhou com código de saída 1:
+Performing NCD distance matrix calculation...
+Compressing individual files...
+
+[                    ]   0 %
+[                    ]   0 %
+[#####               ]  25 %
+[##########          ]  50 %
+[###############     ]  75 %
+Compressing file pairs...
+
+[                    ]   0 %
+[                    ]   0 %
+[###                 ]  17 %
+[#######             ]  33 %
+[##########          ]  50 %
+[#############       ]  67 %
+[#################   ]  83 %
+
+Simplifying graph...
+
+Clustering elements...
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 84, in <module>
+    d = clustering(a.directory,
+        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 25, in clustering
+    g = to_graph(tree)
+        ^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\tree.py", line 77, in to_graph
+    c = tree.content if tree.content is not None else str(serial.next())
+                                                          ^^^^^^^^^^^
+AttributeError: 'itertools.count' object has no attribute 'next'
+2025-06-23 14:47:49,887 - damicore_ncd - ERROR - Falha ao executar o DAMICORE
+2025-06-23 14:47:49,887 - damicore_ncd - ERROR - Erro durante o processamento: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 306, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:47:49,888 - damicore_ncd - ERROR - Erro ao gerar matriz NCD: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 651, in generate_ncd_matrix
+    results = process_directory(
+              ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 306, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:47:49,906 - damicore_ncd - INFO - Iniciando geração de matriz NCD com os parâmetros: input_dir=C:\Users\55179\AppData\Local\Temp\ncd_comparison_3ha2wkt_\data, compressor=gzip, max_workers=1, cleanup=True
+2025-06-23 14:47:49,906 - damicore_ncd - INFO - Encontrados 4 arquivos em C:\Users\55179\AppData\Local\Temp\ncd_comparison_3ha2wkt_\data
+2025-06-23 14:47:49,908 - damicore_ncd - INFO - Tamanho total dos arquivos: 0.00 MB
+2025-06-23 14:47:49,908 - damicore_ncd - INFO - Iniciando processamento com compressor: gzip
+2025-06-23 14:47:49,908 - damicore_ncd - INFO - Iniciando processamento do diretório: C:\Users\55179\AppData\Local\Temp\ncd_comparison_3ha2wkt_\data
+2025-06-23 14:47:49,908 - damicore_ncd - INFO - Encontrados 4 arquivos para processar
+2025-06-23 14:47:49,911 - damicore_ncd - INFO - 4/4 arquivos copiados para processamento
+2025-06-23 14:47:49,912 - damicore_ncd - INFO - Processando 4 arquivos de C:\Users\55179\AppData\Local\Temp\damicore_input_xx8erifr
+2025-06-23 14:47:49,913 - damicore_ncd - INFO - Iniciando execução do DAMICORE com compressor gzip
+2025-06-23 14:47:51,023 - damicore_ncd - INFO - Execução do DAMICORE concluída em 1.11 segundos
+2025-06-23 14:47:51,023 - damicore_ncd - WARNING - Avisos/erros do DAMICORE:
+Performing NCD distance matrix calculation...
+Compressing individual files...
+
+[                    ]   0 %
+[                    ]   0 %
+[#####               ]  25 %
+[##########          ]  50 %
+[###############     ]  75 %
+Compressing file pairs...
+
+[                    ]   0 %
+[                    ]   0 %
+[###                 ]  17 %
+[#######             ]  33 %
+[##########          ]  50 %
+[#############       ]  67 %
+[#################   ]  83 %
+
+Simplifying graph...
+
+Clustering elements...
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 84, in <module>
+    d = clustering(a.directory,
+        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 25, in clustering
+    g = to_graph(tree)
+        ^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\tree.py", line 77, in to_graph
+    c = tree.content if tree.content is not None else str(serial.next())
+                                                          ^^^^^^^^^^^
+AttributeError: 'itertools.count' object has no attribute 'next'
+
+2025-06-23 14:47:51,024 - damicore_ncd - ERROR - DAMICORE falhou com código de saída 1:
+Performing NCD distance matrix calculation...
+Compressing individual files...
+
+[                    ]   0 %
+[                    ]   0 %
+[#####               ]  25 %
+[##########          ]  50 %
+[###############     ]  75 %
+Compressing file pairs...
+
+[                    ]   0 %
+[                    ]   0 %
+[###                 ]  17 %
+[#######             ]  33 %
+[##########          ]  50 %
+[#############       ]  67 %
+[#################   ]  83 %
+
+Simplifying graph...
+
+Clustering elements...
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 84, in <module>
+    d = clustering(a.directory,
+        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 25, in clustering
+    g = to_graph(tree)
+        ^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\tree.py", line 77, in to_graph
+    c = tree.content if tree.content is not None else str(serial.next())
+                                                          ^^^^^^^^^^^
+AttributeError: 'itertools.count' object has no attribute 'next'
+2025-06-23 14:47:51,024 - damicore_ncd - ERROR - Falha ao executar o DAMICORE
+2025-06-23 14:47:51,025 - damicore_ncd - ERROR - Erro durante o processamento: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 306, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:47:51,026 - damicore_ncd - ERROR - Erro ao gerar matriz NCD: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 651, in generate_ncd_matrix
+    results = process_directory(
+              ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 306, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:47:51,132 - damicore_ncd - INFO - Iniciando geração de matriz NCD com os parâmetros: input_dir=C:\Users\55179\AppData\Local\Temp\tmp0o9ozlg1\data, compressor=gzip, max_workers=2, cleanup=True
+2025-06-23 14:47:51,132 - damicore_ncd - INFO - Encontrados 4 arquivos em C:\Users\55179\AppData\Local\Temp\tmp0o9ozlg1\data
+2025-06-23 14:47:51,132 - damicore_ncd - INFO - Tamanho total dos arquivos: 0.00 MB
+2025-06-23 14:47:51,132 - damicore_ncd - INFO - Iniciando processamento com compressor: gzip
+2025-06-23 14:47:51,132 - damicore_ncd - INFO - Iniciando processamento do diretório: C:\Users\55179\AppData\Local\Temp\tmp0o9ozlg1\data
+2025-06-23 14:47:51,133 - damicore_ncd - INFO - Encontrados 4 arquivos para processar
+2025-06-23 14:47:51,136 - damicore_ncd - INFO - 4/4 arquivos copiados para processamento
+2025-06-23 14:47:51,137 - damicore_ncd - INFO - Processando 4 arquivos de C:\Users\55179\AppData\Local\Temp\damicore_input_wtkpbtks
+2025-06-23 14:47:51,137 - damicore_ncd - INFO - Iniciando execução do DAMICORE com compressor gzip
+2025-06-23 14:47:52,191 - damicore_ncd - INFO - Execução do DAMICORE concluída em 1.05 segundos
+2025-06-23 14:47:52,191 - damicore_ncd - WARNING - Avisos/erros do DAMICORE:
+Performing NCD distance matrix calculation...
+Compressing individual files...
+
+[                    ]   0 %
+[                    ]   0 %
+[#####               ]  25 %
+[##########          ]  50 %
+[###############     ]  75 %
+Compressing file pairs...
+
+[                    ]   0 %
+[                    ]   0 %
+[###                 ]  17 %
+[#######             ]  33 %
+[##########          ]  50 %
+[#############       ]  67 %
+[#################   ]  83 %
+
+Simplifying graph...
+
+Clustering elements...
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 84, in <module>
+    d = clustering(a.directory,
+        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 25, in clustering
+    g = to_graph(tree)
+        ^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\tree.py", line 77, in to_graph
+    c = tree.content if tree.content is not None else str(serial.next())
+                                                          ^^^^^^^^^^^
+AttributeError: 'itertools.count' object has no attribute 'next'
+
+2025-06-23 14:47:52,191 - damicore_ncd - ERROR - DAMICORE falhou com código de saída 1:
+Performing NCD distance matrix calculation...
+Compressing individual files...
+
+[                    ]   0 %
+[                    ]   0 %
+[#####               ]  25 %
+[##########          ]  50 %
+[###############     ]  75 %
+Compressing file pairs...
+
+[                    ]   0 %
+[                    ]   0 %
+[###                 ]  17 %
+[#######             ]  33 %
+[##########          ]  50 %
+[#############       ]  67 %
+[#################   ]  83 %
+
+Simplifying graph...
+
+Clustering elements...
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 84, in <module>
+    d = clustering(a.directory,
+        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 25, in clustering
+    g = to_graph(tree)
+        ^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\tree.py", line 77, in to_graph
+    c = tree.content if tree.content is not None else str(serial.next())
+                                                          ^^^^^^^^^^^
+AttributeError: 'itertools.count' object has no attribute 'next'
+2025-06-23 14:47:52,193 - damicore_ncd - ERROR - Falha ao executar o DAMICORE
+2025-06-23 14:47:52,193 - damicore_ncd - ERROR - Erro durante o processamento: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 306, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:47:52,194 - damicore_ncd - ERROR - Erro ao gerar matriz NCD: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 651, in generate_ncd_matrix
+    results = process_directory(
+              ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 306, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:48:42,441 - damicore_ncd - INFO - Iniciando geração de matriz NCD com os parâmetros: input_dir=C:\Users\55179\AppData\Local\Temp\damicore_test_1735fbbv\medium, compressor=gzip, max_workers=2, cleanup=True
+2025-06-23 14:48:42,442 - damicore_ncd - INFO - Encontrados 10 arquivos em C:\Users\55179\AppData\Local\Temp\damicore_test_1735fbbv\medium
+2025-06-23 14:48:42,442 - damicore_ncd - INFO - Tamanho total dos arquivos: 0.00 MB
+2025-06-23 14:48:42,442 - damicore_ncd - INFO - Iniciando processamento com compressor: gzip
+2025-06-23 14:48:42,442 - damicore_ncd - INFO - Iniciando processamento do diretório: C:\Users\55179\AppData\Local\Temp\damicore_test_1735fbbv\medium
+2025-06-23 14:48:42,442 - damicore_ncd - INFO - Encontrados 10 arquivos para processar
+2025-06-23 14:48:42,448 - damicore_ncd - INFO - 10/10 arquivos copiados para processamento
+2025-06-23 14:48:42,449 - damicore_ncd - INFO - Processando 10 arquivos de C:\Users\55179\AppData\Local\Temp\damicore_input_d87ac7d7
+2025-06-23 14:48:42,450 - damicore_ncd - INFO - Iniciando execução do DAMICORE com compressor gzip
+2025-06-23 14:48:43,884 - damicore_ncd - INFO - Execução do DAMICORE concluída em 1.43 segundos
+2025-06-23 14:48:43,885 - damicore_ncd - WARNING - Avisos/erros do DAMICORE:
+Performing NCD distance matrix calculation...
+Compressing individual files...
+
+[                    ]   0 %
+[                    ]   0 %
+[##                  ]  10 %
+[####                ]  20 %
+[######              ]  30 %
+[########            ]  40 %
+[##########          ]  50 %
+[############        ]  60 %
+[##############      ]  70 %
+[################    ]  80 %
+[##################  ]  90 %
+Compressing file pairs...
+
+[                    ]   0 %
+[                    ]   0 %
+[                    ]   2 %
+[#                   ]   4 %
+[#                   ]   7 %
+[##                  ]   9 %
+[##                  ]  11 %
+[###                 ]  13 %
+[###                 ]  16 %
+[####                ]  18 %
+[####                ]  20 %
+[####                ]  22 %
+[#####               ]  24 %
+[#####               ]  27 %
+[######              ]  29 %
+[######              ]  31 %
+[#######             ]  33 %
+[#######             ]  36 %
+[########            ]  38 %
+[########            ]  40 %
+[########            ]  42 %
+[#########           ]  44 %
+[#########           ]  47 %
+[##########          ]  49 %
+[##########          ]  51 %
+[###########         ]  53 %
+[###########         ]  56 %
+[############        ]  58 %
+[############        ]  60 %
+[############        ]  62 %
+[#############       ]  64 %
+[#############       ]  67 %
+[##############      ]  69 %
+[##############      ]  71 %
+[###############     ]  73 %
+[###############     ]  76 %
+[################    ]  78 %
+[################    ]  80 %
+[################    ]  82 %
+[#################   ]  84 %
+[#################   ]  87 %
+[##################  ]  89 %
+[##################  ]  91 %
+[################### ]  93 %
+[################### ]  96 %
+[####################]  98 %
+
+Simplifying graph...
+
+Clustering elements...
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 134, in <module>
+    with open(a.output, 'wt') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+PermissionError: [Errno 13] Permission denied: 'C:\\Users\\55179\\AppData\\Local\\Temp\\damicore_ncd_10_01ozk\\results'
+
+2025-06-23 14:48:43,885 - damicore_ncd - ERROR - DAMICORE falhou com código de saída 1:
+Performing NCD distance matrix calculation...
+Compressing individual files...
+
+[                    ]   0 %
+[                    ]   0 %
+[##                  ]  10 %
+[####                ]  20 %
+[######              ]  30 %
+[########            ]  40 %
+[##########          ]  50 %
+[############        ]  60 %
+[##############      ]  70 %
+[################    ]  80 %
+[##################  ]  90 %
+Compressing file pairs...
+
+[                    ]   0 %
+[                    ]   0 %
+[                    ]   2 %
+[#                   ]   4 %
+[#                   ]   7 %
+[##                  ]   9 %
+[##                  ]  11 %
+[###                 ]  13 %
+[###                 ]  16 %
+[####                ]  18 %
+[####                ]  20 %
+[####                ]  22 %
+[#####               ]  24 %
+[#####               ]  27 %
+[######              ]  29 %
+[######              ]  31 %
+[#######             ]  33 %
+[#######             ]  36 %
+[########            ]  38 %
+[########            ]  40 %
+[########            ]  42 %
+[#########           ]  44 %
+[#########           ]  47 %
+[##########          ]  49 %
+[##########          ]  51 %
+[###########         ]  53 %
+[###########         ]  56 %
+[############        ]  58 %
+[############        ]  60 %
+[############        ]  62 %
+[#############       ]  64 %
+[#############       ]  67 %
+[##############      ]  69 %
+[##############      ]  71 %
+[###############     ]  73 %
+[###############     ]  76 %
+[################    ]  78 %
+[################    ]  80 %
+[################    ]  82 %
+[#################   ]  84 %
+[#################   ]  87 %
+[##################  ]  89 %
+[##################  ]  91 %
+[################### ]  93 %
+[################### ]  96 %
+[####################]  98 %
+
+Simplifying graph...
+
+Clustering elements...
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 134, in <module>
+    with open(a.output, 'wt') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+PermissionError: [Errno 13] Permission denied: 'C:\\Users\\55179\\AppData\\Local\\Temp\\damicore_ncd_10_01ozk\\results'
+2025-06-23 14:48:43,886 - damicore_ncd - ERROR - Falha ao executar o DAMICORE
+2025-06-23 14:48:43,886 - damicore_ncd - ERROR - Erro durante o processamento: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 306, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:48:43,888 - damicore_ncd - ERROR - Erro ao gerar matriz NCD: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 651, in generate_ncd_matrix
+    results = process_directory(
+              ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 306, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:48:43,890 - damicore_ncd - INFO - Iniciando geração de matriz NCD com os parâmetros: input_dir=C:\Users\55179\AppData\Local\Temp\damicore_test_1735fbbv\small, compressor=gzip, max_workers=2, cleanup=True
+2025-06-23 14:48:43,890 - damicore_ncd - INFO - Encontrados 4 arquivos em C:\Users\55179\AppData\Local\Temp\damicore_test_1735fbbv\small
+2025-06-23 14:48:43,890 - damicore_ncd - INFO - Tamanho total dos arquivos: 0.00 MB
+2025-06-23 14:48:43,891 - damicore_ncd - INFO - Iniciando processamento com compressor: gzip
+2025-06-23 14:48:43,891 - damicore_ncd - INFO - Iniciando processamento do diretório: C:\Users\55179\AppData\Local\Temp\damicore_test_1735fbbv\small
+2025-06-23 14:48:43,891 - damicore_ncd - INFO - Encontrados 4 arquivos para processar
+2025-06-23 14:48:43,894 - damicore_ncd - INFO - 4/4 arquivos copiados para processamento
+2025-06-23 14:48:43,895 - damicore_ncd - INFO - Processando 4 arquivos de C:\Users\55179\AppData\Local\Temp\damicore_input_7qspdmxi
+2025-06-23 14:48:43,896 - damicore_ncd - INFO - Iniciando execução do DAMICORE com compressor gzip
+2025-06-23 14:48:45,181 - damicore_ncd - INFO - Execução do DAMICORE concluída em 1.28 segundos
+2025-06-23 14:48:45,182 - damicore_ncd - WARNING - Avisos/erros do DAMICORE:
+Performing NCD distance matrix calculation...
+Compressing individual files...
+
+[                    ]   0 %
+[                    ]   0 %
+[#####               ]  25 %
+[##########          ]  50 %
+[###############     ]  75 %
+Compressing file pairs...
+
+[                    ]   0 %
+[                    ]   0 %
+[###                 ]  17 %
+[#######             ]  33 %
+[##########          ]  50 %
+[#############       ]  67 %
+[#################   ]  83 %
+
+Simplifying graph...
+
+Clustering elements...
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 134, in <module>
+    with open(a.output, 'wt') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+PermissionError: [Errno 13] Permission denied: 'C:\\Users\\55179\\AppData\\Local\\Temp\\damicore_ncd_oexi65un\\results'
+
+2025-06-23 14:48:45,182 - damicore_ncd - ERROR - DAMICORE falhou com código de saída 1:
+Performing NCD distance matrix calculation...
+Compressing individual files...
+
+[                    ]   0 %
+[                    ]   0 %
+[#####               ]  25 %
+[##########          ]  50 %
+[###############     ]  75 %
+Compressing file pairs...
+
+[                    ]   0 %
+[                    ]   0 %
+[###                 ]  17 %
+[#######             ]  33 %
+[##########          ]  50 %
+[#############       ]  67 %
+[#################   ]  83 %
+
+Simplifying graph...
+
+Clustering elements...
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 134, in <module>
+    with open(a.output, 'wt') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+PermissionError: [Errno 13] Permission denied: 'C:\\Users\\55179\\AppData\\Local\\Temp\\damicore_ncd_oexi65un\\results'
+2025-06-23 14:48:45,182 - damicore_ncd - ERROR - Falha ao executar o DAMICORE
+2025-06-23 14:48:45,182 - damicore_ncd - ERROR - Erro durante o processamento: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 306, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:48:45,184 - damicore_ncd - ERROR - Erro ao gerar matriz NCD: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 651, in generate_ncd_matrix
+    results = process_directory(
+              ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 306, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:48:45,206 - damicore_ncd - INFO - Iniciando geração de matriz NCD com os parâmetros: input_dir=C:\Users\55179\AppData\Local\Temp\ncd_comparison_cn1cwgdp\data, compressor=gzip, max_workers=1, cleanup=True
+2025-06-23 14:48:45,206 - damicore_ncd - INFO - Encontrados 4 arquivos em C:\Users\55179\AppData\Local\Temp\ncd_comparison_cn1cwgdp\data
+2025-06-23 14:48:45,206 - damicore_ncd - INFO - Tamanho total dos arquivos: 0.00 MB
+2025-06-23 14:48:45,207 - damicore_ncd - INFO - Iniciando processamento com compressor: gzip
+2025-06-23 14:48:45,207 - damicore_ncd - INFO - Iniciando processamento do diretório: C:\Users\55179\AppData\Local\Temp\ncd_comparison_cn1cwgdp\data
+2025-06-23 14:48:45,207 - damicore_ncd - INFO - Encontrados 4 arquivos para processar
+2025-06-23 14:48:45,210 - damicore_ncd - INFO - 4/4 arquivos copiados para processamento
+2025-06-23 14:48:45,211 - damicore_ncd - INFO - Processando 4 arquivos de C:\Users\55179\AppData\Local\Temp\damicore_input_syo40a63
+2025-06-23 14:48:45,212 - damicore_ncd - INFO - Iniciando execução do DAMICORE com compressor gzip
+2025-06-23 14:48:46,267 - damicore_ncd - INFO - Execução do DAMICORE concluída em 1.05 segundos
+2025-06-23 14:48:46,268 - damicore_ncd - WARNING - Avisos/erros do DAMICORE:
+Performing NCD distance matrix calculation...
+Compressing individual files...
+
+[                    ]   0 %
+[                    ]   0 %
+[#####               ]  25 %
+[##########          ]  50 %
+[###############     ]  75 %
+Compressing file pairs...
+
+[                    ]   0 %
+[                    ]   0 %
+[###                 ]  17 %
+[#######             ]  33 %
+[##########          ]  50 %
+[#############       ]  67 %
+[#################   ]  83 %
+
+Simplifying graph...
+
+Clustering elements...
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 134, in <module>
+    with open(a.output, 'wt') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+PermissionError: [Errno 13] Permission denied: 'C:\\Users\\55179\\AppData\\Local\\Temp\\damicore_ncd_ca17ekj6\\results'
+
+2025-06-23 14:48:46,268 - damicore_ncd - ERROR - DAMICORE falhou com código de saída 1:
+Performing NCD distance matrix calculation...
+Compressing individual files...
+
+[                    ]   0 %
+[                    ]   0 %
+[#####               ]  25 %
+[##########          ]  50 %
+[###############     ]  75 %
+Compressing file pairs...
+
+[                    ]   0 %
+[                    ]   0 %
+[###                 ]  17 %
+[#######             ]  33 %
+[##########          ]  50 %
+[#############       ]  67 %
+[#################   ]  83 %
+
+Simplifying graph...
+
+Clustering elements...
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 134, in <module>
+    with open(a.output, 'wt') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+PermissionError: [Errno 13] Permission denied: 'C:\\Users\\55179\\AppData\\Local\\Temp\\damicore_ncd_ca17ekj6\\results'
+2025-06-23 14:48:46,268 - damicore_ncd - ERROR - Falha ao executar o DAMICORE
+2025-06-23 14:48:46,269 - damicore_ncd - ERROR - Erro durante o processamento: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 306, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:48:46,270 - damicore_ncd - ERROR - Erro ao gerar matriz NCD: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 651, in generate_ncd_matrix
+    results = process_directory(
+              ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 306, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:48:46,380 - damicore_ncd - INFO - Iniciando geração de matriz NCD com os parâmetros: input_dir=C:\Users\55179\AppData\Local\Temp\tmp27he_a0k\data, compressor=gzip, max_workers=2, cleanup=True
+2025-06-23 14:48:46,381 - damicore_ncd - INFO - Encontrados 4 arquivos em C:\Users\55179\AppData\Local\Temp\tmp27he_a0k\data
+2025-06-23 14:48:46,381 - damicore_ncd - INFO - Tamanho total dos arquivos: 0.00 MB
+2025-06-23 14:48:46,381 - damicore_ncd - INFO - Iniciando processamento com compressor: gzip
+2025-06-23 14:48:46,382 - damicore_ncd - INFO - Iniciando processamento do diretório: C:\Users\55179\AppData\Local\Temp\tmp27he_a0k\data
+2025-06-23 14:48:46,382 - damicore_ncd - INFO - Encontrados 4 arquivos para processar
+2025-06-23 14:48:46,385 - damicore_ncd - INFO - 4/4 arquivos copiados para processamento
+2025-06-23 14:48:46,386 - damicore_ncd - INFO - Processando 4 arquivos de C:\Users\55179\AppData\Local\Temp\damicore_input_6f8al6_6
+2025-06-23 14:48:46,387 - damicore_ncd - INFO - Iniciando execução do DAMICORE com compressor gzip
+2025-06-23 14:48:47,482 - damicore_ncd - INFO - Execução do DAMICORE concluída em 1.10 segundos
+2025-06-23 14:48:47,482 - damicore_ncd - WARNING - Avisos/erros do DAMICORE:
+Performing NCD distance matrix calculation...
+Compressing individual files...
+
+[                    ]   0 %
+[                    ]   0 %
+[#####               ]  25 %
+[##########          ]  50 %
+[###############     ]  75 %
+Compressing file pairs...
+
+[                    ]   0 %
+[                    ]   0 %
+[###                 ]  17 %
+[#######             ]  33 %
+[##########          ]  50 %
+[#############       ]  67 %
+[#################   ]  83 %
+
+Simplifying graph...
+
+Clustering elements...
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 134, in <module>
+    with open(a.output, 'wt') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+PermissionError: [Errno 13] Permission denied: 'C:\\Users\\55179\\AppData\\Local\\Temp\\damicore_ncd__5tvsm2x\\results'
+
+2025-06-23 14:48:47,482 - damicore_ncd - ERROR - DAMICORE falhou com código de saída 1:
+Performing NCD distance matrix calculation...
+Compressing individual files...
+
+[                    ]   0 %
+[                    ]   0 %
+[#####               ]  25 %
+[##########          ]  50 %
+[###############     ]  75 %
+Compressing file pairs...
+
+[                    ]   0 %
+[                    ]   0 %
+[###                 ]  17 %
+[#######             ]  33 %
+[##########          ]  50 %
+[#############       ]  67 %
+[#################   ]  83 %
+
+Simplifying graph...
+
+Clustering elements...
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_py3\damicore.py", line 134, in <module>
+    with open(a.output, 'wt') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+PermissionError: [Errno 13] Permission denied: 'C:\\Users\\55179\\AppData\\Local\\Temp\\damicore_ncd__5tvsm2x\\results'
+2025-06-23 14:48:47,484 - damicore_ncd - ERROR - Falha ao executar o DAMICORE
+2025-06-23 14:48:47,484 - damicore_ncd - ERROR - Erro durante o processamento: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 306, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-23 14:48:47,485 - damicore_ncd - ERROR - Erro ao gerar matriz NCD: Falha ao executar o DAMICORE
+Traceback (most recent call last):
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 651, in generate_ncd_matrix
+    results = process_directory(
+              ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\55179\Desktop\Workspace_vscode\DAMICORE\damicore_ncd.py", line 306, in process_directory
+    raise RuntimeError(error_msg)
+RuntimeError: Falha ao executar o DAMICORE
+2025-06-24 15:56:35,791 - DAMICORE.test_comparacao_damicore - INFO - Módulos locais importados com sucesso
+2025-06-24 20:35:51,700 - DAMICORE.test_comparacao_damicore - INFO - Módulos locais importados com sucesso

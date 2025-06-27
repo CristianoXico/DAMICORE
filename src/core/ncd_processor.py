@@ -26,8 +26,31 @@ class NCDProcessor:
         self.chunk_size = chunk_size
         self.n_jobs = n_jobs or multiprocessing.cpu_count()
         self.verbose = verbose
-        self.stats = None
+        self.stats = ProcessingStats(
+            total_time=0.0,
+            conversion_time=0.0,
+            matrix_calc_time=0.0,
+            matrix_size=(0, 0),
+            compression_ratio=0.0,
+            chunk_size=chunk_size
+        )
         self._compression_cache = {}
+
+    def get_processing_stats(self) -> Dict[str, Any]:
+        """
+        Retorna as estatísticas de processamento.
+        
+        Returns:
+            Dict[str, Any]: Dicionário contendo as estatísticas de processamento
+        """
+        return {
+            'total_time_s': self.stats.total_time,
+            'conversion_time_s': self.stats.conversion_time,
+            'matrix_calc_time_s': self.stats.matrix_calc_time,
+            'matrix_size': self.stats.matrix_size,
+            'compression_ratio': self.stats.compression_ratio,
+            'chunk_size': self.stats.chunk_size
+        }
 
     @lru_cache(maxsize=10000)
     def _compress_string(self, s: str) -> int:
