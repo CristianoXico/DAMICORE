@@ -30,3 +30,6 @@ results*/
 .vscode/
 .idea/
 *.swp
+/test_data
+/output
+/test_results
