@@ -6,8 +6,8 @@ with open('requirements.txt') as f:
 setup(
     name="damicore_py3",
     version="0.1.0",
-    packages=find_packages(include=['src', 'src.*']),
-    package_dir={'': '.'},
+    packages=find_packages(where='src'),
+    package_dir={'': 'src'},
     install_requires=requirements,
     author="Adaptado para Python 3 por Cristiano",
     author_email="seu.email@exemplo.com",

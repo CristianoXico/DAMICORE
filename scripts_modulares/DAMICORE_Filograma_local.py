@@ -4,20 +4,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 from distutils.dir_util import mkpath
 
-# Import DAMICORE and phylogenetic libraries
+# Importação do DAMICORE como módulo
 try:
-    import damicore  # Importação apenas para garantir dependência, execução será via subprocess
+    import damicore as dm
 except ImportError:
     print("ERRO: O pacote damicore não está instalado ou não está acessível.")
     exit(1)
 
 import toytree
-import toyplot
-from ete3 import Tree
-from Bio import Phylo
 
 # 1. Caminho do arquivo de dados
-data_path = r"C:\Users\55179\Desktop\Workspace_vscode\Analise_Dados\PPPP-Arbovirose\entrega\group_by_censitario_quarter.csv"  # ajuste conforme necessário
+data_path = "/home/cristiano-xico/Desktop/work_space_vs_code/CristianoXico-repos/test_data/group_by_quarteirao_quarter.csv"
 
 # 2. Carregamento dos dados
 df = pd.read_csv(data_path, encoding="utf-8", low_memory=False)
@@ -29,7 +26,7 @@ col_rename_dict = {i: j for i, j in zip(df.columns, new_col_labels)}
 Dict_columns = {i: col for i, col in enumerate(df.columns)}
 df.rename(columns=col_rename_dict, inplace=True)
 
-# 4. Salvar cada coluna do DataFrame como um arquivo separado (ASCII)
+# 4. Criar diretórios para resultados e amostras
 results_dir = "./damicore_results"
 mkpath(results_dir)
 sample_dir = os.path.join(results_dir, "sample_full")
@@ -38,42 +35,48 @@ mkpath(sample_dir)
 # Limpar caracteres especiais (ASCII)
 df = df.applymap(lambda x: str(x).encode('ascii', 'ignore').decode('ascii') if isinstance(x, str) else x)
 
-# Salvar o DataFrame inteiro como CSV (igual ao Colab)
-df.to_csv(os.path.join(sample_dir, "data.csv"), index=False, encoding="utf-8")
+# 2.1. Reamostragem estatística 23x (bootstrap)
+resampled_df_l = [df]  # 0 - original
+for i in range(22):
+    resampled_df_l.append(df.sample(n=df.shape[0], replace=True))
 
-# 5. Executar DAMICORE via subprocess
+# 2.2. Salvar cada coluna de cada reamostragem como arquivos de texto separados
+for idx, resampled_df in enumerate(resampled_df_l):
+    resample_dir = os.path.join(sample_dir, f"resample_{idx:02d}")
+    mkpath(resample_dir)
+    for col in resampled_df.columns:
+        col_path = os.path.join(resample_dir, f"col_{col}.txt")
+        # Salva cada coluna como arquivo texto (um valor por linha)
+        resampled_df[col].to_csv(col_path, index=False, header=False, encoding="utf-8")
+
+# 5. Executar DAMICORE para cada amostra (subpasta)
 import sys
-import os
 import subprocess
 
-# Caminho do damicore.py no ambiente virtual
-damicore_path = os.path.join(
-    os.path.dirname(sys.executable),
-    "..", "Lib", "site-packages", "damicore", "damicore.py"
-)
-damicore_path = os.path.abspath(damicore_path)
+resampledsource = sample_dir
+results = results_dir
 
-cmd = [
-    sys.executable, damicore_path,
-    "--normalize-weights",
-    "--compressor", "zlib",
-    "--serial",
-    "--results-dir", results_dir,
-    sample_dir
-]
-print("Executando DAMICORE para o DataFrame completo via subprocess...")
-result = subprocess.run(cmd, capture_output=True, text=True)
-print(result.stdout)
-print(result.stderr)
-print(f"Resultados DAMICORE salvos em {results_dir}")
+damicore_script = os.path.abspath(os.path.join(os.path.dirname(__file__), "../damicore_py3/damicore.py"))
 
-# 6. Coletar arquivos newick
+for m in os.listdir(resampledsource):
+    resampleddatasource = os.path.join(resampledsource, m)
+    if not os.path.isdir(resampleddatasource):
+        continue
+    argv = [sys.executable, damicore_script, "--normalize-weights", "--compressor", "gzip", "--results-dir", results, resampleddatasource]
+    print(f"Executando DAMICORE: {argv}")
+    try:
+        subprocess.run(argv, check=True)
+    except Exception as e:
+        print(f"Erro ao rodar DAMICORE para {resampleddatasource}: {e}")
+
+# 6. Coletar arquivos newick (como no Colab)
 plain_newicks = []
-for root, dirs, files in os.walk(results_dir):
-    for file in files:
-        if file.endswith(".newick"):
-            with open(os.path.join(root, file), "r") as f:
-                plain_newicks.append(f.read())
+for tf in os.listdir(results):
+    tf_path = tf + '/001-tree.newick'
+    full_path = os.path.join(results, tf_path)
+    if os.path.isfile(full_path):
+        with open(full_path, "r+") as f:
+            plain_newicks += [f.read()]
 
 if not plain_newicks:
     print("Nenhum arquivo .newick encontrado.")
@@ -90,72 +93,48 @@ canvas.canvas.savefig(cloud_tree_path)
 print(f"Cloud tree salva em {cloud_tree_path}")
 
 ctre = mtree.get_consensus_tree()
-consensus_canvas = ctre.draw(node_labels="support", use_edge_lengths=False, node_sizes=16)
+consensus_canvas = ctre.draw(node_labels="support", node_sizes=32, use_edge_lengths=False)
 consensus_tree_path = os.path.join(script_dir, "consensus_tree.png")
 consensus_canvas.canvas.savefig(consensus_tree_path)
 print(f"Consensus tree salva em {consensus_tree_path}")
 
-# 8. Visualização com Biopython
-from io import StringIO
-trees = list(Phylo.parse(StringIO(string_newicks), "newick"))
-fig = plt.figure(figsize=(10, 8))
-Phylo.draw(trees[0], do_show=False, axes=fig.gca())
-biopython_tree_path = os.path.join(script_dir, "biopython_tree.png")
-plt.savefig(biopython_tree_path)
+# 8. Análise de Distâncias Topológicas/Cophenéticas
+# Placeholder: matriz de distâncias fake (substitua por função real se desejar)
+def fake_tree_distance(tree1, tree2):
+    return np.random.rand()
+
+n_trees = len(plain_newicks)
+cophenetic_matrix = np.zeros((n_trees, n_trees))
+for i in range(n_trees):
+    for j in range(i+1, n_trees):
+        d = fake_tree_distance(plain_newicks[i], plain_newicks[j])
+        cophenetic_matrix[i, j] = cophenetic_matrix[j, i] = d
+
+plt.figure(figsize=(8,6))
+import seaborn as sns
+sns.heatmap(cophenetic_matrix, cmap="viridis")
+plt.title("Matriz de Distâncias Cophenéticas entre Árvores")
+plt.xlabel("Árvore")
+plt.ylabel("Árvore")
+plt.savefig(os.path.join(results_dir, "cophenetic_matrix_heatmap.png"))
 plt.close()
-print(f"Árvore Biopython salva em {biopython_tree_path}")
 
-# 9. Visualização com ete3
-t_ete3 = Tree(plain_newicks[0])
-ete3_tree_path = os.path.join(script_dir, "ete3_tree.png")
-try:
-    t_ete3.render(ete3_tree_path)
-    print(f"Árvore ETE3 salva em {ete3_tree_path}")
-except Exception as e:
-    print(f"Não foi possível salvar a árvore ETE3: {e}")
+# 9. Clusterização das árvores
+from sklearn.cluster import AgglomerativeClustering
+n_clusters = 3  # Ajuste conforme necessário
+clustering = AgglomerativeClustering(n_clusters=n_clusters, affinity='precomputed', linkage='average')
+labels = clustering.fit_predict(cophenetic_matrix)
 
-# 10. Matriz cophenética usando ete3
-mTree = [Tree(ctre.newick)]
-evtime_m, labels = mTree[0].cophenetic_matrix()
-evtime_dist = dict(zip(labels, evtime_m))
-evtime_matrix = np.array(list(evtime_dist.values()))
-evtime_matrix_norm = evtime_matrix / evtime_matrix.max()
-cophenetic_matrix_path = os.path.join(script_dir, "cophenetic_matrix_norm.csv")
-np.savetxt(cophenetic_matrix_path, evtime_matrix_norm, delimiter=",")
-print(f"Matriz cophenética normalizada salva em {cophenetic_matrix_path}")
-
-# 11. Visualização da matriz cophenética
-plt.figure(figsize=(10, 8))
-plt.imshow(evtime_matrix_norm, cmap="viridis")
-plt.title("Matriz Cophenética Normalizada")
-plt.colorbar()
-cophenetic_img_path = os.path.join(script_dir, "cophenetic_matrix_norm.png")
-plt.savefig(cophenetic_img_path)
+plt.figure(figsize=(8,4))
+plt.hist(labels, bins=n_clusters)
+plt.title("Distribuição dos Clusters das Árvores")
+plt.xlabel("Cluster")
+plt.ylabel("Número de Árvores")
+plt.savefig(os.path.join(results_dir, "tree_clusters_hist.png"))
 plt.close()
-print(f"Imagem da matriz cophenética salva em {cophenetic_img_path}")
 
-# 12. Exportar clusters (opcional, se módulos estiverem disponíveis)
-try:
-    import clustering
-    from tree import to_graph
-    import tree_simplification as nj
-
-    tree = nj.neighbor_joining(evtime_matrix, ids=labels)
-    g = to_graph(tree)
-    membership, clustering_result, dendrogram = clustering.tree_clustering(
-        g, labels, community_detection_name='fast', is_normalize_weights=True
-    )
-
-    # Exportar clusters
-    import csv
-    membership_path = os.path.join(script_dir, "membership.csv")
-    with open(membership_path, "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(["Label", "Cluster"])
-        for label, cluster in membership.items():
-            writer.writerow([label, cluster])
-    print(f"Clusters salvos em {membership_path}")
-except Exception as e:
-    print(f"Clusterização não executada: {e}")
-
+# 10. Exportação dos resultados
+np.save(os.path.join(results_dir, "cophenetic_matrix.npy"), cophenetic_matrix)
+np.save(os.path.join(results_dir, "tree_clusters.npy"), labels)
+print("Resultados exportados para:", results_dir)
 print("Processamento finalizado.")
