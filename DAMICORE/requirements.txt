@@ -1,8 +1,0 @@
-pandas
-numpy
-networkx
-tqdm
-psutil
-matplotlib
-scipy
-ete3
