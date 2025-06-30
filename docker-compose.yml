@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  damicore:
+    build: .
+    volumes:
+      - ./input:/app/input
+      - ./results:/app/results
+    stdin_open: true  # Permite entrada interativa
+    tty: true        # Aloca um pseudo-TTY
