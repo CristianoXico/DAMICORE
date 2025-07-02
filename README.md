@@ -195,11 +195,18 @@ As principais dependências estão em `requirements.txt`. Incluem: pandas, numpy
 
 ### 8. Contribuindo
 
+Para contribuir com o projeto, siga sempre o fluxo de Pull Request (PR):
+
 1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b minha-feature`)
-3. Commit suas alterações (`git commit -am 'Adiciona nova feature'`)
-4. Push para o branch (`git push origin minha-feature`)
-5. Abra um Pull Request
+
+### Para Colaboradores
+
+- **Sempre utilize Pull Requests (PRs)**: nunca faça commits diretamente na `main`. Todas as contribuições devem passar por revisão via PR.
+- **Commits claros**: use mensagens descritivas e padronizadas.
+- **Branches**: crie uma branch para cada nova feature ou correção.
+- **Pull Requests**: explique a motivação da mudança e siga o passo a passo da seção "Contribuindo".
+- **Testes**: sempre rode os testes antes de enviar um PR.
+- **Linters**: utilize ferramentas como `flake8` ou `black` para padronizar o código.
 
 ## Testes
 
