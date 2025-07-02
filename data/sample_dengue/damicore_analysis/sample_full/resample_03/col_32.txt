@@ -1,0 +1,2276 @@
+{'Bosque'}
+{'HB'}
+{'CEU'}
+{'Represa'}
+{'HB'}
+{'Central'}
+{'CEU'}
+{'Pinheirinho'}
+{'Central'}
+{'Cidade da Criana'}
+{'Central'}
+{'HB'}
+{'CEU'}
+{'HB'}
+{'Central'}
+{'CEU'}
+{'HB'}
+{'Pinheirinho'}
+{'CEU'}
+{'Pinheirinho'}
+{'Schmitt'}
+{'Bosque'}
+{'Pinheirinho'}
+{'Represa'}
+{'Vila Toninho'}
+{'Represa'}
+{'Pinheirinho'}
+{'HB'}
+{'Vila Toninho'}
+{'Pinheirinho'}
+{'Represa'}
+{'Central'}
+{'HB'}
+{'Pinheirinho'}
+{'HB'}
+{'Bosque'}
+{'Pinheirinho'}
+{'HB'}
+{'Cidade da Criana'}
+{'HB'}
+{'HB'}
+{'Central'}
+{'Vila Toninho'}
+{'HB'}
+{'Talhado'}
+{'HB'}
+{'Cidade da Criana'}
+{'Bosque'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'CEU'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'Talhado'}
+{'Pinheirinho'}
+{'HB'}
+{'Cidade da Criana'}
+{'Pinheirinho'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'Cidade da Criana'}
+{'CEU'}
+{'Vila Toninho'}
+{'Represa'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'Represa'}
+{'Pinheirinho'}
+{'Central'}
+{'Represa'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Bosque'}
+{'Bosque'}
+{'Schmitt'}
+{'CEU'}
+{'Vila Toninho'}
+{'HB'}
+{'Central'}
+{'CEU'}
+{'Bosque'}
+{'Represa'}
+{'Central'}
+{'Central'}
+{'CEU'}
+{'HB'}
+{'HB'}
+{'Schmitt'}
+{'Pinheirinho'}
+{'HB'}
+{'Pinheirinho'}
+{'Central'}
+{'Pinheirinho'}
+{'Central'}
+{'Central'}
+{'CEU'}
+{'Pinheirinho'}
+{'Represa'}
+{'Pinheirinho'}
+{'HB'}
+{'Represa'}
+{'HB'}
+{'Schmitt'}
+{'Pinheirinho'}
+{'HB'}
+{'Cidade da Criana'}
+{'HB'}
+{'HB'}
+{'Central'}
+{'HB'}
+{'Pinheirinho'}
+{'HB'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'CEU'}
+{'Represa'}
+{'HB'}
+{'Represa'}
+{'Pinheirinho'}
+{'HB'}
+{'Cidade da Criana'}
+{'Vila Toninho'}
+{'Pinheirinho'}
+{'Central'}
+{'Pinheirinho'}
+{'Central'}
+{'HB'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'Talhado'}
+{'CEU'}
+{'Central'}
+{'Vila Toninho'}
+{'CEU'}
+{'CEU'}
+{'Central'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'Central'}
+{'Cidade da Criana'}
+{'Pinheirinho'}
+{'HB'}
+{'HB'}
+{'Central'}
+{'Bosque'}
+{'Cidade da Criana'}
+{'CEU'}
+{'Cidade da Criana'}
+{'Central'}
+{'HB'}
+{'Cidade da Criana'}
+{'HB'}
+{'Represa'}
+{'HB'}
+{'HB'}
+{'Schmitt'}
+{'Bosque'}
+{'Central'}
+{'Central'}
+{'Schmitt'}
+{'Vila Toninho'}
+{'Cidade da Criana'}
+{'Central'}
+{'Central'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'Central'}
+{'Vila Toninho'}
+{'CEU'}
+{'Central'}
+{'Cidade da Criana'}
+{'HB'}
+{'Central'}
+{'Represa'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'Represa'}
+{'Cidade da Criana'}
+{'Central'}
+{'HB'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'HB'}
+{'Central'}
+{'Represa'}
+{'Central'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'Central'}
+{'Schmitt'}
+{'HB'}
+{'HB'}
+{'Central'}
+{'CEU'}
+{'Pinheirinho'}
+{'HB'}
+{'Bosque'}
+{'Talhado'}
+{'Central'}
+{'Pinheirinho'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'Schmitt'}
+{'HB'}
+{'HB'}
+{'Central'}
+{'HB'}
+{'CEU'}
+{'HB'}
+{'Bosque'}
+{'Central'}
+{'Vila Toninho'}
+{'Vila Toninho'}
+{'Central'}
+{'Bosque'}
+{'Schmitt'}
+{'HB'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'CEU'}
+{'Cidade da Criana'}
+{'Cidade da Criana'}
+{'Central'}
+{'Central'}
+{'Bosque'}
+{'HB'}
+{'HB'}
+{'Pinheirinho'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'Pinheirinho'}
+{'Vila Toninho'}
+{'HB'}
+{'Central'}
+{'CEU'}
+{'Cidade da Criana'}
+{'Vila Toninho'}
+{'HB'}
+{'Bosque'}
+{'Pinheirinho'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'HB'}
+{'Cidade da Criana'}
+{'HB'}
+{'Central'}
+{'CEU'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'Vila Toninho'}
+{'Cidade da Criana'}
+{'Central'}
+{'Talhado'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'Vila Toninho'}
+{'Bosque'}
+{'Central'}
+{'Central'}
+{'Cidade da Criana'}
+{'Vila Toninho'}
+{'HB'}
+{'CEU'}
+{'Vila Toninho'}
+{'Central'}
+{'Pinheirinho'}
+{'HB'}
+{'Bosque'}
+{'CEU'}
+{'HB'}
+{'Pinheirinho'}
+{'HB'}
+{'Represa'}
+{'Pinheirinho'}
+{'CEU'}
+{'Schmitt'}
+{'Represa'}
+{'Central'}
+{'HB'}
+{'Cidade da Criana'}
+{'CEU'}
+{'Cidade da Criana'}
+{'Bosque'}
+{'CEU'}
+{'CEU'}
+{'Bosque'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'Represa'}
+{'CEU'}
+{'Vila Toninho'}
+{'Bosque'}
+{'HB'}
+{'Bosque'}
+{'Central'}
+{'HB'}
+{'Cidade da Criana'}
+{'HB'}
+{'HB'}
+{'Pinheirinho'}
+{'Schmitt'}
+{'CEU'}
+{'Central'}
+{'Central'}
+{'Bosque'}
+{'Bosque'}
+{'Represa'}
+{'Represa'}
+{'HB'}
+{'Cidade da Criana'}
+{'CEU'}
+{'Bosque'}
+{'Talhado'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'Represa'}
+{'Pinheirinho'}
+{'Represa'}
+{'Central'}
+{'HB'}
+{'HB'}
+{'CEU'}
+{'Pinheirinho'}
+{'Central'}
+{'Central'}
+{'Pinheirinho'}
+{'Represa'}
+{'Central'}
+{'Represa'}
+{'Bosque'}
+{'Talhado'}
+{''}
+{'Vila Toninho'}
+{'Cidade da Criana'}
+{'Vila Toninho'}
+{'CEU'}
+{'CEU'}
+{'HB'}
+{'Pinheirinho'}
+{'HB'}
+{'Vila Toninho'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'CEU'}
+{'HB'}
+{'Represa'}
+{'HB'}
+{'Vila Toninho'}
+{'Cidade da Criana'}
+{'Talhado'}
+{'Cidade da Criana'}
+{'Talhado'}
+{'Cidade da Criana'}
+{'Vila Toninho'}
+{'Cidade da Criana'}
+{'Pinheirinho'}
+{'HB'}
+{'Cidade da Criana'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'Talhado'}
+{'Central'}
+{'Represa'}
+{'Schmitt'}
+{'Cidade da Criana'}
+{'Bosque'}
+{'Cidade da Criana'}
+{'HB'}
+{'Central'}
+{'Vila Toninho'}
+{'Bosque'}
+{'Bosque'}
+{'CEU'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'CEU'}
+{'Cidade da Criana'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'CEU'}
+{'Cidade da Criana'}
+{'Cidade da Criana'}
+{'Represa'}
+{'Cidade da Criana'}
+{'HB'}
+{'Represa'}
+{'Vila Toninho'}
+{'CEU'}
+{'Bosque'}
+{'HB'}
+{'HB'}
+{'Central'}
+{'Pinheirinho'}
+{'Bosque'}
+{'Talhado'}
+{'CEU'}
+{'Schmitt'}
+{'HB'}
+{'CEU'}
+{'HB'}
+{'Pinheirinho'}
+{'CEU'}
+{'HB'}
+{'Talhado'}
+{'Vila Toninho'}
+{'Pinheirinho'}
+{'Central'}
+{'Pinheirinho'}
+{'Central'}
+{'Cidade da Criana'}
+{'CEU'}
+{'CEU'}
+{'Bosque'}
+{'Central'}
+{'Schmitt'}
+{'Central'}
+{'HB'}
+{'HB'}
+{'Cidade da Criana'}
+{'HB'}
+{'CEU'}
+{'Cidade da Criana'}
+{'Central'}
+{'Represa'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'Represa'}
+{'Central'}
+{'Pinheirinho'}
+{'Central'}
+{'Represa'}
+{'CEU'}
+{''}
+{'Represa'}
+{'HB'}
+{'Talhado'}
+{'Schmitt'}
+{'Bosque'}
+{'Bosque'}
+{'CEU'}
+{'Vila Toninho'}
+{'Cidade da Criana'}
+{'Bosque'}
+{'Represa'}
+{'HB'}
+{'CEU'}
+{'Cidade da Criana'}
+{'Central'}
+{'Cidade da Criana'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'HB'}
+{'Schmitt'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Represa'}
+{'Central'}
+{'Cidade da Criana'}
+{'HB'}
+{'Vila Toninho'}
+{'Represa'}
+{'Central'}
+{'Cidade da Criana'}
+{'HB'}
+{'Pinheirinho'}
+{'Central'}
+{'HB'}
+{'Pinheirinho'}
+{'Central'}
+{'Vila Toninho'}
+{'Central'}
+{'Cidade da Criana'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'Represa'}
+{'Cidade da Criana'}
+{'Vila Toninho'}
+{'Cidade da Criana'}
+{'Schmitt'}
+{'CEU'}
+{'HB'}
+{'HB'}
+{'Central'}
+{'HB'}
+{'HB'}
+{'Vila Toninho'}
+{'Vila Toninho'}
+{'HB'}
+{'Represa'}
+{'Central'}
+{'Schmitt'}
+{'Cidade da Criana'}
+{'HB'}
+{'Cidade da Criana'}
+{'Represa'}
+{'Bosque'}
+{'Pinheirinho'}
+{'Talhado'}
+{'CEU'}
+{'Represa'}
+{'Bosque'}
+{'CEU'}
+{'Represa'}
+{'CEU'}
+{'Cidade da Criana'}
+{'Talhado'}
+{'CEU'}
+{'Central'}
+{'CEU'}
+{'Schmitt'}
+{'Central'}
+{'Represa'}
+{'Central'}
+{'Vila Toninho'}
+{'HB'}
+{'HB'}
+{'Represa'}
+{'Central'}
+{'Talhado'}
+{'Represa'}
+{'Bosque'}
+{'Central'}
+{'Cidade da Criana'}
+{'HB'}
+{'Central'}
+{'Cidade da Criana'}
+{'Pinheirinho'}
+{'Central'}
+{'Schmitt'}
+{'Central'}
+{'Central'}
+{'Vila Toninho'}
+{'Central'}
+{'Talhado'}
+{'Central'}
+{'Bosque'}
+{'HB'}
+{'HB'}
+{'Central'}
+{'CEU'}
+{'Schmitt'}
+{'Central'}
+{'CEU'}
+{'Cidade da Criana'}
+{'CEU'}
+{'Cidade da Criana'}
+{'Central'}
+{'HB'}
+{'Vila Toninho'}
+{'Cidade da Criana'}
+{'Bosque'}
+{'HB'}
+{'Central'}
+{''}
+{'CEU'}
+{'Vila Toninho'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Cidade da Criana'}
+{'Schmitt'}
+{'Central'}
+{'Pinheirinho'}
+{'Talhado'}
+{'Central'}
+{'CEU'}
+{'Central'}
+{'Central'}
+{'CEU'}
+{'Central'}
+{'Cidade da Criana'}
+{'Bosque'}
+{'HB'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'Cidade da Criana'}
+{'Pinheirinho'}
+{'Central'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'Central'}
+{'Vila Toninho'}
+{'HB'}
+{'Cidade da Criana'}
+{'HB'}
+{'Represa'}
+{'HB'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'Pinheirinho'}
+{'HB'}
+{'Represa'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'CEU'}
+{'CEU'}
+{'Pinheirinho'}
+{'HB'}
+{'Talhado'}
+{'HB'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'Central'}
+{'Vila Toninho'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'Pinheirinho'}
+{'Central'}
+{'Vila Toninho'}
+{'Cidade da Criana'}
+{'Bosque'}
+{'HB'}
+{'Vila Toninho'}
+{'Represa'}
+{'CEU'}
+{'Represa'}
+{'Cidade da Criana'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'Central'}
+{'Vila Toninho'}
+{'CEU'}
+{'CEU'}
+{'Vila Toninho'}
+{'Represa'}
+{'Represa'}
+{'Central'}
+{'Cidade da Criana'}
+{'HB'}
+{'HB'}
+{'CEU'}
+{'Talhado'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Pinheirinho'}
+{'HB'}
+{'Schmitt'}
+{'Represa'}
+{'Central'}
+{'Central'}
+{'Pinheirinho'}
+{'HB'}
+{'Cidade da Criana'}
+{'Cidade da Criana'}
+{'Central'}
+{'Vila Toninho'}
+{'HB'}
+{'Pinheirinho'}
+{'Central'}
+{'Central'}
+{'Vila Toninho'}
+{'CEU'}
+{'HB'}
+{'Central'}
+{'Cidade da Criana'}
+{'Central'}
+{'Represa'}
+{'Vila Toninho'}
+{'Pinheirinho'}
+{'Central'}
+{'Central'}
+{'Cidade da Criana'}
+{'CEU'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'Bosque'}
+{'Vila Toninho'}
+{'CEU'}
+{'Central'}
+{'Represa'}
+{'Represa'}
+{'Central'}
+{'Central'}
+{'Cidade da Criana'}
+{'Pinheirinho'}
+{'Represa'}
+{'Schmitt'}
+{'Vila Toninho'}
+{'Central'}
+{'Vila Toninho'}
+{'Cidade da Criana'}
+{'Schmitt'}
+{'Central'}
+{'HB'}
+{'Pinheirinho'}
+{'Bosque'}
+{'Pinheirinho'}
+{'Talhado'}
+{'Cidade da Criana'}
+{'Central'}
+{'HB'}
+{'Bosque'}
+{'Central'}
+{'Bosque'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'Pinheirinho'}
+{'Represa'}
+{'HB'}
+{'Vila Toninho'}
+{'Bosque'}
+{'Vila Toninho'}
+{'Cidade da Criana'}
+{'Cidade da Criana'}
+{'Vila Toninho'}
+{'Cidade da Criana'}
+{'Pinheirinho'}
+{'Central'}
+{'HB'}
+{'HB'}
+{'Represa'}
+{'Bosque'}
+{'Pinheirinho'}
+{'Represa'}
+{'Pinheirinho'}
+{'Talhado'}
+{'HB'}
+{'Pinheirinho'}
+{'HB'}
+{'HB'}
+{'HB'}
+{'Cidade da Criana'}
+{'Central'}
+{'Pinheirinho'}
+{'Central'}
+{'CEU'}
+{'Bosque'}
+{'Central'}
+{'CEU'}
+{'Cidade da Criana'}
+{'Cidade da Criana'}
+{'Bosque'}
+{'Schmitt'}
+{'Schmitt'}
+{'Central'}
+{'Cidade da Criana'}
+{'Central'}
+{'Represa'}
+{'HB'}
+{'Central'}
+{'Pinheirinho'}
+{'Central'}
+{'Bosque'}
+{'Central'}
+{'Central'}
+{'CEU'}
+{'Pinheirinho'}
+{'Represa'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'Cidade da Criana'}
+{'Bosque'}
+{'Vila Toninho'}
+{'Cidade da Criana'}
+{'Represa'}
+{'HB'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'Bosque'}
+{'Bosque'}
+{'HB'}
+{'Represa'}
+{'Pinheirinho'}
+{'Central'}
+{'Cidade da Criana'}
+{'Central'}
+{'Central'}
+{'Pinheirinho'}
+{'Vila Toninho'}
+{'Cidade da Criana'}
+{'Bosque'}
+{'HB'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'CEU'}
+{'Pinheirinho'}
+{'Bosque'}
+{'HB'}
+{'Cidade da Criana'}
+{'Central'}
+{'Cidade da Criana'}
+{'Bosque'}
+{'Central'}
+{'Central'}
+{'Pinheirinho'}
+{'CEU'}
+{'Pinheirinho'}
+{'CEU'}
+{'Vila Toninho'}
+{'Bosque'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'Vila Toninho'}
+{'CEU'}
+{'HB'}
+{'Pinheirinho'}
+{'HB'}
+{'CEU'}
+{'Schmitt'}
+{'Central'}
+{'HB'}
+{'Represa'}
+{'Cidade da Criana'}
+{'Bosque'}
+{'Schmitt'}
+{'Central'}
+{'Central'}
+{'Cidade da Criana'}
+{'Central'}
+{'Cidade da Criana'}
+{'Central'}
+{'Central'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'HB'}
+{'Schmitt'}
+{'Cidade da Criana'}
+{'Cidade da Criana'}
+{'Cidade da Criana'}
+{'Vila Toninho'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'Pinheirinho'}
+{'Bosque'}
+{'Cidade da Criana'}
+{'Central'}
+{'Cidade da Criana'}
+{'Vila Toninho'}
+{'HB'}
+{'Pinheirinho'}
+{'Talhado'}
+{'Central'}
+{'HB'}
+{'Cidade da Criana'}
+{'Central'}
+{'Central'}
+{'CEU'}
+{'Talhado'}
+{'HB'}
+{'Represa'}
+{'Pinheirinho'}
+{'Bosque'}
+{'Represa'}
+{'Central'}
+{'Represa'}
+{'Bosque'}
+{'Central'}
+{'Cidade da Criana'}
+{'Pinheirinho'}
+{'Vila Toninho'}
+{'HB'}
+{'Central'}
+{'HB'}
+{'Vila Toninho'}
+{'HB'}
+{'HB'}
+{'Vila Toninho'}
+{'Represa'}
+{'Cidade da Criana'}
+{'Central'}
+{'Central'}
+{'Bosque'}
+{'Central'}
+{'Cidade da Criana'}
+{'Cidade da Criana'}
+{'Central'}
+{'HB'}
+{'Schmitt'}
+{'Cidade da Criana'}
+{'HB'}
+{'Central'}
+{'HB'}
+{'Vila Toninho'}
+{'HB'}
+{'Central'}
+{'CEU'}
+{'Represa'}
+{'Cidade da Criana'}
+{'Cidade da Criana'}
+{'Represa'}
+{'Central'}
+{'Pinheirinho'}
+{'Vila Toninho'}
+{'Central'}
+{'Central'}
+{'Bosque'}
+{'Central'}
+{'Vila Toninho'}
+{'Central'}
+{'Cidade da Criana'}
+{'Bosque'}
+{'Central'}
+{'Schmitt'}
+{'Central'}
+{'HB'}
+{'Schmitt'}
+{'Bosque'}
+{'Pinheirinho'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'HB'}
+{'Vila Toninho'}
+{'Pinheirinho'}
+{'Central'}
+{'HB'}
+{'Schmitt'}
+{'CEU'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Represa'}
+{'HB'}
+{'Central'}
+{'Talhado'}
+{'HB'}
+{'Central'}
+{'Bosque'}
+{'Central'}
+{'Cidade da Criana'}
+{'Bosque'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'Bosque'}
+{'Schmitt'}
+{'Cidade da Criana'}
+{'Central'}
+{'CEU'}
+{'Central'}
+{'Central'}
+{'Talhado'}
+{'HB'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'Vila Toninho'}
+{'Cidade da Criana'}
+{'CEU'}
+{'Schmitt'}
+{'Pinheirinho'}
+{'Central'}
+{'CEU'}
+{'Central'}
+{'Central'}
+{'Vila Toninho'}
+{'Represa'}
+{'Schmitt'}
+{'CEU'}
+{'CEU'}
+{'Central'}
+{'Cidade da Criana'}
+{'HB'}
+{'Central'}
+{'Cidade da Criana'}
+{'CEU'}
+{'Cidade da Criana'}
+{'Cidade da Criana'}
+{'Central'}
+{'Central'}
+{'CEU'}
+{'Central'}
+{'Central'}
+{'Cidade da Criana'}
+{'Central'}
+{'Represa'}
+{'Central'}
+{'Pinheirinho'}
+{'HB'}
+{'Pinheirinho'}
+{'Schmitt'}
+{'CEU'}
+{'Central'}
+{'Central'}
+{'Pinheirinho'}
+{'Schmitt'}
+{'Vila Toninho'}
+{'Pinheirinho'}
+{'CEU'}
+{'Central'}
+{'CEU'}
+{'Represa'}
+{'Schmitt'}
+{'Vila Toninho'}
+{'Central'}
+{'Central'}
+{'Cidade da Criana'}
+{'CEU'}
+{'HB'}
+{'CEU'}
+{'Pinheirinho'}
+{'Talhado'}
+{'Vila Toninho'}
+{'HB'}
+{'HB'}
+{'HB'}
+{'HB'}
+{'Central'}
+{'Pinheirinho'}
+"{'Schmitt', 'Represa'}"
+{'Vila Toninho'}
+{'Central'}
+{'Vila Toninho'}
+{'HB'}
+{'Central'}
+{'Pinheirinho'}
+{'HB'}
+{'Central'}
+{'HB'}
+{'Pinheirinho'}
+{'HB'}
+{'CEU'}
+{'Central'}
+{'HB'}
+{'Schmitt'}
+{'Schmitt'}
+{'Represa'}
+{'Pinheirinho'}
+{'Represa'}
+{'Central'}
+{'Represa'}
+{'Central'}
+{'HB'}
+{'Pinheirinho'}
+{'HB'}
+{'HB'}
+{'Central'}
+{'HB'}
+{'Represa'}
+{'Talhado'}
+{'Bosque'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'Pinheirinho'}
+{'Central'}
+{'CEU'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'Central'}
+{'Central'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'Central'}
+{'Represa'}
+{'CEU'}
+{'Central'}
+{'Pinheirinho'}
+{'Central'}
+{'Central'}
+{'CEU'}
+{'CEU'}
+{'Vila Toninho'}
+{'HB'}
+{'Cidade da Criana'}
+{'CEU'}
+{'CEU'}
+{'Talhado'}
+{'Schmitt'}
+{'Central'}
+{'Pinheirinho'}
+{'CEU'}
+{'Central'}
+{'HB'}
+{'CEU'}
+{'Pinheirinho'}
+{'Vila Toninho'}
+{'Vila Toninho'}
+{'Central'}
+{'HB'}
+{'HB'}
+{'Bosque'}
+{'Central'}
+{'Central'}
+{'Bosque'}
+{'Represa'}
+{'Vila Toninho'}
+{'HB'}
+{'HB'}
+{'HB'}
+{'HB'}
+{'HB'}
+{'HB'}
+{'Bosque'}
+{'Bosque'}
+{'Pinheirinho'}
+{'HB'}
+{'Central'}
+{'HB'}
+{'Cidade da Criana'}
+{'Central'}
+{'Represa'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'Vila Toninho'}
+{'Cidade da Criana'}
+{'Central'}
+{'CEU'}
+{'Talhado'}
+{'CEU'}
+{'Represa'}
+{'Cidade da Criana'}
+{'Talhado'}
+{'HB'}
+{'Talhado'}
+{'CEU'}
+{'Cidade da Criana'}
+{'HB'}
+{'Talhado'}
+{'Pinheirinho'}
+{'Central'}
+{'HB'}
+{'Cidade da Criana'}
+{'Cidade da Criana'}
+{'CEU'}
+{'Central'}
+{'Vila Toninho'}
+{'Pinheirinho'}
+{'Represa'}
+{'Bosque'}
+{'Vila Toninho'}
+{'HB'}
+{'CEU'}
+{'Vila Toninho'}
+{'CEU'}
+{'HB'}
+{'Cidade da Criana'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'Vila Toninho'}
+{'Central'}
+{'Cidade da Criana'}
+{'Pinheirinho'}
+{'HB'}
+{'Vila Toninho'}
+{'Central'}
+{'Bosque'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Vila Toninho'}
+{'Cidade da Criana'}
+{'Pinheirinho'}
+{'Vila Toninho'}
+{'HB'}
+{'HB'}
+{'Central'}
+{'HB'}
+{'HB'}
+{'Talhado'}
+{'Represa'}
+{'HB'}
+{'Cidade da Criana'}
+{'HB'}
+{'Central'}
+{'Represa'}
+{'Cidade da Criana'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'CEU'}
+{'Pinheirinho'}
+{'Central'}
+{'Vila Toninho'}
+{'CEU'}
+{'Central'}
+{'Pinheirinho'}
+{'Talhado'}
+{'Pinheirinho'}
+{'Central'}
+{'Cidade da Criana'}
+{'HB'}
+{'HB'}
+{'Cidade da Criana'}
+{'Central'}
+{'Represa'}
+{'Represa'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'CEU'}
+{'Cidade da Criana'}
+{'HB'}
+{'Vila Toninho'}
+{'HB'}
+{'Pinheirinho'}
+{'HB'}
+{'CEU'}
+{'Pinheirinho'}
+{'Schmitt'}
+{'Central'}
+{'CEU'}
+{'Cidade da Criana'}
+{'HB'}
+{'CEU'}
+{'HB'}
+{'Pinheirinho'}
+{'Central'}
+{'HB'}
+{'Pinheirinho'}
+{'Bosque'}
+{'Represa'}
+{'CEU'}
+{'HB'}
+{'Bosque'}
+{'Cidade da Criana'}
+{'Vila Toninho'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Cidade da Criana'}
+{'Talhado'}
+{'Central'}
+{'Central'}
+{'Cidade da Criana'}
+{'CEU'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'HB'}
+{'Bosque'}
+{'HB'}
+{'Vila Toninho'}
+{'Central'}
+{'Bosque'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Pinheirinho'}
+{'Vila Toninho'}
+{'Talhado'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'Vila Toninho'}
+{'Central'}
+{'Represa'}
+{'Represa'}
+{'Central'}
+{'Cidade da Criana'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Bosque'}
+{'Vila Toninho'}
+{'CEU'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'CEU'}
+{'CEU'}
+{'HB'}
+{'Pinheirinho'}
+{'Central'}
+{'Cidade da Criana'}
+{'Central'}
+{'Bosque'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'Bosque'}
+{'Central'}
+{'CEU'}
+{'Cidade da Criana'}
+{'Vila Toninho'}
+{'Pinheirinho'}
+{'Central'}
+{'Bosque'}
+{'HB'}
+{'Bosque'}
+{'Bosque'}
+{'Represa'}
+{'CEU'}
+{'Cidade da Criana'}
+{'Cidade da Criana'}
+{'Schmitt'}
+{'Cidade da Criana'}
+{'Schmitt'}
+{'CEU'}
+{'CEU'}
+{'Vila Toninho'}
+{'Bosque'}
+{'Central'}
+{'Pinheirinho'}
+{'Bosque'}
+{'Central'}
+{'Bosque'}
+{'Central'}
+{'Vila Toninho'}
+{'Bosque'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'Schmitt'}
+{'Schmitt'}
+{'Schmitt'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'HB'}
+{'HB'}
+{'CEU'}
+{'Bosque'}
+{'Central'}
+{'CEU'}
+{'Cidade da Criana'}
+{'Cidade da Criana'}
+{'HB'}
+{'CEU'}
+{'Cidade da Criana'}
+{'CEU'}
+{'Bosque'}
+{'CEU'}
+{'Central'}
+{'HB'}
+{'Vila Toninho'}
+{'HB'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'Cidade da Criana'}
+{'CEU'}
+{'Talhado'}
+{'Central'}
+{'Cidade da Criana'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'HB'}
+{'Central'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'HB'}
+{'Vila Toninho'}
+{'Pinheirinho'}
+{'HB'}
+{'HB'}
+{'Represa'}
+{'Central'}
+{'CEU'}
+{'Cidade da Criana'}
+{'HB'}
+{'HB'}
+{'CEU'}
+{'Vila Toninho'}
+{'Central'}
+{'Central'}
+{'Pinheirinho'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'Cidade da Criana'}
+{'Schmitt'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'CEU'}
+{'Cidade da Criana'}
+{'HB'}
+{'Pinheirinho'}
+{'Central'}
+{'Cidade da Criana'}
+{'Central'}
+{'Vila Toninho'}
+{'Central'}
+{'HB'}
+{'HB'}
+{'Pinheirinho'}
+{'CEU'}
+{'HB'}
+{'HB'}
+{'Pinheirinho'}
+{'Central'}
+{'HB'}
+{'HB'}
+{'HB'}
+{'Central'}
+{'Bosque'}
+{'Central'}
+{'Cidade da Criana'}
+{'Cidade da Criana'}
+{'Central'}
+{'Central'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'Central'}
+{'HB'}
+{'HB'}
+{'HB'}
+{'HB'}
+{'Schmitt'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'HB'}
+{'Pinheirinho'}
+{'Talhado'}
+{'Bosque'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'Central'}
+{'HB'}
+{'Represa'}
+{'CEU'}
+{'Central'}
+{'Central'}
+{'Bosque'}
+{'Represa'}
+{'HB'}
+{'Cidade da Criana'}
+{'Cidade da Criana'}
+{'Talhado'}
+{'Cidade da Criana'}
+{'HB'}
+{'Pinheirinho'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'CEU'}
+{'Vila Toninho'}
+{'Vila Toninho'}
+{'Vila Toninho'}
+{'Central'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'Bosque'}
+{'Schmitt'}
+{'Bosque'}
+{'HB'}
+{'Cidade da Criana'}
+{'HB'}
+{'Cidade da Criana'}
+{'Vila Toninho'}
+{'Central'}
+{'Cidade da Criana'}
+{'HB'}
+{'Cidade da Criana'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Talhado'}
+{'CEU'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'CEU'}
+{'Central'}
+{'Pinheirinho'}
+{'HB'}
+{'Pinheirinho'}
+{'HB'}
+{'Bosque'}
+{'Talhado'}
+{'Central'}
+{'Cidade da Criana'}
+{'HB'}
+{'Cidade da Criana'}
+{'CEU'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'CEU'}
+{'HB'}
+{'Cidade da Criana'}
+{'Cidade da Criana'}
+{'Cidade da Criana'}
+{'CEU'}
+{'HB'}
+{'Cidade da Criana'}
+{'HB'}
+{'CEU'}
+{'Central'}
+{'Vila Toninho'}
+{'Cidade da Criana'}
+{'HB'}
+{'Represa'}
+{'CEU'}
+{'Talhado'}
+{'Cidade da Criana'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Bosque'}
+{'Cidade da Criana'}
+{'Bosque'}
+{'CEU'}
+{'Talhado'}
+{'CEU'}
+{'Represa'}
+{'Cidade da Criana'}
+{'HB'}
+{'Vila Toninho'}
+{'Schmitt'}
+{'HB'}
+{'CEU'}
+{'Cidade da Criana'}
+{'CEU'}
+{'Represa'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'Central'}
+{'Bosque'}
+{'Cidade da Criana'}
+{'Central'}
+{'HB'}
+{'Represa'}
+{'Bosque'}
+{'Talhado'}
+{'HB'}
+{'Bosque'}
+{'Cidade da Criana'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'Vila Toninho'}
+{'Represa'}
+{'Central'}
+{'CEU'}
+{'Cidade da Criana'}
+{'HB'}
+{'Central'}
+{'CEU'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'Cidade da Criana'}
+{'HB'}
+{'Pinheirinho'}
+{'Central'}
+{'Pinheirinho'}
+{'HB'}
+{'CEU'}
+{'Central'}
+{'Vila Toninho'}
+{'Schmitt'}
+{'Cidade da Criana'}
+{'Cidade da Criana'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'CEU'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'Cidade da Criana'}
+{'Pinheirinho'}
+{'CEU'}
+{'HB'}
+{'HB'}
+{''}
+{'HB'}
+{'Central'}
+{'Talhado'}
+{'Central'}
+{'CEU'}
+{'CEU'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'Central'}
+{'HB'}
+{'HB'}
+{'Represa'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'Bosque'}
+{'HB'}
+{'Pinheirinho'}
+{'Central'}
+{'Cidade da Criana'}
+{'Central'}
+{'Central'}
+{'Cidade da Criana'}
+{'CEU'}
+{'HB'}
+{'HB'}
+{'HB'}
+{'Central'}
+{'HB'}
+{'Cidade da Criana'}
+{'Vila Toninho'}
+{'HB'}
+{'Cidade da Criana'}
+{'Bosque'}
+{'Represa'}
+{'Central'}
+{'Central'}
+{'Vila Toninho'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'CEU'}
+{'Bosque'}
+{'Central'}
+{'Cidade da Criana'}
+{'Central'}
+{'CEU'}
+{'Vila Toninho'}
+{'Central'}
+{'Represa'}
+{'Central'}
+{'Bosque'}
+{'Pinheirinho'}
+{'CEU'}
+{'Bosque'}
+{'HB'}
+{'HB'}
+{'Central'}
+{'HB'}
+{'HB'}
+{'Bosque'}
+{'HB'}
+{'Pinheirinho'}
+{'HB'}
+{'HB'}
+{'Cidade da Criana'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'CEU'}
+{'Bosque'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Represa'}
+{'Central'}
+{'Central'}
+{'Vila Toninho'}
+{'Pinheirinho'}
+{'Vila Toninho'}
+{'Cidade da Criana'}
+{'Central'}
+{'Represa'}
+{'HB'}
+{'Bosque'}
+{'HB'}
+{'Central'}
+{'Vila Toninho'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'CEU'}
+{'Central'}
+{'Central'}
+{'Pinheirinho'}
+{'Central'}
+{'Schmitt'}
+{'Bosque'}
+{'Central'}
+{'Cidade da Criana'}
+{'Pinheirinho'}
+{'Central'}
+{'CEU'}
+{'Represa'}
+{'Pinheirinho'}
+{'HB'}
+{'Vila Toninho'}
+{'CEU'}
+{'Bosque'}
+{'HB'}
+{'Pinheirinho'}
+{'CEU'}
+{'CEU'}
+{'Cidade da Criana'}
+{'Central'}
+{'Cidade da Criana'}
+{'Represa'}
+{'Talhado'}
+{'Central'}
+{'HB'}
+{'Bosque'}
+{'Bosque'}
+{'Pinheirinho'}
+{'Represa'}
+{'Bosque'}
+{'Central'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'HB'}
+{'HB'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'Pinheirinho'}
+{'CEU'}
+{'Cidade da Criana'}
+{'Cidade da Criana'}
+{'HB'}
+{'Pinheirinho'}
+{'Vila Toninho'}
+{'CEU'}
+{'HB'}
+{'Bosque'}
+{'Pinheirinho'}
+{'Represa'}
+{'HB'}
+{'Talhado'}
+{'Central'}
+{'Bosque'}
+{'Central'}
+{'Pinheirinho'}
+{'HB'}
+{'Central'}
+{''}
+{'CEU'}
+{'Central'}
+{'Cidade da Criana'}
+{'CEU'}
+{'Schmitt'}
+{'Represa'}
+{'Central'}
+{'Represa'}
+{'Cidade da Criana'}
+{'Schmitt'}
+{'Cidade da Criana'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'Pinheirinho'}
+{'Central'}
+{'Central'}
+{'Bosque'}
+{'Pinheirinho'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'Vila Toninho'}
+{'Central'}
+{'HB'}
+{'HB'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'Central'}
+{'Cidade da Criana'}
+{'Talhado'}
+{'HB'}
+{'CEU'}
+{'Central'}
+{'Cidade da Criana'}
+{'Represa'}
+{'Cidade da Criana'}
+{'CEU'}
+{'HB'}
+{'Represa'}
+{'Cidade da Criana'}
+{'HB'}
+{'CEU'}
+{'Central'}
+{'Cidade da Criana'}
+{'Cidade da Criana'}
+{'Vila Toninho'}
+{'Pinheirinho'}
+{'Talhado'}
+{'Pinheirinho'}
+{'HB'}
+{'Vila Toninho'}
+{'Cidade da Criana'}
+{'Pinheirinho'}
+{'Central'}
+{'HB'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'Central'}
+{'Central'}
+{'CEU'}
+{'Vila Toninho'}
+{'HB'}
+{'Bosque'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'CEU'}
+{'Bosque'}
+{'Represa'}
+{'Cidade da Criana'}
+{'HB'}
+{'Central'}
+{'Represa'}
+{'Bosque'}
+{'CEU'}
+{'Central'}
+{'Central'}
+{'Represa'}
+{'HB'}
+{'Pinheirinho'}
+{'HB'}
+{'Pinheirinho'}
+{'HB'}
+{'Vila Toninho'}
+{'Central'}
+{'Vila Toninho'}
+{'HB'}
+{'HB'}
+{'CEU'}
+{'HB'}
+{'Cidade da Criana'}
+{'Central'}
+{'Vila Toninho'}
+{'Central'}
+{'HB'}
+{'Schmitt'}
+{'Central'}
+{'CEU'}
+{'Represa'}
+{'Schmitt'}
+{'Central'}
+{'Pinheirinho'}
+{'Bosque'}
+{'Pinheirinho'}
+{'Vila Toninho'}
+{'Schmitt'}
+{'Central'}
+{'Cidade da Criana'}
+{'CEU'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Pinheirinho'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'HB'}
+{'Cidade da Criana'}
+{'Pinheirinho'}
+{'Central'}
+{'Represa'}
+{'Pinheirinho'}
+{'Central'}
+{'CEU'}
+{'CEU'}
+{'Vila Toninho'}
+{'Pinheirinho'}
+{'Central'}
+{'Pinheirinho'}
+{'CEU'}
+{'Central'}
+{'Cidade da Criana'}
+{'Central'}
+{'Central'}
+{'Pinheirinho'}
+{'Central'}
+{'Talhado'}
+{'HB'}
+{'CEU'}
+{'Cidade da Criana'}
+{'Cidade da Criana'}
+{'Central'}
+{'Represa'}
+{'Cidade da Criana'}
+{'Central'}
+{'Bosque'}
+{'Bosque'}
+{'Central'}
+{'HB'}
+{'CEU'}
+{'Bosque'}
+{'Schmitt'}
+{'CEU'}
+{'Cidade da Criana'}
+{'Pinheirinho'}
+{'Vila Toninho'}
+{'Vila Toninho'}
+{'Vila Toninho'}
+{'Central'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'Pinheirinho'}
+{'Central'}
+{'Central'}
+{'Cidade da Criana'}
+{'Pinheirinho'}
+{'Central'}
+{'Pinheirinho'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'Pinheirinho'}
+{'Talhado'}
+{'HB'}
+{'Cidade da Criana'}
+{'Cidade da Criana'}
+{'Vila Toninho'}
+{'Bosque'}
+{'Cidade da Criana'}
+{'HB'}
+"{'Bosque', 'CEU'}"
+{'Central'}
+{'Pinheirinho'}
+{'Bosque'}
+{'HB'}
+{'Bosque'}
+{'Represa'}
+{'Vila Toninho'}
+{'Central'}
+{'CEU'}
+{'HB'}
+{'Represa'}
+{'Central'}
+{'Pinheirinho'}
+{'HB'}
+{'Central'}
+{'CEU'}
+{'HB'}
+{'CEU'}
+{'CEU'}
+{'Vila Toninho'}
+{'Vila Toninho'}
+{'Bosque'}
+{'Bosque'}
+{'HB'}
+{'Central'}
+{'Bosque'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'HB'}
+{'Represa'}
+{'CEU'}
+{'HB'}
+{'Central'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'Vila Toninho'}
+{'Schmitt'}
+{'Represa'}
+{'HB'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'CEU'}
+{'Pinheirinho'}
+{'CEU'}
+{'HB'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'HB'}
+{'Represa'}
+{'Central'}
+{'HB'}
+{'CEU'}
+{'Pinheirinho'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'Bosque'}
+{'Central'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'HB'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'Represa'}
+{'Central'}
+{'Vila Toninho'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'Represa'}
+{'Cidade da Criana'}
+"{'Schmitt', 'Represa'}"
+{'Cidade da Criana'}
+{'Central'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'Bosque'}
+{'Represa'}
+{'Bosque'}
+{'CEU'}
+{'Represa'}
+{'Central'}
+{'Central'}
+{'Cidade da Criana'}
+{'CEU'}
+{'Central'}
+{'Central'}
+{'Represa'}
+{'Central'}
+{'Pinheirinho'}
+{'Bosque'}
+{'Bosque'}
+{'Pinheirinho'}
+{'Represa'}
+{'CEU'}
+{'Central'}
+{'Represa'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'Central'}
+{'HB'}
+{'Represa'}
+{'Central'}
+{'HB'}
+{'Bosque'}
+{'Central'}
+{'Central'}
+{'Pinheirinho'}
+{'Bosque'}
+{'Talhado'}
+{'Cidade da Criana'}
+{'CEU'}
+{'HB'}
+{'Vila Toninho'}
+{'Central'}
+{'Bosque'}
+{'CEU'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'Cidade da Criana'}
+{'Bosque'}
+{'HB'}
+{'Central'}
+{'Pinheirinho'}
+{'Represa'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'Represa'}
+{'Vila Toninho'}
+{'Central'}
+{'Central'}
+{'CEU'}
+{'HB'}
+{'Talhado'}
+{'Bosque'}
+{'HB'}
+{'Pinheirinho'}
+{'Schmitt'}
+{'Central'}
+{'HB'}
+{'Bosque'}
+{'Central'}
+{'CEU'}
+{'HB'}
+{'Represa'}
+{'HB'}
+{'Pinheirinho'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'HB'}
+{'Central'}
+{'Vila Toninho'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'CEU'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'Bosque'}
+{'Cidade da Criana'}
+{'Talhado'}
+{'Cidade da Criana'}
+{'Vila Toninho'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'HB'}
+{'Central'}
+{'Cidade da Criana'}
+{'Represa'}
+{'CEU'}
+{'Talhado'}
+{'HB'}
+{'Pinheirinho'}
+{'Central'}
+{'Cidade da Criana'}
+{'HB'}
+{'Schmitt'}
+{'CEU'}
+{'CEU'}
+{'CEU'}
+{'HB'}
+{'Pinheirinho'}
+{'HB'}
+{'Bosque'}
+{'Central'}
+{'HB'}
+{'Represa'}
+{'HB'}
+{'Bosque'}
+{'Schmitt'}
+{'HB'}
+{'Bosque'}
+{'Central'}
+{'Schmitt'}
+{'Central'}
+{'HB'}
+{'Schmitt'}
+{'HB'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'Vila Toninho'}
+{'HB'}
+{'Central'}
+{'Represa'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'Bosque'}
+{'CEU'}
+{'Central'}
+{'Central'}
+{'Central'}
+{'HB'}
+{'Pinheirinho'}
+{'Central'}
+{'Pinheirinho'}
+{'Central'}
+{'Pinheirinho'}
+{'Vila Toninho'}
+{'HB'}
+{'CEU'}
+{'Cidade da Criana'}
+{'HB'}
+{'Bosque'}
+{'Represa'}
+{'Central'}
+{'Pinheirinho'}
+{'CEU'}
+{'Cidade da Criana'}
+{'Central'}
+{'CEU'}
+{'Represa'}
+{'HB'}
+{'Vila Toninho'}
+{'Central'}
+{'Central'}
+{'Pinheirinho'}
+{'Vila Toninho'}
+{'Pinheirinho'}
+{'Bosque'}
+{'HB'}
+{'Cidade da Criana'}
+{'Central'}
+{'HB'}
+{'Central'}
+{'Cidade da Criana'}
+{'Represa'}
+{'Pinheirinho'}
+{'CEU'}
+{'Talhado'}
+{'Bosque'}
+{'CEU'}
+{'Pinheirinho'}
+{'Cidade da Criana'}
+{'Pinheirinho'}
+{'Pinheirinho'}
+{'Central'}
+{'CEU'}
+{'CEU'}
+{'Central'}
+{'Vila Toninho'}
+{'Central'}
+{'Pinheirinho'}
+{'HB'}
+{'Central'}
+{'Pinheirinho'}
+{'CEU'}
+{'HB'}
+{'Central'}
+{'HB'}
+{'Talhado'}
+{'Cidade da Criana'}
+{'CEU'}
+{'Pinheirinho'}
+{'CEU'}
+{'Pinheirinho'}
+{'Central'}
+{'HB'}
+{'Vila Toninho'}
+{'HB'}
+{'Central'}
+{'Talhado'}
+{'Represa'}
+{'HB'}
+{'Vila Toninho'}
+{'HB'}
+{'CEU'}
+{'Central'}
+{'Represa'}
+{'Schmitt'}
+{'CEU'}
+{'Cidade da Criana'}

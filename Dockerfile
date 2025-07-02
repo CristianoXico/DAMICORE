@@ -23,11 +23,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar o código fonte
 COPY . .
 
-# Executar o script de configuração
-RUN python setup_config.py
+# (Opcional) Executar script de configuração se necessário
+# RUN python src/setup_config.py
 
 # Criar diretórios necessários
-RUN mkdir -p examples results temp
+RUN mkdir -p examples results temp data config
 
 # Definir o comando padrão
-ENTRYPOINT ["python", "scripts_modulares/DAMICORE_Pareto_script.py"]
+ENTRYPOINT ["python", "src/scripts/DAMICORE_Pareto_script.py"]

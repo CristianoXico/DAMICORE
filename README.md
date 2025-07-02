@@ -6,24 +6,54 @@ Este projeto implementa um pipeline de análise que combina o método DAMICORE (
 
 ```
 DAMICORE/
-├── scripts_modulares/          # Scripts principais
-│   ├── DAMICORE_Pareto_script.py  # Script integrado principal
-│   └── pareto_frontier_local.py    # Módulo de análise Pareto
-├── damicore_py3/              # Core da implementação DAMICORE
+├── src/
+│   ├── __init__.py
 │   ├── damicore.py
 │   ├── ncd.py
 │   ├── progress_bar.py
 │   ├── tree.py
-│   └── tree_simplification.py
-├── test_data_scripts_modulares/  # Dados de teste
-└── requirements.txt           # Dependências do projeto
+│   ├── tree_simplification.py
+│   └── scripts/
+│       ├── DAMICORE_Filograma_script.py
+│       ├── DAMICORE_Pareto_script.py
+│       └── pareto_frontier_local.py
+├── tests/
+│   ├── test_damicore_pareto.py
+│   ├── DAMICORE_Pareto_test.py
+│   ├── test_tree_visualization.py
+│   └── test_data/
+│       └── ... (dados de teste)
+├── data/
+│   ├── sample_dengue/
+│   └── sample_dengue.csv
+├── config/
+│   └── config.ini
+├── docs/
+│   ├── README.md
+│   ├── KNOWN_WARNINGS.md
+│   └── copilot-instructions.md
+├── requirements.txt
+├── Dockerfile
+├── docker-compose.yml
+├── run.sh
+└── .gitignore
 ```
+
+### Descrição das Pastas Principais
+- `src/`: Código-fonte principal do DAMICORE
+- `src/scripts/`: Scripts executáveis e utilitários
+- `tests/`: Testes automatizados e dados de teste
+- `data/`: Dados de entrada e exemplos
+- `config/`: Arquivos de configuração
+- `docs/`: Documentação
+
+
 
 ## Instalação
 
 1. Clone o repositório:
 ```bash
-git clone [URL_DO_REPOSITÓRIO]
+git clone https://github.com/CristianoXico/DAMICORE
 cd DAMICORE
 ```
 
@@ -34,23 +64,7 @@ pip install -r requirements.txt
 
 ## Como Executar
 
-### Script Principal (DAMICORE + Pareto)
-
-O script `DAMICORE_Pareto_script.py` integra a análise DAMICORE com análise opcional de Fronteira de Pareto:
-
-```bash
-python scripts_modulares/DAMICORE_Pareto_script.py
-```
-
-O script irá:
-1. Solicitar o caminho do arquivo CSV de entrada
-2. Executar a análise DAMICORE
-3. Gerar visualizações (Cloud Tree, Consensus Tree, Árvore Filogenética)
-4. Opcionalmente executar a análise de Fronteira de Pareto
-
-Os resultados serão salvos em uma pasta com o mesmo nome do arquivo de entrada, contendo:
-- `damicore_analysis/`: Resultados da análise DAMICORE
-- `pareto_analysis/`: Resultados da análise de Fronteira de Pareto (se executada)
+Veja o passo a passo completo de execução na seção "Passo a Passo Completo de Utilização" abaixo. Lá você encontra instruções para rodar localmente ou via Docker, além de dicas para uso de exemplos e testes.
 
 ## Formato dos Dados de Entrada
 
@@ -84,17 +98,9 @@ join_CENSITARIO,populacao,renda,idade_media
 003,800,2000,30
 ```
 
-## Dependências Principais
+## Dependências
 
-- pandas
-- numpy
-- matplotlib
-- toytree
-- toyplot
-- biopython
-- seaborn
-- sklearn
-
+As dependências principais estão listadas em `requirements.txt`. Consulte o item 7 do "Passo a Passo Completo de Utilização" para mais detalhes.
 ## Contribuindo
 
 1. Faça um fork do projeto
@@ -116,14 +122,32 @@ D,15,18,21
 E,12,14,17
 ```
 
-Para testar o pipeline com este exemplo:
+Para testar o pipeline com exemplos, siga as instruções detalhadas na seção "Passo a Passo Completo de Utilização". Os exemplos estão na pasta `examples/`.
 
+## Passo a Passo Completo de Utilização
+
+### 1. Instalação
+
+Clone o repositório:
 ```bash
-python scripts_modulares/DAMICORE_Pareto_script.py
-# Quando solicitado, forneça o caminho: examples/example_input.csv
+git clone https://github.com/CristianoXico/DAMICORE.git
+cd DAMICORE
 ```
 
-## Configuração Automatizada
+**Recomendação de boas práticas:**
+Utilize um ambiente virtual Python para evitar conflitos de dependências com outros projetos. Exemplo:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate  # No Windows: .venv\Scripts\activate
+```
+
+Instale as dependências:
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Configuração Automatizada
 
 Para configurar automaticamente o ambiente, execute:
 
@@ -132,29 +156,54 @@ python setup_config.py
 ```
 
 Este script irá:
-
 1. Detectar o caminho correto do DAMICORE CLI
-2. Criar/atualizar o arquivo config.ini
+2. Criar/atualizar o arquivo config.ini (em config/)
 3. Criar diretórios necessários se não existirem
 
-## Testes
+### 3. Executando o pipeline principal
 
-### Estrutura de Testes
+**Local:**
+```bash
+python src/scripts/DAMICORE_Pareto_script.py
+```
+O script solicitará o caminho do arquivo CSV de entrada (exemplo: `data/sample_dengue.csv`).
 
-- `tests/`: Testes unitários
-- `test_data_scripts_modulares/`: Dados de teste para scripts modulares
-  - `ncd_input/`: Dados para testes de NCD (Normalized Compression Distance)
-  - `portugues/`: Exemplos em português
-  - `referencia/`: Dados de referência
+**Com Docker:**
+```bash
+docker build -t damicore .
+docker run -it --rm -v $(pwd)/data:/app/data damicore
+```
+O script solicitará o caminho do arquivo CSV de entrada (exemplo: `data/sample_dengue.csv`).
 
-### Executando os Testes
+### 4. Exemplos
+
+Na pasta `examples/` você encontrará arquivos de exemplo que podem ser usados para testar a funcionalidade do pipeline.
+
+### 5. Testes
 
 Para executar os testes unitários:
-
 ```bash
 python -m unittest discover tests
 ```
 
+### 6. Estrutura das Pastas
+
+A estrutura detalhada do projeto está na seção "Estrutura do Projeto" no início deste README.
+### 7. Dependências
+
+As principais dependências estão em `requirements.txt`. Incluem: pandas, numpy, matplotlib, toytree, toyplot, biopython, seaborn, sklearn.
+
+### 8. Contribuindo
+
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b minha-feature`)
+3. Commit suas alterações (`git commit -am 'Adiciona nova feature'`)
+4. Push para o branch (`git push origin minha-feature`)
+5. Abra um Pull Request
+
+## Testes
+
+Para rodar os testes unitários, consulte o item 5 do "Passo a Passo Completo de Utilização". Os dados de teste estão em `tests/test_data/`.
 Os testes verificam:
 
 - Funcionalidade da análise DAMICORE
