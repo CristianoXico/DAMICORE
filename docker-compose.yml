@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  damicore:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: damicore:2.0
+    container_name: damicore-pipeline
+    
+    # Configurações de recursos para arquivos ultra-grandes
+    deploy:
+      resources:
+        limits:
+          memory: 16G
+          cpus: '8.0'
+        reservations:
+          memory: 4G
+          cpus: '2.0'
+    
+    # Variáveis de ambiente
+    environment:
+      - DAMICORE_TIMEOUT=7200
+      - DAMICORE_CHUNK_SIZE=500
+      - DAMICORE_BOOTSTRAP_SAMPLES=2
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    
+    # Volumes para dados e resultados
+    volumes:
+      - ./input:/app/input:ro
+      - ./results:/app/results:rw
+      - ./data:/app/data:rw
+      - ./temp:/app/temp:rw
+      - ./logs:/app/logs:rw
+      - ./external_drive:/app/external_drive:rw
+      - ./damicore_analysis:/app/damicore_analysis:rw
+    
+    # Configurações de rede
+    networks:
+      - damicore-net
+    
+    # Configurações de entrada interativa
+    stdin_open: true
+    tty: true
+    
+    # Política de restart
+    restart: unless-stopped
+    
+    # Healthcheck
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Serviço para monitoramento (opcional)
+  monitoring:
+    image: prom/node-exporter:latest
+    container_name: damicore-monitoring
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - damicore-net
+    profiles:
+      - monitoring
+
+networks:
+  damicore-net:
+    driver: bridge
+
+volumes:
+  damicore-data:
+    driver: local
+  damicore-results:
+    driver: local

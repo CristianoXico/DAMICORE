@@ -1,0 +1,3 @@
+Terceiro arquivo de teste para o pipeline NCD.
+Este texto é mais curto mas ainda assim útil.
+A análise de similaridade será interessante.

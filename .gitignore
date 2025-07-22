@@ -1,0 +1,105 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+virtualenv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# DAMICORE specific
+temp_backup/
+/data_projects
+*.tmp
+*.log
+results/
+temp/
+tmp/
+logs/
+damicore_analysis/
+external_drive/
+pipeline_progress.json
+
+# Data files (podem ser muito grandes)
+*.csv
+*.tsv
+*.xlsx
+*.xls
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+*.parquet
+*.feather
+
+# Arquivos de dados específicos do DAMICORE
+sample_dengue/
+sample_*/
+resample_*.csv
+col_*.txt
+*.txt++*.txt
+
+# Large files and caches
+.dvc/cache/
+.dvc/tmp/
+*.newick
+*.tree
+*.nwk
+*.phy
+*.phylip
+*.fasta
+*.fa
+*.fastq
+*.fq
+
+# Visualizations (podem ser grandes)
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.eps
+*.ps
+*.tiff
+*.bmp
+
+# Arquivos de modelo e cache
+*.model
+*.weights
+*.checkpoint
+*.ckpt
+*.pth
+*.pt
+*.safetensors
+
+# Arquivos temporários grandes
+*_temp*
+*_tmp*
+*.backup
+*.bak
