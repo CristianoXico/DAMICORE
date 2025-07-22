@@ -249,7 +249,7 @@ def process_single_chunk_streaming(chunk_data, headers, chunk_idx, bootstrap_sam
         os.makedirs(os.path.dirname(tree_output_path), exist_ok=True)
         
         cmd = [
-            "python", "/home/cristiano-xico/Desktop/work_space_vs_code/CristianoXico-repos/DAMICORE/damicore_py3/damicore.py",
+            "python3", os.path.join(os.path.dirname(os.path.dirname(__file__)), "damicore.py"),
             "--compressor", "gzip",
             "--serial",
             "--tree-output", tree_output_path,
@@ -375,7 +375,7 @@ def process_single_chunk_streaming_resume(chunk_data, headers, chunk_idx, bootst
         os.makedirs(os.path.dirname(tree_output_path), exist_ok=True)
         
         cmd = [
-            "python", "/home/cristiano-xico/Desktop/work_space_vs_code/CristianoXico-repos/DAMICORE/damicore_py3/damicore.py",
+            "python3", os.path.join(os.path.dirname(os.path.dirname(__file__)), "damicore.py"),
             "--compressor", "gzip",
             "--serial",
             "--tree-output", tree_output_path,
