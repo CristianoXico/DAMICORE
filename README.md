@@ -146,10 +146,18 @@ DAMICORE/
 │   ├── progress_bar.py
 │   ├── tree.py
 │   ├── tree_simplification.py
-│   └── scripts/
-│       ├── DAMICORE_Filograma_script.py
-│       ├── DAMICORE_Pareto_script.py
-│       └── pareto_frontier_local.py
+│   ├── scripts/
+│   │   ├── DAMICORE_Filograma_script.py
+│   │   ├── DAMICORE_Pareto_script.py
+│   │   ├── DAMICORE_Pareto_script_chunks.py
+│   │   ├── DAMICORE_Pareto_script_chunks_external.py
+│   │   ├── DAMICORE_Pareto_script_chunks_per_chunk.py
+│   │   └── pareto_frontier_local.py
+│   └── utilities/
+│       ├── generate_visualizations_from_newick.py
+│       ├── test_chunk_sizes.py
+│       ├── test_damicore_performance.py
+│       └── test_resume_functionality.py
 ├── tests/
 │   ├── test_damicore_pareto.py
 │   ├── DAMICORE_Pareto_test.py
@@ -295,18 +303,89 @@ Este script irá:
 
 ### 3. Executando o pipeline principal
 
-**Local:**
+#### Scripts Disponíveis
+
+**1. Script Original (Arquivos Pequenos/Médios)**
 ```bash
 python src/scripts/DAMICORE_Pareto_script.py
 ```
-O script solicitará o caminho do arquivo CSV de entrada (exemplo: `data/sample_dengue.csv`).
+- Ideal para arquivos até 1GB
+- Processamento tradicional em memória
+- Mais rápido para datasets pequenos
+
+**2. Script Chunked (Arquivos Grandes)**
+```bash
+python src/scripts/DAMICORE_Pareto_script_chunks.py
+```
+- Otimizado para arquivos 1-10GB
+- Processamento em chunks para economizar memória
+- Sistema de checkpoint/retomada automática
+
+**3. Script Chunked External (Arquivos Ultra-Grandes)**
+```bash
+python src/scripts/DAMICORE_Pareto_script_chunks_external.py
+```
+- Otimizado para arquivos >10GB
+- Salva resultados em drive externo
+- Configuração adaptativa baseada no tamanho do arquivo
+
+**4. Script Chunk-per-Chunk (Visualização Incremental)**
+```bash
+python src/scripts/DAMICORE_Pareto_script_chunks_per_chunk.py
+```
+- **NOVO**: Processamento chunk a chunk com visualizações incrementais
+- Sistema de checkpoint/retomada automática robusto
+- Visualizações adaptativas baseadas no número de colunas
+- Bootstrap sampling adaptativo por chunk
+- Barra de progresso em tempo real
+- Visualização compilada final de todos os chunks
+- Ideal para análise de progresso em tempo real
 
 **Com Docker:**
 ```bash
 docker build -t damicore .
 docker run -it --rm -v $(pwd)/data:/app/data damicore
 ```
-O script solicitará o caminho do arquivo CSV de entrada (exemplo: `data/sample_dengue.csv`).
+
+#### Scripts Utilitários
+
+**1. Teste de Performance e Chunk Size**
+```bash
+# Testa diferentes tamanhos de chunk para otimizar performance
+python src/utilities/test_chunk_sizes.py /caminho/para/arquivo.csv
+
+# Testa performance completa do pipeline DAMICORE
+python src/utilities/test_damicore_performance.py /caminho/para/arquivo.csv
+```
+
+**2. Geração de Visualizações a partir de Arquivos Newick**
+```bash
+# Gera visualizações a partir de arquivos newick existentes
+python src/utilities/generate_visualizations_from_newick.py /caminho/para/diretorio/newick
+```
+
+**3. Teste do Sistema de Retomada**
+```bash
+# Testa funcionalidades de checkpoint/retomada automática
+python src/utilities/test_resume_functionality.py
+```
+
+#### Recursos Avançados
+
+**Sistema de Checkpoint/Retomada:**
+- Scripts `chunks`, `chunks_external` e `chunks_per_chunk` possuem sistema de retomada automática
+- Em caso de falha/interrupção, o processamento continua do ponto onde parou
+- Para reprocessar do zero, delete o arquivo `*_progress.json` correspondente
+
+**Visualizações Adaptativas:**
+- Tamanho das imagens se adapta automaticamente ao número de colunas do dataset
+- Baseline otimizado para 35 colunas, escala suavemente para datasets maiores
+- Garante legibilidade independente do tamanho do dataset
+
+**Bootstrap Sampling Adaptativo:**
+- Número de amostras bootstrap se adapta ao número de chunks
+- Mais chunks = menos amostras por chunk (otimiza tempo)
+- Menos chunks = mais amostras por chunk (melhora qualidade)
 
 ### 4. Exemplos
 

@@ -320,7 +320,7 @@ def main():
                     capture_output=True, 
                     text=True, 
                     check=True,
-                    timeout=1800  # 30 minutos de timeout
+                    timeout=7200  # 2 horas de timeout
                 )
                 print(f"  ✅ DAMICORE executado com sucesso!")
             except subprocess.TimeoutExpired:
@@ -431,7 +431,7 @@ def main():
             ]
             
             print(f"Executando: {' '.join(cmd)}")
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=1800)  # 30 min timeout
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=7200)  # 2 horas timeout
             
             if result.returncode == 0:
                 print(f"✅ {resample_dir_name}: DAMICORE executado com sucesso!")
