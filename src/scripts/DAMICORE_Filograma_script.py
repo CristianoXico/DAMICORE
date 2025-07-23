@@ -1,4 +1,5 @@
 import os
+import sys
 import pandas as pd
 import numpy as np
 import json
@@ -161,8 +162,28 @@ def get_input_file_path():
             print("Verifique se o arquivo é um CSV válido.")
             continue
 
-# Solicita o caminho do arquivo interativamente
-DATA_PATH = get_input_file_path()
+# Determinar caminho do arquivo: argumento de linha de comando ou entrada interativa
+if len(sys.argv) > 1:
+    # Modo não-interativo: usar argumento de linha de comando
+    DATA_PATH = sys.argv[1]
+    print(f"📁 Arquivo fornecido via argumento: {DATA_PATH}")
+    
+    # Validar se arquivo existe
+    if not os.path.exists(DATA_PATH):
+        print(f"❌ Erro: Arquivo não encontrado: {DATA_PATH}")
+        sys.exit(1)
+    
+    # Validar se é um CSV válido
+    try:
+        test_df = pd.read_csv(DATA_PATH, nrows=1)
+        print(f"✅ Arquivo CSV válido detectado ({len(test_df.columns)} colunas)")
+    except Exception as e:
+        print(f"❌ Erro: Arquivo não é um CSV válido: {e}")
+        sys.exit(1)
+else:
+    # Modo interativo: solicitar caminho do arquivo
+    DATA_PATH = get_input_file_path()
+
 SCRIPTS_OUTPUT_BASE = os.path.splitext(os.path.basename(DATA_PATH))[0]
 OUTPUT_DIR = os.path.join(os.path.dirname(DATA_PATH), SCRIPTS_OUTPUT_BASE)
 os.makedirs(OUTPUT_DIR, exist_ok=True)
