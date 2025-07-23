@@ -314,11 +314,11 @@ class FileSlicerProgress:
         self.save_progress()
     
     def get_pending_slices(self):
-        """Retorna lista de fatias pendentes (não processadas)."""
+        """Retorna lista de fatias pendentes (não processadas ou falhadas)."""
         total = self.progress_data.get("total_slices", 0)
         completed = set(self.progress_data.get("completed_slices", []))
-        failed = set(self.progress_data.get("failed_slices", []))
-        return [i for i in range(total) if i not in completed and i not in failed]
+        # Fatias falhadas devem ser reprocessadas, então são consideradas pendentes
+        return [i for i in range(total) if i not in completed]
     
     def get_failed_slices(self):
         """Retorna lista de fatias falhadas para reprocessamento."""
