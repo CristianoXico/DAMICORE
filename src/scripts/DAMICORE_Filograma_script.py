@@ -200,7 +200,14 @@ if any(checkpoint_manager.progress["completed_steps"].values()):
     print("\n🔄 RETOMADA DETECTADA!")
     checkpoint_manager.print_progress_summary()
     
-    response = input("\nDeseja continuar de onde parou? (s/n): ").lower()
+    # Modo não-interativo: continuar automaticamente se executado via subprocess
+    if len(sys.argv) > 1:
+        print("▶️  Modo não-interativo: continuando automaticamente do checkpoint...")
+        response = 's'
+    else:
+        # Modo interativo: solicitar confirmação
+        response = input("\nDeseja continuar de onde parou? (s/n): ").lower()
+    
     if response != 's':
         print("🔄 Reiniciando do zero...")
         # Reset do checkpoint
