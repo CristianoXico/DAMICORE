@@ -44,7 +44,10 @@ import matplotlib.pyplot as plt
 CHUNK_SIZE = 100  # Linhas por fatia (padrão otimizado)
 USE_EXTERNAL_DRIVE = False  # Flag para usar drive externo
 EXTERNAL_DRIVE_PATH = None  # Caminho do drive externo
-FILOGRAMA_SCRIPT_PATH = "/home/cristiano-xico/github/CristianoXico/DAMICORE/src/scripts/DAMICORE_Filograma_script.py"
+
+# Caminho relativo para o script DAMICORE_Filograma_script.py
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+FILOGRAMA_SCRIPT_PATH = os.path.join(SCRIPT_DIR, "DAMICORE_Filograma_script.py")
 
 def detect_external_drive():
     """Detecta automaticamente drives externos montados."""
