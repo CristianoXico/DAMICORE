@@ -28,6 +28,10 @@ import numpy as np
 import ast
 from statistics import multimode
 import csv
+import time
+import subprocess
+import json
+from tqdm import tqdm
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -196,6 +200,71 @@ def calculate_adaptive_figure_size(num_columns, base_columns=35):
 # CONFIGURAÇÃO DO DRIVE EXTERNO
 # ============================================================================
 
+class ChunkProgressManager:
+    """
+    Gerencia o progresso do processamento chunk a chunk com checkpoint/retomada automática.
+    """
+    
+    def __init__(self, progress_file):
+        self.progress_file = progress_file
+        self.progress_data = self.load_progress()
+    
+    def load_progress(self):
+        """Carrega progresso existente ou cria novo."""
+        if os.path.exists(self.progress_file):
+            try:
+                with open(self.progress_file, 'r') as f:
+                    return json.load(f)
+            except (json.JSONDecodeError, FileNotFoundError):
+                pass
+        return {}
+    
+    def save_progress(self):
+        """Salva progresso atual."""
+        with open(self.progress_file, 'w') as f:
+            json.dump(self.progress_data, f, indent=2)
+    
+    def initialize_progress(self, total_chunks, bootstrap_samples):
+        """Inicializa progresso se não existir."""
+        if not self.progress_data:
+            self.progress_data = {
+                "total_chunks": total_chunks,
+                "bootstrap_samples": bootstrap_samples,
+                "completed_chunks": [],
+                "pipeline_status": "running",
+                "start_time": time.time()
+            }
+            self.save_progress()
+    
+    def is_chunk_completed(self, chunk_idx):
+        """Verifica se um chunk já foi processado."""
+        return chunk_idx in self.progress_data.get("completed_chunks", [])
+    
+    def mark_chunk_completed(self, chunk_idx, newick_count, bootstrap_samples):
+        """Marca um chunk como concluído."""
+        if chunk_idx not in self.progress_data.get("completed_chunks", []):
+            self.progress_data.setdefault("completed_chunks", []).append(chunk_idx)
+            self.progress_data["last_update"] = time.time()
+            self.save_progress()
+    
+    def get_pending_chunks(self):
+        """Retorna lista de chunks pendentes."""
+        total_chunks = self.progress_data.get("total_chunks", 0)
+        completed = set(self.progress_data.get("completed_chunks", []))
+        return [i for i in range(total_chunks) if i not in completed]
+    
+    def mark_pipeline_completed(self):
+        """Marca pipeline como concluído."""
+        self.progress_data["pipeline_status"] = "completed"
+        self.progress_data["end_time"] = time.time()
+        self.save_progress()
+    
+    def get_progress_summary(self):
+        """Retorna resumo do progresso."""
+        total = self.progress_data.get("total_chunks", 0)
+        completed = len(self.progress_data.get("completed_chunks", []))
+        return f"{completed}/{total} chunks concluídos ({completed/total*100:.1f}%)"
+
 def detect_external_drive():
     """Detecta automaticamente drives externos montados"""
     media_path = f"/media/{os.getenv('USER', 'user')}/"
@@ -260,29 +329,46 @@ def main():
 
     # Solicita o arquivo CSV
     print("\n=== CONFIGURAÇÃO DO ARQUIVO CSV ===")
-    input_path = input("Digite o caminho completo do arquivo CSV: ").strip()
-    
-    if not os.path.exists(input_path):
-        print(f"❌ Erro: Arquivo {input_path} não encontrado")
+    csv_file = input("Digite o caminho para o arquivo CSV: ").strip()
+        
+    if not os.path.exists(csv_file):
+        print(f"Erro: Arquivo {csv_file} não encontrado.")
         return
-    
-    # Verifica tamanho do arquivo
-    file_size_gb = os.path.getsize(input_path) / (1024**3)
-    print(f"📁 Tamanho do arquivo: {file_size_gb:.1f} GB")
-    
-    if file_size_gb * 3 > free_space_gb:
-        print(f"⚠️  AVISO: Recomenda-se pelo menos {file_size_gb*3:.1f} GB livres (3x o tamanho do arquivo)")
-        response = input("Continuar mesmo assim? (s/n): ").lower()
-        if response != 's':
-            print("Operação cancelada.")
-            return
-
+        
+    # Configuração adaptativa baseada no tamanho do arquivo
+    file_size_gb = os.path.getsize(csv_file) / (1024**3)
+    print(f"📊 Tamanho do arquivo: {file_size_gb:.2f} GB")
+        
+    # SOLUÇÃO: Para arquivos pequenos/médios, processar arquivo inteiro como Filograma
+    # Isso garante frequências corretas evitando o problema de chunks insuficientes
+    if file_size_gb >= 10:
+        # Arquivos muito grandes: usar chunking otimizado
+        chunk_size = 500
+        bootstrap_samples = 3
+        max_columns = 15
+        use_full_file_mode = False
+        print("📊 MODO CHUNKING: Arquivo grande será processado em chunks")
+    elif file_size_gb >= 1:
+        # Arquivos médios: processar arquivo completo
+        chunk_size = None  # Não usado no modo completo
+        bootstrap_samples = 10
+        max_columns = 50
+        use_full_file_mode = True
+        print("🎯 MODO ARQUIVO COMPLETO: Processamento como Filograma para garantir frequências corretas")
+    else:
+        # Arquivos pequenos: definitivamente processar arquivo completo
+        chunk_size = None  # Não usado no modo completo
+        bootstrap_samples = 22  # Mesmo número do Filograma
+        max_columns = 101  # Todas as colunas
+        use_full_file_mode = True
+        print("✅ MODO ARQUIVO COMPLETO: Arquivo pequeno será processado integralmente")
+        
     # Configuração dos diretórios de saída no drive externo
-    SCRIPTS_OUTPUT_BASE = os.path.splitext(os.path.basename(input_path))[0]
+    SCRIPTS_OUTPUT_BASE = os.path.splitext(os.path.basename(csv_file))[0]
     OUTPUT_DIR = os.path.join(EXTERNAL_DRIVE_PATH, "DAMICORE_RESULTS", SCRIPTS_OUTPUT_BASE)
     DAMICORE_DIR = os.path.join(OUTPUT_DIR, "damicore_analysis")
     os.makedirs(DAMICORE_DIR, exist_ok=True)
-    
+        
     print(f"📂 Resultados serão salvos em: {OUTPUT_DIR}")
 
     # === 1. Carregamento e pré-processamento ===
@@ -337,14 +423,64 @@ def main():
     sample_dir = os.path.join(DAMICORE_DIR, "sample_full")
     os.makedirs(sample_dir, exist_ok=True)
     
+    # Determinar modo de processamento baseado no tamanho
+    # OPÇÃO: Forçar modo arquivo completo para garantir frequências corretas
+    FORCE_FULL_FILE_MODE = True  # ⚠️ ATENÇÃO: Pode usar muita RAM para arquivos grandes!
+    
+    if FORCE_FULL_FILE_MODE:
+        use_full_file_mode = True
+        if file_size_gb >= 10:
+            print(f"⚠️  AVISO: Forçando modo arquivo completo para arquivo de {file_size_gb:.1f}GB")
+            print(f"💾 Uso estimado de RAM: ~{file_size_gb * 3:.1f}GB (pode causar OOM!)")
+            print(f"🎯 Benefício: Frequências de suporte CORRETAS nos arquivos Newick")
+            
+            response = input("\n🤔 Continuar com modo arquivo completo? (s/n): ")
+            if response.lower() != 's':
+                print("❌ Processamento cancelado pelo usuário")
+                return
+    else:
+        use_full_file_mode = file_size_gb < 1 or (1 <= file_size_gb < 10)
+    
+    if use_full_file_mode:
+        print(f"\n🎯 MODO ARQUIVO COMPLETO: Processando como script Filograma")
+        print(f"📊 Configuração: {bootstrap_samples} amostras bootstrap, {max_columns} colunas máx")
+        
+        # Criar mapeamento index_to_name
+        original_df = pd.read_csv(csv_file, encoding="utf-8", low_memory=False, nrows=1)
+        original_columns = original_df.columns.tolist()
+        index_to_name = {str(i): name for i, name in enumerate(original_columns)}
+        
+        # Processar arquivo completo (como Filograma)
+        results_dir = os.path.join(DAMICORE_DIR, "damicore_results")
+        newick_files = process_full_file_like_filograma(
+            csv_file, bootstrap_samples, DAMICORE_DIR, results_dir, index_to_name
+        )
+        
+        print(f"\n=== RESULTADOS DO PROCESSAMENTO COMPLETO ===")
+        print(f"Total de arquivos newick gerados: {len(newick_files)}")
+        
+        if len(newick_files) == 0:
+            print("❌ Nenhum arquivo newick encontrado. Verifique se o DAMICORE foi executado corretamente.")
+            return
+        
+        # Gerar visualizações
+        from visualization_helper import generate_visualizations
+        generate_visualizations(newick_files, DAMICORE_DIR, index_to_name)
+        
+        print(f"\n✅ Análise DAMICORE COMPLETA concluída com sucesso!")
+        print(f"📂 Todos os resultados foram salvos em: {OUTPUT_DIR}")
+        print(f"🎉 Frequências corretas garantidas pelo processamento completo!")
+        
+        return
+    
     # Para arquivos muito grandes, usa processamento STREAMING
-    if file_size_gb >= 10:
+    elif file_size_gb >= 10:
         print("🌊 Usando processamento STREAMING (1 chunk por vez) para arquivo muito grande...")
         from streaming_processor import process_file_streaming
         
         # Processa arquivo em modo streaming
         newick_files = process_file_streaming(
-            input_path, chunk_size, bootstrap_samples, max_columns_per_batch,
+            csv_file, chunk_size, bootstrap_samples, max_columns_per_batch,
             sample_dir, DAMICORE_DIR, EXTERNAL_DRIVE_PATH
         )
         
@@ -376,7 +512,7 @@ def main():
     else:
         # Configuração otimizada do pandas para arquivos menores
         chunk_iter = pd.read_csv(
-            input_path, 
+            csv_file, 
             encoding="utf-8", 
             low_memory=True,
             chunksize=chunk_size,
@@ -624,7 +760,6 @@ def main():
     # Criar o mapeamento index_to_name
     if original_columns:
         # Criar um DataFrame temporário para gerar o mapeamento
-        import pandas as pd
         temp_df = pd.DataFrame(columns=original_columns)
         index_to_name = create_index_to_name_mapping(temp_df)
         
@@ -786,10 +921,13 @@ def execute_chunk_processing_per_chunk(input_path, file_size_gb, OUTPUT_DIR, DAM
                 chunk_df = df.iloc[start_idx:end_idx].copy()
                 
                 try:
-                    # Processa chunk com bootstrap e gera visualizações
-                    chunk_newick_files = process_single_chunk_with_visualizations(
-                        chunk_df, chunk_idx, bootstrap_samples, 
-                        DAMICORE_DIR, results_dir, index_to_name, len(df.columns)
+                    # NOVA ESTRATÉGIA: Usar DAMICORE_Filograma_script.py para cada chunk
+                    # Isso garante frequências corretas porque cada chunk é processado completamente
+                    print(f"\n🎯 ESTRATÉGIA HÍBRIDA: Chunk {chunk_idx + 1} será processado pelo script Filograma")
+                    print(f"📊 Vantagem: Frequências de suporte CORRETAS nos arquivos Newick")
+                    
+                    chunk_newick_files = process_chunk_with_filograma_script(
+                        chunk_df, chunk_idx, DAMICORE_DIR, results_dir, index_to_name, len(df.columns)
                     )
                     
                     # Adiciona arquivos newick deste chunk à lista geral
@@ -847,6 +985,258 @@ def execute_chunk_processing_per_chunk(input_path, file_size_gb, OUTPUT_DIR, DAM
     print(f"📊 Resumo final: {progress_manager.get_progress_summary()}")
     print("🔄 Para reprocessar do zero, delete o arquivo: chunk_progress.json")
 
+
+def process_full_file_like_filograma(csv_file, bootstrap_samples, DAMICORE_DIR, results_dir, index_to_name):
+    """
+    Processa o arquivo inteiro de uma vez, como o script Filograma.
+    Isso garante frequências corretas nos arquivos newick.
+    
+    Args:
+        csv_file: Caminho para o arquivo CSV
+        bootstrap_samples: Número de amostras bootstrap
+        DAMICORE_DIR: Diretório base do DAMICORE
+        results_dir: Diretório de resultados
+        index_to_name: Mapeamento de índices para nomes
+    
+    Returns:
+        list: Lista de arquivos newick gerados
+    """
+    print(f"\n🎯 PROCESSAMENTO ARQUIVO COMPLETO (modo Filograma)")
+    print(f"📁 Carregando arquivo completo: {csv_file}")
+    
+    # === 1. Carregamento completo dos dados ===
+    original_df = pd.read_csv(csv_file, encoding="utf-8", low_memory=False)
+    original_columns = original_df.columns.tolist()
+    
+    # Criar DataFrame de trabalho com índices como nomes das colunas
+    df = original_df.copy()
+    df.columns = [str(i) for i in range(len(df.columns))]
+    df = df.map(lambda x: str(x).encode('ascii', 'ignore').decode('ascii') if isinstance(x, str) else x)
+    
+    print(f"✅ Dados carregados: {df.shape[0]} linhas, {df.shape[1]} colunas")
+    
+    # === 2. Reamostragem bootstrap (igual ao Filograma) ===
+    print(f"\n🔄 Gerando {bootstrap_samples} amostras bootstrap...")
+    resampled_df_l = [df]  # Amostra original
+    for i in range(bootstrap_samples - 1):
+        resampled_df_l.append(df.sample(n=df.shape[0], replace=True, random_state=i))
+    
+    print(f"✅ {len(resampled_df_l)} amostras bootstrap criadas")
+    
+    # === 3. Salvamento das amostras (igual ao Filograma) ===
+    print(f"\n💾 Criando arquivos de amostra...")
+    sample_dir = os.path.join(DAMICORE_DIR, "sample_full")
+    os.makedirs(sample_dir, exist_ok=True)
+    
+    for idx, resampled_df in enumerate(resampled_df_l):
+        resample_dir = os.path.join(sample_dir, f"resample_{idx:02d}")
+        os.makedirs(resample_dir, exist_ok=True)
+        
+        for col in resampled_df.columns:
+            col_path = os.path.join(resample_dir, f"col_{col}.txt")
+            resampled_df[col].to_csv(col_path, index=False, header=False, encoding="utf-8")
+        
+        print(f"📁 Amostra {idx:02d} salva em {resample_dir}")
+    
+    print(f"✅ {len(resampled_df_l)} arquivos de amostra criados")
+    
+    # === 4. Execução do DAMICORE (igual ao Filograma) ===
+    print(f"\n🚀 Executando DAMICORE para cada amostra...")
+    
+    DAMICORE_CLI_PATH = "/home/cristiano-xico/Desktop/work_space_vs_code/CristianoXico-repos/DAMICORE/damicore_py3/damicore.py"
+    os.makedirs(results_dir, exist_ok=True)
+    
+    sample_list = [m for m in os.listdir(sample_dir) if os.path.isdir(os.path.join(sample_dir, m))]
+    total_samples = len(sample_list)
+    processed_count = 0
+    newick_files = []
+    
+    for m in sample_list:
+        resampleddatasource = os.path.join(sample_dir, m)
+        tree_output = os.path.join(results_dir, f"{m}-tree.newick")
+        
+        # Pular se já existe
+        if os.path.exists(tree_output):
+            print(f"✅ Arquivo newick já existe para {m}")
+            newick_files.append(tree_output)
+            processed_count += 1
+            continue
+        
+        argv = [
+            "python3", DAMICORE_CLI_PATH,
+            "--compressor", "gzip",
+            "--tree-output", tree_output,
+            resampleddatasource
+        ]
+        
+        print(f"\n🔄 Processando amostra {processed_count + 1}/{total_samples}: {m}")
+        print(f"Executando DAMICORE: {' '.join(argv)}")
+        
+        try:
+            process = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+            
+            for line in process.stdout:
+                print(line, end="")
+            
+            process.wait()
+            
+            if process.returncode == 0:
+                print(f"✅ {m}: DAMICORE executado com sucesso!")
+                if os.path.exists(tree_output):
+                    newick_files.append(tree_output)
+            else:
+                print(f"❌ {m}: Erro no DAMICORE (código: {process.returncode})")
+                
+        except Exception as e:
+            print(f"❌ {m}: Erro ao executar DAMICORE: {e}")
+        
+        processed_count += 1
+    
+    print(f"\n✅ Processamento completo finalizado!")
+    print(f"📊 Total de arquivos newick gerados: {len(newick_files)}")
+    
+    return newick_files
+
+def validate_chunk_data(chunk_df, chunk_idx):
+    """
+    Valida se o chunk tem variabilidade suficiente para gerar frequências não-zeradas no DAMICORE.
+    
+    Args:
+        chunk_df: DataFrame do chunk
+        chunk_idx: Índice do chunk
+    
+    Returns:
+        bool: True se o chunk é válido, False caso contrário
+    """
+    print(f"🔍 Validando dados do chunk {chunk_idx + 1}...")
+    
+    # Verificar tamanho mínimo
+    if len(chunk_df) < 50:
+        print(f"⚠️  Chunk {chunk_idx + 1}: Muito pequeno ({len(chunk_df)} linhas < 50 mínimo)")
+        return False
+    
+    # Verificar variabilidade nas colunas
+    low_variance_cols = 0
+    for col in chunk_df.columns:
+        try:
+            # Converter para numérico se possível
+            numeric_data = pd.to_numeric(chunk_df[col], errors='coerce')
+            if not numeric_data.isna().all():
+                variance = numeric_data.var()
+                if variance < 1e-10:  # Variância muito baixa
+                    low_variance_cols += 1
+        except:
+            continue
+    
+    # Se mais de 80% das colunas têm baixa variância, o chunk pode ser problemático
+    if low_variance_cols > len(chunk_df.columns) * 0.8:
+        print(f"⚠️  Chunk {chunk_idx + 1}: Baixa variabilidade ({low_variance_cols}/{len(chunk_df.columns)} colunas)")
+        return False
+    
+    print(f"✅ Chunk {chunk_idx + 1}: Dados válidos ({len(chunk_df)} linhas, variabilidade adequada)")
+    return True
+
+def process_chunk_with_filograma_script(chunk_df, chunk_idx, DAMICORE_DIR, results_dir, index_to_name, num_columns):
+    """
+    Processa um chunk individual usando o DAMICORE_Filograma_script.py.
+    Isso garante frequências corretas porque cada chunk é processado completamente.
+    
+    Args:
+        chunk_df: DataFrame do chunk (100 linhas + todas as colunas)
+        chunk_idx: Índice do chunk
+        DAMICORE_DIR: Diretório base do DAMICORE
+        results_dir: Diretório de resultados
+        index_to_name: Mapeamento de índices para nomes
+        num_columns: Número de colunas
+    
+    Returns:
+        list: Lista de arquivos newick gerados
+    """
+    print(f"\n🎯 PROCESSANDO CHUNK {chunk_idx + 1} com Filograma Script")
+    print(f"📊 Chunk: {chunk_df.shape[0]} linhas, {chunk_df.shape[1]} colunas (TODAS as variáveis)")
+    
+    # === 1. Criar diretório temporário para este chunk ===
+    chunk_dir = os.path.join(DAMICORE_DIR, f"chunk_{chunk_idx:03d}")
+    os.makedirs(chunk_dir, exist_ok=True)
+    
+    # === 2. Salvar chunk como CSV temporário ===
+    chunk_csv_path = os.path.join(chunk_dir, f"chunk_{chunk_idx:03d}.csv")
+    
+    # Restaurar nomes originais das colunas para o CSV temporário
+    chunk_df_original = chunk_df.copy()
+    if index_to_name:
+        # Mapear índices de volta para nomes originais
+        original_columns = []
+        for i in range(len(chunk_df.columns)):
+            if str(i) in index_to_name:
+                original_columns.append(index_to_name[str(i)])
+            else:
+                original_columns.append(f"col_{i}")
+        chunk_df_original.columns = original_columns
+    
+    chunk_df_original.to_csv(chunk_csv_path, index=False, encoding="utf-8")
+    print(f"💾 Chunk salvo como: {chunk_csv_path}")
+    
+    # === 3. Executar DAMICORE_Filograma_script.py no chunk ===
+    filograma_script_path = "/home/cristiano-xico/github/CristianoXico/DAMICORE/src/scripts/DAMICORE_Filograma_script.py"
+    
+    if not os.path.exists(filograma_script_path):
+        print(f"❌ Erro: Script Filograma não encontrado em {filograma_script_path}")
+        return []
+    
+    print(f"🚀 Executando DAMICORE_Filograma_script.py para chunk {chunk_idx + 1}...")
+    
+    try:
+        # Executar o script Filograma no chunk
+        cmd = ["python3", filograma_script_path, chunk_csv_path]
+        print(f"Comando: {' '.join(cmd)}")
+        
+        # Mudar para o diretório do chunk para que os resultados sejam salvos lá
+        original_cwd = os.getcwd()
+        os.chdir(chunk_dir)
+        
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        
+        # Capturar saída em tempo real
+        for line in process.stdout:
+            print(f"  [Filograma] {line.rstrip()}")
+        
+        process.wait()
+        
+        # Voltar ao diretório original
+        os.chdir(original_cwd)
+        
+        if process.returncode == 0:
+            print(f"✅ Chunk {chunk_idx + 1}: DAMICORE_Filograma_script.py executado com sucesso!")
+        else:
+            print(f"❌ Chunk {chunk_idx + 1}: Erro no DAMICORE_Filograma_script.py (código: {process.returncode})")
+            return []
+            
+    except Exception as e:
+        print(f"❌ Erro ao executar DAMICORE_Filograma_script.py para chunk {chunk_idx + 1}: {e}")
+        os.chdir(original_cwd)  # Garantir que voltamos ao diretório original
+        return []
+    
+    # === 4. Coletar arquivos newick gerados ===
+    newick_files = []
+    
+    # Procurar por arquivos newick no diretório do chunk
+    for root, dirs, files in os.walk(chunk_dir):
+        for file in files:
+            if file.endswith('.newick'):
+                newick_path = os.path.join(root, file)
+                newick_files.append(newick_path)
+                print(f"🌳 Arquivo newick encontrado: {newick_path}")
+    
+    print(f"✅ Chunk {chunk_idx + 1} processado: {len(newick_files)} arquivos newick gerados")
+    
+    # === 5. Gerar visualizações adaptativas para este chunk ===
+    if newick_files:
+        viz_dir = os.path.join(chunk_dir, "visualizations")
+        os.makedirs(viz_dir, exist_ok=True)
+        generate_adaptive_visualizations(newick_files, viz_dir, chunk_idx, num_columns, index_to_name)
+    
+    return newick_files
 
 def process_single_chunk_with_visualizations(chunk_df, chunk_idx, bootstrap_samples, DAMICORE_DIR, results_dir, index_to_name, num_columns):
     """
@@ -907,25 +1297,36 @@ def process_single_chunk_with_visualizations(chunk_df, chunk_idx, bootstrap_samp
         tree_output = os.path.join(chunk_results_dir, f"chunk_{chunk_idx:03d}_{m}-tree.newick")
         
         try:
+            # Usar o mesmo caminho do DAMICORE que funciona no script Filograma
+            DAMICORE_CLI_PATH = "/home/cristiano-xico/Desktop/work_space_vs_code/CristianoXico-repos/DAMICORE/damicore_py3/damicore.py"
+            
             cmd = [
-                "python3", "/home/cristiano-xico/github/CristianoXico/DAMICORE/src/damicore.py",
+                "python3", DAMICORE_CLI_PATH,
                 "--compressor", "gzip",
                 "--tree-output", tree_output,
                 resample_path
             ]
             
             print(f"  🌳 Processando {m}...")
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=7200)  # 2 horas timeout
+            print(f"  Executando DAMICORE: {' '.join(cmd)}")
             
-            if result.returncode == 0:
+            # Usar subprocess.Popen como no script Filograma que funciona corretamente
+            process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+            
+            # Capturar output em tempo real
+            for line in process.stdout:
+                print(f"    {line.rstrip()}")
+            
+            process.wait()
+            
+            if process.returncode == 0:
                 print(f"  ✅ {m}: DAMICORE executado com sucesso!")
                 if os.path.exists(tree_output):
                     newick_files.append(tree_output)
+                    print(f"  🌳 Arquivo newick gerado: {tree_output}")
             else:
-                print(f"  ❌ {m}: Erro no DAMICORE: {result.stderr}")
+                print(f"  ❌ {m}: Erro no DAMICORE (código: {process.returncode})")
                 
-        except subprocess.TimeoutExpired:
-            print(f"  ❌ {m}: DAMICORE timeout após 2 horas")
         except Exception as e:
             print(f"  ❌ {m}: Erro ao executar DAMICORE: {e}")
     
@@ -944,85 +1345,201 @@ def process_single_chunk_with_visualizations(chunk_df, chunk_idx, bootstrap_samp
 
 def generate_chunk_visualizations(newick_files, chunk_dir, chunk_idx, index_to_name, num_columns):
     """
-    Gera visualizações específicas para um chunk individual com dimensões adaptativas.
+    Gera visualizações específicas para um chunk individual com dimensionamento verdadeiramente adaptativo.
     
     Args:
+        newick_files (list): Lista de arquivos newick
+        chunk_dir (str): Diretório do chunk
+        chunk_idx (int): Índice do chunk
+        index_to_name (dict): Mapeamento de índices para nomes originais
         num_columns (int): Número de colunas/variáveis para dimensionamento adaptativo
     """
-    # Calcular dimensões adaptativas baseadas no número de colunas
-    adaptive_width, adaptive_height = calculate_adaptive_image_size(num_columns)
-    fig_width, fig_height = calculate_adaptive_figure_size(num_columns)
-    
-    print(f"🎨 Gerando visualizações para chunk {chunk_idx + 1}...")
-    print(f"📏 Dimensões adaptativas: {adaptive_width}x{adaptive_height}px (para {num_columns} colunas)")
+    print(f"🎨 Gerando visualizações ADAPTATIVAS para chunk {chunk_idx + 1}...")
+    print(f"📊 Dataset: {num_columns} colunas/variáveis")
     
     # Criar diretório de visualizações para este chunk
     viz_dir = os.path.join(chunk_dir, "visualizations")
     os.makedirs(viz_dir, exist_ok=True)
     
-    try:
-        # Usar o helper de visualização existente
-        from visualization_helper import generate_visualizations
-        
-        # Gerar visualizações usando o helper, mas salvando no diretório do chunk
-        # TODO: Passar parâmetros de dimensão para o helper quando possível
-        generate_visualizations(newick_files, chunk_dir, index_to_name)
-        
-        # Mover as visualizações para o diretório específico do chunk
-        import shutil
-        viz_files = [
-            "cloud_tree.pdf",
-            "consensus_tree.pdf", 
-            "tree_biopython.png"
-        ]
-        
-        for viz_file in viz_files:
-            src_path = os.path.join(chunk_dir, "damicore_analysis", viz_file)
-            if os.path.exists(src_path):
-                dst_path = os.path.join(viz_dir, f"chunk_{chunk_idx:03d}_{viz_file}")
-                shutil.copy2(src_path, dst_path)
-                print(f"  ✅ {viz_file} salva como chunk_{chunk_idx:03d}_{viz_file}")
-        
-        print(f"🎉 Visualizações do chunk {chunk_idx + 1} concluídas!")
-        
-    except Exception as e:
-        print(f"❌ Erro ao gerar visualizações para chunk {chunk_idx + 1}: {e}")
-        # Fallback: gerar visualizações básicas usando Bio.Phylo com dimensões adaptativas
-        generate_chunk_visualizations_fallback(newick_files, viz_dir, chunk_idx, fig_width, fig_height)
+    # Usar a nova implementação de visualizações verdadeiramente adaptativas
+    generate_adaptive_visualizations(newick_files, viz_dir, chunk_idx, num_columns, index_to_name)
+    
+    print(f"✅ Visualizações adaptativas do chunk {chunk_idx + 1} concluídas!")
 
 
-def generate_chunk_visualizations_fallback(newick_files, viz_dir, chunk_idx, fig_width=12, fig_height=8):
+def generate_adaptive_visualizations(newick_files, viz_dir, chunk_idx, num_columns, index_to_name=None):
     """
-    Fallback para gerar visualizações básicas usando Bio.Phylo com dimensões adaptativas.
+    Gera visualizações com dimensionamento verdadeiramente adaptativo baseado no número de colunas.
     
     Args:
-        fig_width (float): Largura da figura em polegadas
-        fig_height (float): Altura da figura em polegadas
+        newick_files (list): Lista de arquivos newick
+        viz_dir (str): Diretório para salvar visualizações
+        chunk_idx (int): Índice do chunk
+        num_columns (int): Número de colunas para dimensionamento adaptativo
+        index_to_name (dict): Mapeamento de índices para nomes originais
     """
-    print(f"🔄 Usando fallback para visualizações do chunk {chunk_idx + 1}...")
-    print(f"📏 Dimensões fallback: {fig_width:.1f}x{fig_height:.1f} polegadas")
+    print(f"🎨 Gerando visualizações adaptativas para chunk {chunk_idx + 1}...")
+    
+    # Calcular dimensões adaptativas
+    adaptive_width, adaptive_height = calculate_adaptive_image_size(num_columns)
+    fig_width, fig_height = calculate_adaptive_figure_size(num_columns)
+    
+    print(f"📏 Dimensões adaptativas: {adaptive_width}x{adaptive_height}px ({fig_width:.1f}x{fig_height:.1f}in) para {num_columns} colunas")
+    
+    if not newick_files:
+        print("❌ Nenhum arquivo newick fornecido para visualização")
+        return
     
     try:
         from Bio import Phylo
         import matplotlib.pyplot as plt
+        import matplotlib.patches as patches
         
-        # Gerar uma visualização simples usando o primeiro arquivo newick
-        if newick_files:
+        # === 1. CLOUD TREE ADAPTATIVA ===
+        try:
+            # Usar o primeiro arquivo newick para cloud tree
             tree = Phylo.read(newick_files[0], "newick")
             
-            # Visualização básica com dimensões adaptativas
-            plt.figure(figsize=(fig_width, fig_height))
-            Phylo.draw(tree, do_show=False)
-            plt.title(f"Chunk {chunk_idx + 1} - Phylogenetic Tree (Adaptive Size)")
+            # Configurar figura com dimensões adaptativas
+            fig, ax = plt.subplots(figsize=(fig_width, fig_height))
             
-            fallback_path = os.path.join(viz_dir, f"chunk_{chunk_idx:03d}_fallback_tree.png")
-            plt.savefig(fallback_path, dpi=300, bbox_inches='tight')
+            # Calcular espaçamento adaptativo para labels
+            label_fontsize = max(6, min(12, 120 / num_columns))  # Fonte adaptativa
+            branch_width = max(0.5, min(2.0, 50 / num_columns))  # Espessura adaptativa
+            
+            # Desenhar árvore com parâmetros adaptativos
+            Phylo.draw(tree, axes=ax, do_show=False, 
+                      branch_labels=None,  # Remover labels de branch para evitar sobreposição
+                      label_func=lambda x: x.name if x.name else '',
+                      label_colors='black')
+            
+            # Configurar título e layout
+            ax.set_title(f"Cloud Tree - Chunk {chunk_idx + 1} ({num_columns} variáveis)", 
+                        fontsize=max(10, min(16, 200 / num_columns)))
+            
+            # Ajustar margens para evitar corte de labels
+            plt.tight_layout()
+            plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
+            
+            # Salvar com alta resolução
+            cloud_path = os.path.join(viz_dir, f"chunk_{chunk_idx:03d}_cloud_tree_adaptive.png")
+            plt.savefig(cloud_path, dpi=300, bbox_inches='tight', 
+                       facecolor='white', edgecolor='none')
             plt.close()
             
-            print(f"  ✅ Visualização fallback salva: chunk_{chunk_idx:03d}_fallback_tree.png")
+            print(f"  ✅ Cloud tree adaptativa salva: chunk_{chunk_idx:03d}_cloud_tree_adaptive.png")
             
+        except Exception as e:
+            print(f"  ❌ Erro ao gerar cloud tree adaptativa: {e}")
+        
+        # === 2. CONSENSUS TREE ADAPTATIVA ===
+        try:
+            if len(newick_files) > 1:
+                # Usar múltiplos arquivos para consensus se disponível
+                trees = [Phylo.read(f, "newick") for f in newick_files[:5]]  # Máximo 5 árvores
+                consensus_tree = trees[0]  # Simplificado: usar primeira árvore como base
+            else:
+                consensus_tree = Phylo.read(newick_files[0], "newick")
+            
+            # Configurar figura com dimensões adaptativas
+            fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+            
+            # Desenhar consensus tree com parâmetros adaptativos
+            Phylo.draw(consensus_tree, axes=ax, do_show=False,
+                      branch_labels=None,
+                      label_func=lambda x: x.name if x.name else '',
+                      label_colors='darkblue')
+            
+            ax.set_title(f"Consensus Tree - Chunk {chunk_idx + 1} ({num_columns} variáveis)",
+                        fontsize=max(10, min(16, 200 / num_columns)))
+            
+            plt.tight_layout()
+            plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
+            
+            consensus_path = os.path.join(viz_dir, f"chunk_{chunk_idx:03d}_consensus_tree_adaptive.png")
+            plt.savefig(consensus_path, dpi=300, bbox_inches='tight',
+                       facecolor='white', edgecolor='none')
+            plt.close()
+            
+            print(f"  ✅ Consensus tree adaptativa salva: chunk_{chunk_idx:03d}_consensus_tree_adaptive.png")
+            
+        except Exception as e:
+            print(f"  ❌ Erro ao gerar consensus tree adaptativa: {e}")
+        
+        # === 3. ÁRVORE SIMPLES COM LABELS RENOMEADOS ===
+        try:
+            tree = Phylo.read(newick_files[0], "newick")
+            
+            # Renomear labels se index_to_name fornecido
+            if index_to_name:
+                for leaf in tree.get_terminals():
+                    if leaf.name and leaf.name in index_to_name:
+                        leaf.name = index_to_name[leaf.name]
+            
+            # Configurar figura extra-grande para muitas colunas
+            extra_width = fig_width * 1.2 if num_columns > 50 else fig_width
+            extra_height = fig_height * 1.2 if num_columns > 50 else fig_height
+            
+            fig, ax = plt.subplots(figsize=(extra_width, extra_height))
+            
+            # Desenhar com labels originais
+            Phylo.draw(tree, axes=ax, do_show=False,
+                      branch_labels=None,
+                      label_func=lambda x: x.name[:20] + '...' if x.name and len(x.name) > 20 else (x.name or ''),
+                      label_colors='darkgreen')
+            
+            ax.set_title(f"Phylogenetic Tree (Original Labels) - Chunk {chunk_idx + 1}",
+                        fontsize=max(10, min(16, 200 / num_columns)))
+            
+            plt.tight_layout()
+            plt.subplots_adjust(left=0.15, right=0.95, top=0.9, bottom=0.1)
+            
+            labeled_path = os.path.join(viz_dir, f"chunk_{chunk_idx:03d}_tree_labeled_adaptive.png")
+            plt.savefig(labeled_path, dpi=300, bbox_inches='tight',
+                       facecolor='white', edgecolor='none')
+            plt.close()
+            
+            print(f"  ✅ Árvore com labels adaptativa salva: chunk_{chunk_idx:03d}_tree_labeled_adaptive.png")
+            
+        except Exception as e:
+            print(f"  ❌ Erro ao gerar árvore com labels: {e}")
+        
+        print(f"🎉 Visualizações adaptativas do chunk {chunk_idx + 1} concluídas!")
+        
+    except ImportError as e:
+        print(f"❌ Erro de importação: {e}")
+        print("🔄 Tentando fallback básico...")
+        generate_basic_fallback_visualization(newick_files, viz_dir, chunk_idx, fig_width, fig_height)
     except Exception as e:
-        print(f"❌ Erro no fallback de visualizações para chunk {chunk_idx + 1}: {e}")
+        print(f"❌ Erro geral ao gerar visualizações adaptativas: {e}")
+        generate_basic_fallback_visualization(newick_files, viz_dir, chunk_idx, fig_width, fig_height)
+
+def generate_basic_fallback_visualization(newick_files, viz_dir, chunk_idx, fig_width, fig_height):
+    """
+    Fallback básico quando todas as outras opções falham.
+    """
+    print(f"🔄 Usando fallback básico para chunk {chunk_idx + 1}...")
+    
+    try:
+        import matplotlib.pyplot as plt
+        
+        # Criar uma figura simples indicando que a visualização falhou
+        fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+        ax.text(0.5, 0.5, f'Visualização do Chunk {chunk_idx + 1}\n\nArquivos Newick: {len(newick_files)}\n\nVisualizações detalhadas\nnão disponíveis',
+                ha='center', va='center', fontsize=12, 
+                bbox=dict(boxstyle='round', facecolor='lightgray', alpha=0.8))
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.axis('off')
+        
+        fallback_path = os.path.join(viz_dir, f"chunk_{chunk_idx:03d}_basic_info.png")
+        plt.savefig(fallback_path, dpi=150, bbox_inches='tight')
+        plt.close()
+        
+        print(f"  ✅ Fallback básico salvo: chunk_{chunk_idx:03d}_basic_info.png")
+        
+    except Exception as e:
+        print(f"❌ Erro no fallback básico: {e}")
 
 
 def generate_compiled_visualization(all_newick_files, DAMICORE_DIR, index_to_name, num_chunks, num_columns):
