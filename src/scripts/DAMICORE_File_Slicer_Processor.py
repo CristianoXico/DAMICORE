@@ -1683,7 +1683,8 @@ def main():
     if not pending_slices:
         print("\n✅ Todas as fatias já foram processadas!")
         progress_manager.mark_pipeline_completed()
-        progress_manager.print_progress_summary()
+        summary = progress_manager.get_progress_summary()
+        print(summary)
     else:
         print(f"\n🔄 Processando {len(pending_slices)} fatias pendentes...")
         
