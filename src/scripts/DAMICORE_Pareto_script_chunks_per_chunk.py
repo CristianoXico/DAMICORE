@@ -436,8 +436,9 @@ def main():
             
             response = input("\n🤔 Continuar com modo arquivo completo? (s/n): ")
             if response.lower() != 's':
-                print("❌ Processamento cancelado pelo usuário")
-                return
+                print("✅ Usuário optou por ESTRATÉGIA HÍBRIDA")
+                print("🎯 Processamento chunk-por-chunk com script Filograma (frequências corretas + baixo uso de RAM)")
+                use_full_file_mode = False  # Força uso da estratégia híbrida
     else:
         use_full_file_mode = file_size_gb < 1 or (1 <= file_size_gb < 10)
     
