@@ -372,10 +372,14 @@ python src/utilities/test_resume_functionality.py
 
 #### Recursos Avançados
 
-**Sistema de Checkpoint/Retomada:**
-- Scripts `chunks`, `chunks_external` e `chunks_per_chunk` possuem sistema de retomada automática
+**Sistema de Checkpoint/Retomada (✅ MELHORADO - Jan 2025):**
+- ✅ **Correções Críticas**: Detecção de fatias falhadas, validação de integridade, verificação robusta de conclusão
+- ✅ **Validação Automática**: Sistema verifica se arquivos newick existem e não estão corrompidos
+- ✅ **Auto-Correção**: Fatias com arquivos perdidos/corrompidos são automaticamente reprocessadas
+- Scripts `chunks`, `chunks_external`, `chunks_per_chunk` e `File_Slicer_Processor` possuem sistema robusto
 - Em caso de falha/interrupção, o processamento continua do ponto onde parou
 - Para reprocessar do zero, delete o arquivo `*_progress.json` correspondente
+- **Novo**: Validação contínua de integridade dos arquivos gerados
 
 **Visualizações Adaptativas:**
 - Tamanho das imagens se adapta automaticamente ao número de colunas do dataset

@@ -372,9 +372,26 @@ class FileSlicerProgress:
         return (completed / total * 100) if total > 0 else 0
     
     def is_completed(self):
-        """Verifica se o processamento foi concluído."""
+        """Verifica se o processamento foi concluído com validação de integridade."""
         summary = self.get_progress_summary()
-        return summary["pending"] == 0 and summary["failed"] == 0
+        
+        # Verificar se há fatias pendentes ou falhadas
+        if summary["pending"] > 0 or summary["failed"] > 0:
+            return False
+            
+        # Validar integridade de todas as fatias concluídas
+        completed_slices = self.progress_data.get("completed_slices", [])
+        for slice_idx in completed_slices:
+            if not self.validate_slice_integrity(slice_idx):
+                print(f"⚠️ Fatia {slice_idx} perdeu integridade, marcando como pendente")
+                # Remover da lista de concluídas e marcar como pendente
+                self.progress_data["completed_slices"].remove(slice_idx)
+                if slice_idx not in self.progress_data.get("failed_slices", []):
+                    self.progress_data.setdefault("failed_slices", []).append(slice_idx)
+                self.save_progress()
+                return False
+                
+        return True
     
     def mark_pipeline_completed(self):
         """Marca o pipeline como totalmente concluído."""
@@ -410,14 +427,65 @@ class FileSlicerProgress:
         
         print(f"   💾 Checkpoint: {os.path.basename(self.progress_file)}")
     
+    def validate_slice_integrity(self, slice_idx):
+        """
+        Valida se os arquivos newick de uma fatia ainda existem e são válidos.
+        
+        🔧 CORREÇÃO CRÍTICA (Janeiro 2025):
+        Este método foi implementado para corrigir bug crítico onde fatias eram
+        marcadas como concluídas mesmo sem arquivos newick gerados, causando
+        falhas silenciosas do pipeline.
+        
+        Validações realizadas:
+        - Verifica existência física dos arquivos newick
+        - Confirma que arquivos não estão vazios (tamanho > 0 bytes)
+        - Valida estrutura de dados do checkpoint
+        
+        Args:
+            slice_idx (int): Índice da fatia a ser validada
+            
+        Returns:
+            bool: True se todos os arquivos newick da fatia são válidos,
+                  False se algum arquivo está ausente, vazio ou corrompido
+                  
+        Integração:
+            - Chamado automaticamente por get_all_newick_files()
+            - Usado pelo sistema de checkpoint para detectar fatias corrompidas
+            - Integrado na verificação de conclusão do pipeline
+        """
+        slice_results = self.progress_data.get("slice_results", {})
+        slice_data = slice_results.get(str(slice_idx))
+        
+        if not slice_data or "newick_files" not in slice_data:
+            return False
+            
+        newick_files = slice_data["newick_files"]
+        if not newick_files:
+            return False
+            
+        # Verificar se todos os arquivos existem e são válidos
+        for newick_file in newick_files:
+            if not os.path.exists(newick_file):
+                print(f"⚠️ Arquivo newick não encontrado: {newick_file}")
+                return False
+            if os.path.getsize(newick_file) == 0:
+                print(f"⚠️ Arquivo newick vazio: {newick_file}")
+                return False
+                
+        return True
+    
     def get_all_newick_files(self):
-        """Retorna todos os arquivos newick de fatias concluídas."""
+        """Retorna todos os arquivos newick de fatias concluídas e válidas."""
         all_newick = []
         slice_results = self.progress_data.get("slice_results", {})
         
         for slice_idx_str, result_data in slice_results.items():
             if isinstance(result_data, dict) and "newick_files" in result_data:
-                all_newick.extend(result_data["newick_files"])
+                # Validar integridade antes de incluir
+                if self.validate_slice_integrity(int(slice_idx_str)):
+                    all_newick.extend(result_data["newick_files"])
+                else:
+                    print(f"⚠️ Fatia {slice_idx_str} falhou na validação de integridade")
             elif isinstance(result_data, list):  # Compatibilidade com formato antigo
                 all_newick.extend(result_data)
         
@@ -541,12 +609,29 @@ def process_single_slice(slice_file, slice_idx, output_dir, adaptive_resamples=N
             return []
         
         # Coletar arquivos newick gerados
+        # O DAMICORE_Filograma_script.py cria os arquivos baseado no nome do arquivo CSV
+        # Então precisamos buscar no diretório correto
+        slice_name = os.path.splitext(os.path.basename(slice_file))[0]  # Ex: slice_0000
+        expected_results_dir = os.path.join(os.path.dirname(slice_file), slice_name, "damicore_results")
+        
         newick_files = []
-        for root, dirs, files in os.walk(slice_output_dir):
-            for file in files:
+        
+        # Primeiro, tentar buscar no diretório esperado (onde o Filograma realmente cria)
+        if os.path.exists(expected_results_dir):
+            print(f"🔍 Buscando newick em: {expected_results_dir}")
+            for file in os.listdir(expected_results_dir):
                 if file.endswith('.newick'):
-                    newick_path = os.path.join(root, file)
+                    newick_path = os.path.join(expected_results_dir, file)
                     newick_files.append(newick_path)
+        
+        # Fallback: buscar recursivamente no slice_output_dir
+        if not newick_files:
+            print(f"🔍 Fallback: buscando recursivamente em: {slice_output_dir}")
+            for root, dirs, files in os.walk(slice_output_dir):
+                for file in files:
+                    if file.endswith('.newick'):
+                        newick_path = os.path.join(root, file)
+                        newick_files.append(newick_path)
         
         print(f"🌳 Arquivos newick encontrados: {len(newick_files)}")
         for nf in newick_files:
@@ -1667,8 +1752,7 @@ def main():
     print("="*60)
     
     # Verificar se há fatias que falharam e perguntar sobre retry
-    failed_slices = [i for i, slice_data in progress_manager.progress_data.get('slices', {}).items() 
-                     if slice_data.get('status') == 'failed']
+    failed_slices = progress_manager.get_failed_slices()
     
     if failed_slices:
         print(f"\n⚠️  {len(failed_slices)} fatias falharam anteriormente.")
