@@ -290,8 +290,12 @@ def _parallel_distance_matrix(fnames, compression_name, pairing_name, **kwargs):
   async_result = pool.map_async(_parallel_compression_worker, compression_args)
 
   for _ in range(len(fnames)):
-    queue.get(timeout=5)
-    progress_bar.increment()
+    try:
+      queue.get(timeout=300)  # Increased timeout to 5 minutes for large files
+      progress_bar.increment()
+    except Exception as e:
+      sys.stderr.write(f"\nWarning: Queue timeout or error during compression: {e}\n")
+      progress_bar.increment()  # Continue processing
 
   compressed_sizes = async_result.get()
 
@@ -315,8 +319,12 @@ def _parallel_distance_matrix(fnames, compression_name, pairing_name, **kwargs):
   pool.close()
 
   for _ in range(len(file_pairs)):
-    queue.get(timeout=5)
-    progress_bar.increment()
+    try:
+      queue.get(timeout=300)  # Increased timeout to 5 minutes for large files
+      progress_bar.increment()
+    except Exception as e:
+      sys.stderr.write(f"\nWarning: Queue timeout or error during NCD calculation: {e}\n")
+      progress_bar.increment()  # Continue processing
 
   ncd_results = async_result.get()
   sys.stderr.write('\n')
