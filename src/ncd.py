@@ -291,7 +291,7 @@ def _parallel_distance_matrix(fnames, compression_name, pairing_name, **kwargs):
 
   for _ in range(len(fnames)):
     try:
-      queue.get(timeout=300)  # Increased timeout to 5 minutes for large files
+      queue.get(timeout=1800)  # Increased timeout to 30 minutes for large files
       progress_bar.increment()
     except Exception as e:
       sys.stderr.write(f"\nWarning: Queue timeout or error during compression: {e}\n")
@@ -320,7 +320,7 @@ def _parallel_distance_matrix(fnames, compression_name, pairing_name, **kwargs):
 
   for _ in range(len(file_pairs)):
     try:
-      queue.get(timeout=300)  # Increased timeout to 5 minutes for large files
+      queue.get(timeout=1800)  # Increased timeout to 30 minutes for large files
       progress_bar.increment()
     except Exception as e:
       sys.stderr.write(f"\nWarning: Queue timeout or error during NCD calculation: {e}\n")
