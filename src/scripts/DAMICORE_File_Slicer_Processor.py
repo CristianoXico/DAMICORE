@@ -278,19 +278,60 @@ class FileSlicerProgress:
         else:
             print(f"🔄 Checkpoint existente detectado: {self.get_completion_percentage():.1f}% concluído")
     
-    def mark_slice_completed(self, slice_idx, newick_files):
-        """Marca uma fatia como concluída com detalhes completos."""
+    def mark_slice_completed(self, slice_idx, newick_files, output_dir=None, csv_file=None, auto_generate_viz=True):
+        """
+        Marca uma fatia como concluída com detalhes completos.
+        
+        🔧 ENHANCEMENT (Janeiro 2025): Adaptive Visualizations Checkpoint Integration
+        Agora verifica automaticamente se as visualizações adaptativas existem e as gera
+        se necessário antes de marcar a fatia como concluída, garantindo robustez e
+        completude do workflow de processamento.
+        
+        Args:
+            slice_idx (int): Índice da fatia
+            newick_files (list): Lista de arquivos newick gerados
+            output_dir (str): Diretório base de saída (necessário para visualizações)
+            csv_file (str): Arquivo CSV original (necessário para dimensionamento adaptativo)
+            auto_generate_viz (bool): Se True, gera visualizações automaticamente se ausentes
+        """
         if slice_idx not in self.progress_data.get("completed_slices", []):
+            # Verificar e gerar visualizações adaptativas automaticamente
+            adaptive_viz_generated = False
+            
+            if auto_generate_viz and output_dir and csv_file:
+                print(f"🔍 Verificando visualizações adaptativas para fatia {slice_idx + 1}...")
+                
+                # Verificar se as visualizações já existem
+                if self.check_adaptive_visualizations(slice_idx, output_dir):
+                    adaptive_viz_generated = True
+                    print(f"✅ Visualizações adaptativas já existem para fatia {slice_idx + 1}")
+                else:
+                    print(f"🎨 Gerando visualizações adaptativas para fatia {slice_idx + 1}...")
+                    try:
+                        success = generate_adaptive_visualizations_for_slice(slice_idx, output_dir, csv_file)
+                        if success:
+                            adaptive_viz_generated = True
+                            print(f"✅ Visualizações adaptativas geradas automaticamente para fatia {slice_idx + 1}")
+                        else:
+                            print(f"⚠️ Falha ao gerar visualizações adaptativas para fatia {slice_idx + 1}")
+                    except Exception as e:
+                        print(f"❌ Erro ao gerar visualizações adaptativas para fatia {slice_idx + 1}: {e}")
+            
+            # Marcar fatia como concluída
             self.progress_data.setdefault("completed_slices", []).append(slice_idx)
             self.progress_data.setdefault("slice_results", {})[str(slice_idx)] = {
                 "newick_files": newick_files,
                 "newick_count": len(newick_files),
                 "completion_time": time.time(),
-                "status": "success"
+                "status": "success",
+                "adaptive_visualizations": adaptive_viz_generated,
+                "auto_viz_attempted": auto_generate_viz
             }
             self.progress_data["last_update"] = time.time()
             self.save_progress()
-            print(f"✅ Fatia {slice_idx + 1} salva no checkpoint ({len(newick_files)} newick)")
+            
+            viz_status = "com visualizações" if adaptive_viz_generated else "sem visualizações"
+            print(f"✅ Fatia {slice_idx + 1} salva no checkpoint ({len(newick_files)} newick, {viz_status})")
     
     def mark_slice_failed(self, slice_idx, error_msg):
         """Marca uma fatia como falhada com detalhes do erro."""
@@ -371,8 +412,22 @@ class FileSlicerProgress:
         completed = len(self.progress_data.get("completed_slices", []))
         return (completed / total * 100) if total > 0 else 0
     
-    def is_completed(self):
-        """Verifica se o processamento foi concluído com validação de integridade."""
+    def is_completed(self, output_dir=None, require_adaptive_viz=True):
+        """
+        Verifica se o processamento foi concluído com validação de integridade.
+        
+        🔧 ENHANCEMENT (Janeiro 2025): Adaptive Visualizations Checkpoint Integration
+        Agora inclui verificação de visualizações adaptativas como parte da verificação
+        de conclusão do pipeline, garantindo que todas as fatias tenham suas
+        visualizações geradas antes de marcar o pipeline como concluído.
+        
+        Args:
+            output_dir (str): Diretório de saída para verificar visualizações
+            require_adaptive_viz (bool): Se True, exige visualizações adaptativas
+        
+        Returns:
+            bool: True se o pipeline foi concluído com sucesso
+        """
         summary = self.get_progress_summary()
         
         # Verificar se há fatias pendentes ou falhadas
@@ -389,6 +444,14 @@ class FileSlicerProgress:
                 if slice_idx not in self.progress_data.get("failed_slices", []):
                     self.progress_data.setdefault("failed_slices", []).append(slice_idx)
                 self.save_progress()
+                return False
+        
+        # 🎨 NOVA VERIFICAÇÃO: Visualizações adaptativas
+        if require_adaptive_viz and output_dir:
+            missing_viz_slices = self.get_slices_missing_visualizations(output_dir)
+            if missing_viz_slices:
+                print(f"⚠️ {len(missing_viz_slices)} fatias ainda precisam de visualizações adaptativas")
+                print(f"   Fatias: {[f'slice_{idx+1}' for idx in missing_viz_slices]}")
                 return False
                 
         return True
@@ -490,6 +553,141 @@ class FileSlicerProgress:
                 all_newick.extend(result_data)
         
         return all_newick
+    
+    def check_adaptive_visualizations(self, slice_idx, output_dir):
+        """Verifica se as visualizações adaptativas existem para uma fatia."""
+        slice_results = self.progress_data.get("slice_results", {})
+        slice_data = slice_results.get(str(slice_idx), {})
+        
+        # Verificar se está marcado no checkpoint
+        if slice_data.get("adaptive_visualizations", False):
+            # Verificar se os arquivos realmente existem
+            slice_dir = os.path.join(output_dir, "slices", f"slice_{slice_idx:04d}")
+            adaptive_viz_dir = os.path.join(slice_dir, "adaptive_visualizations")
+            
+            if os.path.exists(adaptive_viz_dir):
+                expected_files = [
+                    "cloud_tree_adaptive.pdf",
+                    "consensus_tree_adaptive.pdf", 
+                    "tree_biopython_adaptive.png",
+                    "cophenetic_matrix.png",
+                    "heatmap_distances.png",
+                    "tree_clusters_hist.png"
+                ]
+                
+                existing_files = [f for f in expected_files 
+                                if os.path.exists(os.path.join(adaptive_viz_dir, f))]
+                
+                if len(existing_files) >= 3:  # Pelo menos 3 visualizações principais
+                    return True
+                else:
+                    print(f"⚠️ Fatia {slice_idx + 1}: visualizações incompletas ({len(existing_files)}/6)")
+                    return False
+            else:
+                print(f"⚠️ Fatia {slice_idx + 1}: diretório adaptive_visualizations não existe")
+                return False
+        
+        return False
+    
+    def mark_adaptive_visualizations_generated(self, slice_idx):
+        """Marca que as visualizações adaptativas foram geradas para uma fatia."""
+        slice_results = self.progress_data.setdefault("slice_results", {})
+        if str(slice_idx) in slice_results:
+            slice_results[str(slice_idx)]["adaptive_visualizations"] = True
+            self.progress_data["last_update"] = time.time()
+            self.save_progress()
+            print(f"✅ Visualizações adaptativas marcadas para fatia {slice_idx + 1}")
+    
+    def get_slices_missing_visualizations(self, output_dir):
+        """Retorna lista de fatias que precisam de visualizações adaptativas."""
+        missing_viz = []
+        completed_slices = self.progress_data.get("completed_slices", [])
+        
+        for slice_idx in completed_slices:
+            if not self.check_adaptive_visualizations(slice_idx, output_dir):
+                missing_viz.append(slice_idx)
+        
+        return missing_viz
+
+
+def generate_adaptive_visualizations_for_slice(slice_idx, output_dir, csv_file):
+    """
+    Gera visualizações adaptativas para uma fatia específica.
+    
+    Args:
+        slice_idx (int): Índice da fatia
+        output_dir (str): Diretório base de saída
+        csv_file (str): Arquivo CSV original (para obter número de colunas)
+    
+    Returns:
+        bool: True se as visualizações foram geradas com sucesso
+    """
+    print(f"\n🎨 GERANDO VISUALIZAÇÕES ADAPTATIVAS - Fatia {slice_idx + 1}")
+    
+    # Definir diretórios
+    slice_dir = os.path.join(output_dir, "slices", f"slice_{slice_idx:04d}")
+    adaptive_viz_dir = os.path.join(slice_dir, "adaptive_visualizations")
+    damicore_results_dir = os.path.join(slice_dir, "damicore_results")
+    
+    # Verificar se existem arquivos newick
+    if not os.path.exists(damicore_results_dir):
+        print(f"❌ Diretório damicore_results não encontrado para fatia {slice_idx + 1}")
+        return False
+    
+    # Encontrar arquivos newick
+    newick_files = []
+    for file in os.listdir(damicore_results_dir):
+        if file.endswith('.newick'):
+            newick_files.append(os.path.join(damicore_results_dir, file))
+    
+    if not newick_files:
+        print(f"❌ Nenhum arquivo newick encontrado para fatia {slice_idx + 1}")
+        return False
+    
+    # Criar diretório de visualizações adaptativas
+    os.makedirs(adaptive_viz_dir, exist_ok=True)
+    
+    try:
+        # Obter número de colunas para dimensionamento adaptativo
+        try:
+            import pandas as pd
+            df_sample = pd.read_csv(csv_file, nrows=5)
+            num_cols = len(df_sample.columns)
+        except Exception:
+            num_cols = 35  # Fallback
+        
+        # Calcular dimensões adaptativas
+        width, height, font_size, node_size = calculate_adaptive_dimensions(num_cols)
+        print(f"  📏 Dimensões adaptativas: {width}x{height} (para {num_cols} variáveis)")
+        
+        # Gerar visualizações usando a lógica existente
+        slice_file = os.path.join(slice_dir, f"slice_{slice_idx:04d}.csv")
+        
+        # Chamar função de visualização existente mas salvar no diretório adaptativo
+        generate_slice_visualization(newick_files, adaptive_viz_dir, slice_idx, slice_file)
+        
+        # Renomear arquivos para padrão adaptativo
+        rename_mapping = {
+            "cloud_tree.pdf": "cloud_tree_adaptive.pdf",
+            "consensus_tree.pdf": "consensus_tree_adaptive.pdf",
+            "tree_biopython.png": "tree_biopython_adaptive.png"
+        }
+        
+        for old_name, new_name in rename_mapping.items():
+            old_path = os.path.join(adaptive_viz_dir, old_name)
+            new_path = os.path.join(adaptive_viz_dir, new_name)
+            if os.path.exists(old_path):
+                os.rename(old_path, new_path)
+                print(f"  ✅ {new_name} gerado")
+        
+        print(f"✅ Visualizações adaptativas geradas para fatia {slice_idx + 1}")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Erro ao gerar visualizações adaptativas para fatia {slice_idx + 1}: {e}")
+        return False
+
+
 
 def slice_large_file(csv_file, output_dir, chunk_size=CHUNK_SIZE):
     """
@@ -567,8 +765,8 @@ def process_single_slice(slice_file, slice_idx, output_dir, adaptive_resamples=N
     print(f"\n🚀 PROCESSANDO FATIA {slice_idx + 1}")
     print(f"📁 Arquivo: {os.path.basename(slice_file)}")
     
-    # Criar diretório específico para esta fatia
-    slice_output_dir = os.path.join(output_dir, f"slice_{slice_idx:04d}_results")
+    # Criar diretório específico para esta fatia (nova estrutura)
+    slice_output_dir = os.path.join(output_dir, f"slice_{slice_idx:04d}")
     os.makedirs(slice_output_dir, exist_ok=True)
     
     # Verificar se script Filograma existe
@@ -1766,16 +1964,57 @@ def main():
     
     if not pending_slices:
         print("\n✅ Todas as fatias já foram processadas!")
-        progress_manager.mark_pipeline_completed()
-        summary = progress_manager.get_progress_summary()
-        print(summary)
+        
+        # 🎨 VERIFICAÇÃO APRIMORADA: Incluir visualizações adaptativas
+        if progress_manager.is_completed(output_dir=output_dir, require_adaptive_viz=True):
+            progress_manager.mark_pipeline_completed()
+            summary = progress_manager.get_progress_summary()
+            print(summary)
+        else:
+            print("⚠️ Pipeline não pode ser marcado como concluído - visualizações adaptativas pendentes")
     else:
         print(f"\n🔄 Processando {len(pending_slices)} fatias pendentes...")
         
-        # Processar cada fatia pendente
-        for slice_idx in pending_slices:
+        # 📊 BARRA DE PROGRESSO E STATUS DETALHADO
+        total_slices = len(slice_files)
+        completed_slices = len([s for s in range(total_slices) if s not in pending_slices])
+        
+        def print_progress_bar(current, total, slice_name="", status=""):
+            """Exibe barra de progresso visual com informações detalhadas"""
+            percent = (current / total) * 100
+            filled = int(50 * current // total)
+            bar = '█' * filled + '░' * (50 - filled)
+            
+            print(f"\r📊 Progresso: [{bar}] {percent:.1f}% ({current}/{total}) | {slice_name} {status}", end='', flush=True)
+        
+        def print_detailed_status(slice_idx, slice_name, start_time):
+            """Exibe status detalhado da fatia atual"""
+            elapsed = time.time() - start_time
+            completed = len([s for s in range(len(slice_files)) if s not in pending_slices and s <= slice_idx])
+            
+            print(f"\n\n{'='*80}")
+            print(f"🚀 PROCESSANDO FATIA {slice_idx + 1}/{total_slices}")
+            print(f"📁 Arquivo: {slice_name}")
+            print(f"⏱️  Tempo decorrido: {elapsed:.1f}s")
+            print(f"📊 Progresso geral: {completed}/{total_slices} fatias ({(completed/total_slices)*100:.1f}%)")
+            print(f"🔧 Comando: python3 DAMICORE_Filograma_script.py {slice_name}")
+            print(f"{'='*80}")
+        
+        # Processar cada fatia pendente com progresso visual
+        import time
+        pipeline_start_time = time.time()
+        
+        for i, slice_idx in enumerate(pending_slices):
             slice_file = slice_files[slice_idx]
-            print(f"\n📂 Processando fatia {slice_idx + 1}/{len(slice_files)}: {os.path.basename(slice_file)}")
+            slice_name = os.path.basename(slice_file)
+            slice_start_time = time.time()
+            
+            # Status detalhado no início da fatia
+            print_detailed_status(slice_idx, slice_name, pipeline_start_time)
+            
+            # Barra de progresso inicial
+            current_completed = completed_slices + i
+            print_progress_bar(current_completed, total_slices, slice_name, "🔄 Iniciando...")
             
             try:
                 # Marcar início do processamento
@@ -1785,26 +2024,100 @@ def main():
                 newick_files = process_single_slice(slice_file, slice_idx, output_dir, adaptive_resamples)
                 
                 if newick_files:
-                    # Marcar como concluída
-                    progress_manager.mark_slice_completed(slice_idx, newick_files)
-                    print(f"✅ Fatia {slice_idx + 1} processada com sucesso: {len(newick_files)} arquivos newick gerados")
+                    # Atualizar barra de progresso - processamento concluído
+                    slice_elapsed = time.time() - slice_start_time
+                    print_progress_bar(current_completed, total_slices, slice_name, f"🔄 Gerando visualizações... ({slice_elapsed:.1f}s)")
+                    
+                    # Marcar como concluída com geração automática de visualizações adaptativas
+                    progress_manager.mark_slice_completed(
+                        slice_idx, 
+                        newick_files, 
+                        output_dir=output_dir, 
+                        csv_file=csv_file, 
+                        auto_generate_viz=True
+                    )
+                    
+                    # Atualizar barra de progresso - fatia concluída
+                    total_elapsed = time.time() - slice_start_time
+                    current_completed = completed_slices + i + 1
+                    print_progress_bar(current_completed, total_slices, slice_name, f"✅ Concluída ({total_elapsed:.1f}s)")
+                    
+                    print(f"\n✅ Fatia {slice_idx + 1} processada com sucesso: {len(newick_files)} arquivos newick gerados")
+                    print(f"⏱️  Tempo da fatia: {total_elapsed:.1f}s")
+                    
+                    # Estimativa de tempo restante
+                    if i > 0:  # Evitar divisão por zero
+                        avg_time_per_slice = (time.time() - pipeline_start_time) / (i + 1)
+                        remaining_slices = len(pending_slices) - (i + 1)
+                        estimated_remaining = avg_time_per_slice * remaining_slices
+                        print(f"⏳ Tempo estimado restante: {estimated_remaining/60:.1f} minutos")
                 else:
-                    # Marcar como falhada
-                    progress_manager.mark_slice_failed(slice_idx, "Nenhum arquivo newick gerado")
-                    print(f"❌ Fatia {slice_idx + 1} falhou: nenhum arquivo newick gerado")
+                    # Atualizar barra de progresso - falha
+                    slice_elapsed = time.time() - slice_start_time
+                    print_progress_bar(current_completed, total_slices, slice_name, f"❌ Falhou ({slice_elapsed:.1f}s)")
+                    
+                    error_msg = f"Nenhum arquivo newick gerado para a fatia {slice_idx + 1}"
+                    progress_manager.mark_slice_failed(slice_idx, error_msg)
+                    print(f"\n❌ Fatia {slice_idx + 1} falhou: {error_msg}")
+                    print(f"⏱️  Tempo da fatia: {slice_elapsed:.1f}s")
                     
             except Exception as e:
-                # Marcar como falhada com erro
-                error_msg = str(e)
+                # Atualizar barra de progresso - erro
+                slice_elapsed = time.time() - slice_start_time
+                print_progress_bar(current_completed, total_slices, slice_name, f"💥 Erro ({slice_elapsed:.1f}s)")
+                
+                error_msg = f"Erro ao processar fatia {slice_idx + 1}: {str(e)}"
                 progress_manager.mark_slice_failed(slice_idx, error_msg)
-                print(f"❌ Erro ao processar fatia {slice_idx + 1}: {error_msg}")
+                print(f"\n❌ Erro ao processar fatia {slice_idx + 1}: {error_msg}")
+                print(f"⏱️  Tempo da fatia: {slice_elapsed:.1f}s")
                 continue
         
-        # Marcar pipeline como concluído
-        progress_manager.mark_pipeline_completed()
+        # 📊 RESUMO FINAL COM ESTATÍSTICAS COMPLETAS
+        total_pipeline_time = time.time() - pipeline_start_time
+        print(f"\n\n{'='*80}")
+        print(f"🏁 PROCESSAMENTO CONCLUÍDO")
+        print(f"⏱️  Tempo total do pipeline: {total_pipeline_time/60:.1f} minutos")
+        print(f"📊 Fatias processadas nesta sessão: {len(pending_slices)}")
+        print(f"{'='*80}")
+        
+        # 🎨 VERIFICAÇÃO FINAL APRIMORADA: Incluir visualizações adaptativas
+        if progress_manager.is_completed(output_dir=output_dir, require_adaptive_viz=True):
+            # Marcar pipeline como concluído
+            progress_manager.mark_pipeline_completed()
+            print("✅ Pipeline concluído com sucesso - todas as visualizações adaptativas geradas")
+        else:
+            print("⚠️ Pipeline processado mas algumas visualizações adaptativas podem estar pendentes")
         
         # Exibir resumo final
         progress_manager.print_detailed_summary()
+    
+    # ETAPA 2.5: VERIFICAÇÃO E GERAÇÃO DE VISUALIZAÇÕES ADAPTATIVAS
+    print(f"\n" + "="*60)
+    print("ETAPA 2.5: VERIFICAÇÃO DE VISUALIZAÇÕES ADAPTATIVAS")
+    print("="*60)
+    
+    # Verificar quais fatias precisam de visualizações adaptativas
+    missing_viz_slices = progress_manager.get_slices_missing_visualizations(output_dir)
+    
+    if missing_viz_slices:
+        print(f"\n🎨 {len(missing_viz_slices)} fatias precisam de visualizações adaptativas")
+        
+        for slice_idx in missing_viz_slices:
+            print(f"\n📊 Gerando visualizações adaptativas para fatia {slice_idx + 1}...")
+            
+            try:
+                success = generate_adaptive_visualizations_for_slice(slice_idx, output_dir, csv_file)
+                
+                if success:
+                    progress_manager.mark_adaptive_visualizations_generated(slice_idx)
+                    print(f"✅ Visualizações adaptativas geradas para fatia {slice_idx + 1}")
+                else:
+                    print(f"⚠️ Falha ao gerar visualizações adaptativas para fatia {slice_idx + 1}")
+                    
+            except Exception as e:
+                print(f"❌ Erro ao gerar visualizações adaptativas para fatia {slice_idx + 1}: {e}")
+    else:
+        print("\n✅ Todas as fatias já possuem visualizações adaptativas!")
     
     # ETAPA 3: COMPILAÇÃO E VISUALIZAÇÃO
     print(f"\n" + "="*60)

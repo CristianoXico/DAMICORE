@@ -10,11 +10,35 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import subprocess
-import toytree
-import toyplot
-import toyplot.pdf
-from Bio import Phylo
 from io import StringIO
+
+# Tratamento de dependências opcionais
+TOYTREE_AVAILABLE = False
+BIOPYTHON_AVAILABLE = False
+MATPLOTLIB_AVAILABLE = False
+
+try:
+    import toytree
+    import toyplot
+    import toyplot.pdf
+    TOYTREE_AVAILABLE = True
+except ImportError:
+    TOYTREE_AVAILABLE = False
+    print("\n⚠️ Aviso: Biblioteca toytree não encontrada. Algumas visualizações não estarão disponíveis.")
+
+try:
+    from Bio import Phylo
+    BIOPYTHON_AVAILABLE = True
+except ImportError:
+    BIOPYTHON_AVAILABLE = False
+    print("\n⚠️ Aviso: Biblioteca Biopython não encontrada. Algumas visualizações não estarão disponíveis.")
+    
+try:
+    import matplotlib.pyplot as plt
+    MATPLOTLIB_AVAILABLE = True
+except ImportError:
+    MATPLOTLIB_AVAILABLE = False
+    print("\n⚠️ Aviso: Biblioteca matplotlib não encontrada. Algumas visualizações não estarão disponíveis.")
 
 # === SISTEMA DE CHECKPOINT/RETOMADA ===
 class CheckpointManager:
@@ -162,31 +186,41 @@ def get_input_file_path():
             print("Verifique se o arquivo é um CSV válido.")
             continue
 
-# Determinar caminho do arquivo: argumento de linha de comando ou entrada interativa
+# 🔧 SUPORTE A ARGUMENTOS DE LINHA DE COMANDO E MODO INTERATIVO
 if len(sys.argv) > 1:
-    # Modo não-interativo: usar argumento de linha de comando
+    # Modo não-interativo: arquivo passado como argumento
     DATA_PATH = sys.argv[1]
-    print(f"📁 Arquivo fornecido via argumento: {DATA_PATH}")
+    print(f"📁 Arquivo recebido via argumento: {DATA_PATH}")
     
-    # Validar se arquivo existe
+    # Validação básica do arquivo
     if not os.path.exists(DATA_PATH):
-        print(f"❌ Erro: Arquivo não encontrado: {DATA_PATH}")
+        print(f"❌ Arquivo não encontrado: {DATA_PATH}")
         sys.exit(1)
     
-    # Validar se é um CSV válido
+    if not DATA_PATH.lower().endswith('.csv'):
+        print(f"⚠️ Aviso: Arquivo não tem extensão .csv: {DATA_PATH}")
+    
     try:
         test_df = pd.read_csv(DATA_PATH, nrows=1)
-        print(f"✅ Arquivo CSV válido detectado ({len(test_df.columns)} colunas)")
+        print(f"✅ Arquivo válido: {DATA_PATH}")
     except Exception as e:
-        print(f"❌ Erro: Arquivo não é um CSV válido: {e}")
+        print(f"❌ Erro ao ler arquivo: {e}")
         sys.exit(1)
 else:
-    # Modo interativo: solicitar caminho do arquivo
+    # Modo interativo: solicita o caminho do arquivo
     DATA_PATH = get_input_file_path()
 
 SCRIPTS_OUTPUT_BASE = os.path.splitext(os.path.basename(DATA_PATH))[0]
-OUTPUT_DIR = os.path.join(os.path.dirname(DATA_PATH), SCRIPTS_OUTPUT_BASE)
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+# 🔧 DETERMINAÇÃO DO DIRETÓRIO DE SAÍDA
+if len(sys.argv) > 1:
+    # Modo não-interativo: usa o diretório atual (já configurado pelo slicer)
+    OUTPUT_DIR = os.getcwd()
+    print(f"📁 Usando diretório atual: {OUTPUT_DIR}")
+else:
+    # Modo interativo: cria diretório baseado no nome do arquivo
+    OUTPUT_DIR = os.path.join(os.path.dirname(DATA_PATH), SCRIPTS_OUTPUT_BASE)
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 print(f"\n📁 Diretório de saída: {OUTPUT_DIR}")
 
@@ -200,23 +234,22 @@ if any(checkpoint_manager.progress["completed_steps"].values()):
     print("\n🔄 RETOMADA DETECTADA!")
     checkpoint_manager.print_progress_summary()
     
-    # Modo não-interativo: continuar automaticamente se executado via subprocess
+    # 🔧 DETECÇÃO DE MODO NÃO-INTERATIVO (subprocess)
     if len(sys.argv) > 1:
-        print("▶️  Modo não-interativo: continuando automaticamente do checkpoint...")
-        response = 's'
+        # Modo não-interativo: continua automaticamente do checkpoint
+        print("▶️  Modo não-interativo detectado: continuando automaticamente do checkpoint...")
     else:
-        # Modo interativo: solicitar confirmação
+        # Modo interativo: pergunta ao usuário
         response = input("\nDeseja continuar de onde parou? (s/n): ").lower()
-    
-    if response != 's':
-        print("🔄 Reiniciando do zero...")
-        # Reset do checkpoint
-        checkpoint_manager.progress["completed_steps"] = {k: False for k in checkpoint_manager.progress["completed_steps"]}
-        checkpoint_manager.progress["completed_samples"] = []
-        checkpoint_manager.progress["failed_samples"] = []
-        checkpoint_manager.save_checkpoint()
-    else:
-        print("▶️  Continuando do checkpoint...")
+        if response != 's':
+            print("🔄 Reiniciando do zero...")
+            # Reset do checkpoint
+            checkpoint_manager.progress["completed_steps"] = {k: False for k in checkpoint_manager.progress["completed_steps"]}
+            checkpoint_manager.progress["completed_samples"] = []
+            checkpoint_manager.progress["failed_samples"] = []
+            checkpoint_manager.save_checkpoint()
+        else:
+            print("▶️  Continuando do checkpoint...")
 
 print("\n🚀 Iniciando processamento...")
 
@@ -406,118 +439,132 @@ if not checkpoint_manager.is_step_completed("visualization"):
     print("\n🎨 Etapa 6: Gerando visualizações...")
     
     if string_newicks.strip():
-        try:
-            # Cloud Tree com nomes originais
-            print("📊 Gerando Cloud Tree...")
-            mtree = toytree.mtree(string_newicks)
-            
-            # Processar os labels para Cloud Tree
-            cloud_new_list = []
-            for i in mtree.get_tip_labels():
-                j = i.strip("''")  # Remove aspas
-                # Extrair apenas o número do nome do arquivo (entre 'col_' e '.txt')
-                num = j.split('col_')[1].split('.txt')[0]
-                cloud_new_list.append(num)
-            
-            # Converter índices para nomes originais
-            cloud_tip_labels = []
-            for m in cloud_new_list:
-                n = index_to_name[m]  # Usar o dicionário index_to_name em vez de Dict_columns
-                cloud_tip_labels.append(n)
-            
-            # Desenhar Cloud Tree de forma simplificada
-            canvas_tuple = mtree.draw_cloud_tree(
-                tip_labels=cloud_tip_labels,
-                node_labels=False,
-                use_edge_lengths=False,
-                node_sizes=16
-            )
-            canvas = canvas_tuple[0]
-            cloud_tree_path = os.path.join(OUTPUT_DIR, "cloud_tree.pdf")
-            toyplot.pdf.render(canvas, cloud_tree_path)
-            print(f"✅ Cloud tree salva em {cloud_tree_path}")
+        # Cloud Tree com nomes originais
+        print("📊 Gerando visualizações...")
+        
+        if TOYTREE_AVAILABLE:
+            try:
+                print("📊 Gerando Cloud Tree...")
+                mtree = toytree.mtree(string_newicks)
+                
+                # Processar os labels para Cloud Tree
+                cloud_new_list = []
+                for i in mtree.get_tip_labels():
+                    j = i.strip("''")  # Remove aspas
+                    # Extrair apenas o número do nome do arquivo (entre 'col_' e '.txt')
+                    num = j.split('col_')[1].split('.txt')[0]
+                    cloud_new_list.append(num)
+                
+                # Converter índices para nomes originais
+                cloud_tip_labels = []
+                for m in cloud_new_list:
+                    n = index_to_name[m]  # Usar o dicionário index_to_name em vez de Dict_columns
+                    cloud_tip_labels.append(n)
+                
+                # Desenhar Cloud Tree de forma simplificada
+                canvas_tuple = mtree.draw_cloud_tree(
+                    tip_labels=cloud_tip_labels,
+                    node_labels=False,
+                    use_edge_lengths=False,
+                    node_sizes=16
+                )
+                canvas = canvas_tuple[0]
+                cloud_tree_path = os.path.join(OUTPUT_DIR, "cloud_tree.pdf")
+                toyplot.pdf.render(canvas, cloud_tree_path)
+                print(f"✅ Cloud tree salva em {cloud_tree_path}")
 
-            # Consensus Tree
-            print("📊 Gerando Consensus Tree...")
-            ctre = mtree.get_consensus_tree()
-            
-            # Processar os labels para Consensus Tree
-            new_list = []
-            for i in ctre.get_tip_labels():
-                j = i.strip("''")  # Remove aspas
-                # Extrair apenas o número do nome do arquivo (entre 'col_' e '.txt')
-                num = j.split('col_')[1].split('.txt')[0]
-                new_list.append(num)
-            
-            # Converter índices para nomes originais
-            new_tip_labels = []
-            for m in new_list:
-                n = index_to_name[m]  # Usar o dicionário index_to_name em vez de Dict_columns
-                new_tip_labels.append(n)
-            
-            # Garantir que os valores de suporte estejam acessíveis
-            for node in ctre.treenode.traverse():
-                node.support = node.support
-            
-            # Desenhar a árvore de consenso de forma simplificada
-            canvas_tuple = ctre.draw(
-                tip_labels=new_tip_labels,
-                node_labels='support',
-                use_edge_lengths=False,
-                node_sizes=32
-            )
-            consensus_canvas = canvas_tuple[0]
-            consensus_tree_path = os.path.join(OUTPUT_DIR, "consensus_tree.pdf")
-            toyplot.pdf.render(consensus_canvas, consensus_tree_path)
-            print(f"✅ Consensus tree salva em {consensus_tree_path}")
-            
-        except Exception as e:
-            print(f"⚠️  Erro ao gerar visualizações Toytree: {e}")
-            print("Continuando com visualização Biopython...")
+                # Consensus Tree
+                print("📊 Gerando Consensus Tree...")
+                ctre = mtree.get_consensus_tree()
+                
+                # Processar os labels para Consensus Tree
+                new_list = []
+                for i in ctre.get_tip_labels():
+                    j = i.strip("''")  # Remove aspas
+                    # Extrair apenas o número do nome do arquivo (entre 'col_' e '.txt')
+                    num = j.split('col_')[1].split('.txt')[0]
+                    new_list.append(num)
+                
+                # Converter índices para nomes originais
+                new_tip_labels = []
+                for m in new_list:
+                    n = index_to_name[m]  # Usar o dicionário index_to_name em vez de Dict_columns
+                    new_tip_labels.append(n)
+                
+                # Garantir que os valores de suporte estejam acessíveis
+                for node in ctre.treenode.traverse():
+                    node.support = node.support
+                
+                # Desenhar a árvore de consenso de forma simplificada
+                canvas_tuple = ctre.draw(
+                    tip_labels=new_tip_labels,
+                    node_labels='support',
+                    use_edge_lengths=False,
+                    node_sizes=32
+                )
+                consensus_canvas = canvas_tuple[0]
+                consensus_tree_path = os.path.join(OUTPUT_DIR, "consensus_tree.pdf")
+                toyplot.pdf.render(consensus_canvas, consensus_tree_path)
+                print(f"✅ Consensus tree salva em {consensus_tree_path}")
+            except Exception as e:
+                print(f"⚠️  Erro ao gerar visualizações Toytree: {e}")
+                print("Continuando com visualização Biopython...")
+        else:
+            print("⚠️ Aviso: Biblioteca toytree não encontrada. Visualizações toytree não serão geradas.")
     else:
         print("❌ Nenhum dado newick disponível para visualização das árvores.")
 
     # === Visualização com Biopython ===
     # Usar o primeiro arquivo newick da lista para visualização
     if plain_newicks:
-        try:
-            print("📊 Gerando visualização Biopython...")
+        # Criar um arquivo temporário com o primeiro newick
+        temp_newick_path = os.path.join(OUTPUT_DIR, 'temp_tree.newick')
+        with open(temp_newick_path, 'w') as f:
+            f.write(plain_newicks[0])
             
-            # Criar um arquivo temporário com o primeiro newick
-            temp_newick_path = os.path.join(OUTPUT_DIR, 'temp_tree.newick')
-            with open(temp_newick_path, 'w') as f:
-                f.write(plain_newicks[0])
-            
-            # Ler e processar a árvore
-            tree = Phylo.read(temp_newick_path, 'newick')
-            
-            # Substituir os nós folha pelos nomes originais
-            for leaf in tree.get_terminals():
-                # Extrair apenas o número do nome do arquivo
-                if leaf.name and 'col_' in leaf.name:
-                    num = leaf.name.split('col_')[1].split('.txt')[0]
-                    if num in index_to_name:
-                        leaf.name = index_to_name[num]
-            
-            # Configurar a figura
-            fig = plt.figure(figsize=(12, 8))
-            axes = fig.add_subplot(1, 1, 1)
-            
-            # Desenhar a árvore com nomes originais
-            Phylo.draw(tree, axes=axes, show_confidence=True)
-            plt.title('Árvore Filogenética (Biopython)')
-            biopython_tree_path = os.path.join(OUTPUT_DIR, 'tree_biopython.png')
-            plt.savefig(biopython_tree_path, dpi=300, bbox_inches='tight')
-            plt.close()
-            
-            print(f"✅ Árvore Biopython salva em {biopython_tree_path}")
-            
-            # Remove arquivo temporário
-            if os.path.exists(temp_newick_path):
-                os.remove(temp_newick_path)
+        if not BIOPYTHON_AVAILABLE:
+            print("⚠️ Aviso: Biblioteca Biopython não encontrada. Visualização da árvore não será gerada.")
+        else:
+            try:
+                print("📊 Gerando visualização Biopython...")
                 
-        except Exception as e:
-            print(f"⚠️  Erro ao gerar visualização Biopython: {e}")
+                # Ler e processar a árvore
+                tree = Phylo.read(temp_newick_path, 'newick')
+                
+                # Substituir os nós folha pelos nomes originais
+                for leaf in tree.get_terminals():
+                    # Extrair apenas o número do nome do arquivo
+                    if leaf.name and 'col_' in leaf.name:
+                        num = leaf.name.split('col_')[1].split('.txt')[0]
+                        if num in index_to_name:
+                            leaf.name = index_to_name[num]
+                
+                if not MATPLOTLIB_AVAILABLE:
+                    print("⚠️ Aviso: Biblioteca matplotlib não encontrada. Visualização gráfica não será gerada.")
+                else:
+                    # Configurar a figura
+                    fig = plt.figure(figsize=(12, 8))
+                    axes = fig.add_subplot(1, 1, 1)
+                    
+                    # Desenhar a árvore com nomes originais
+                    Phylo.draw(tree, axes=axes, show_confidence=True)
+                    plt.title('Árvore Filogenética (Biopython)')
+                    
+                    # Salvar a figura
+                    if os.path.exists(os.path.join(OUTPUT_DIR, 'tree_biopython.png')):
+                        print("⚠️ Arquivo de visualização Biopython já existe. Não será sobrescrito.")
+                    else:
+                        biopython_tree_path = os.path.join(OUTPUT_DIR, 'tree_biopython.png')
+                        plt.savefig(biopython_tree_path, dpi=300, bbox_inches='tight')
+                        plt.close()
+                        print(f"✅ Visualização Biopython salva em {biopython_tree_path}")
+            except Exception as e:
+                print(f"⚠️ Erro ao gerar visualização Biopython: {e}")
+            finally:
+                # Remove arquivo temporário
+                if os.path.exists(temp_newick_path):
+                    os.remove(temp_newick_path)
+                    print("✅ Arquivo temporário removido")
     
     print("✅ Visualizações concluídas")
     checkpoint_manager.mark_step_completed("visualization")
@@ -624,6 +671,8 @@ plt.tight_layout()
 plt.savefig(os.path.join(OUTPUT_DIR, 'heatmap_distances.png'), dpi=300, bbox_inches='tight')
 plt.close()
 
-# Limpeza do arquivo temporário
+# Limpeza do arquivo temporário (se existir)
+temp_newick_path = os.path.join(OUTPUT_DIR, 'temp_tree.newick')
 if os.path.exists(temp_newick_path):
     os.remove(temp_newick_path)
+    print(f"🧹 Arquivo temporário removido: {temp_newick_path}")
