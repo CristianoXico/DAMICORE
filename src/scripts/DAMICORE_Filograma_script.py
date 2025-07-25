@@ -328,7 +328,20 @@ else:
 if not checkpoint_manager.is_step_completed("damicore_execution"):
     print("\n🚀 Etapa 4: Executando DAMICORE para cada amostra...")
     
-    DAMICORE_CLI_PATH = "/home/cristiano-xico/Desktop/work_space_vs_code/CristianoXico-repos/DAMICORE/damicore_py3/damicore.py"
+    # 🔧 CAMINHO RELATIVO PORTÁVEL PARA O DAMICORE
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)  # /DAMICORE/src
+    DAMICORE_CLI_PATH = os.path.join(project_root, "damicore.py")
+    
+    # Fallback para estrutura alternativa (damicore_py3)
+    if not os.path.exists(DAMICORE_CLI_PATH):
+        alt_path = os.path.join(os.path.dirname(project_root), "damicore_py3", "damicore.py")
+        if os.path.exists(alt_path):
+            DAMICORE_CLI_PATH = alt_path
+        else:
+            print(f"⚠️ Aviso: DAMICORE não encontrado em {DAMICORE_CLI_PATH} ou {alt_path}")
+    
+    print(f"🔧 Usando DAMICORE: {DAMICORE_CLI_PATH}")
     results_dir = os.path.join(OUTPUT_DIR, "damicore_results")
     os.makedirs(results_dir, exist_ok=True)
     
@@ -461,12 +474,38 @@ if not checkpoint_manager.is_step_completed("visualization"):
                     n = index_to_name[m]  # Usar o dicionário index_to_name em vez de Dict_columns
                     cloud_tip_labels.append(n)
                 
-                # Desenhar Cloud Tree de forma simplificada
+                # Calcular dimensões adaptativas baseadas no número de variáveis
+                num_variables = len(cloud_tip_labels)
+                if num_variables <= 20:
+                    width, height = 800, 600
+                    tip_labels_style = {"font-size": "10px"}
+                elif num_variables <= 50:
+                    width, height = 1200, 900
+                    tip_labels_style = {"font-size": "8px"}
+                elif num_variables <= 100:
+                    width, height = 1600, 1200
+                    tip_labels_style = {"font-size": "6px"}
+                else:
+                    width, height = 2000, 1500
+                    tip_labels_style = {"font-size": "5px"}
+                
+                # Truncar nomes muito longos para evitar sobreposição
+                truncated_labels = []
+                for label in cloud_tip_labels:
+                    if len(label) > 15:  # Truncar nomes muito longos
+                        truncated_labels.append(label[:12] + "...")
+                    else:
+                        truncated_labels.append(label)
+                
+                # Desenhar Cloud Tree com dimensões adaptativas
                 canvas_tuple = mtree.draw_cloud_tree(
-                    tip_labels=cloud_tip_labels,
+                    tip_labels=truncated_labels,
                     node_labels=False,
                     use_edge_lengths=False,
-                    node_sizes=16
+                    node_sizes=16,
+                    width=width,
+                    height=height,
+                    tip_labels_style=tip_labels_style
                 )
                 canvas = canvas_tuple[0]
                 cloud_tree_path = os.path.join(OUTPUT_DIR, "cloud_tree.pdf")
@@ -495,12 +534,38 @@ if not checkpoint_manager.is_step_completed("visualization"):
                 for node in ctre.treenode.traverse():
                     node.support = node.support
                 
-                # Desenhar a árvore de consenso de forma simplificada
+                # Calcular dimensões adaptativas para Consensus Tree
+                num_variables_consensus = len(new_tip_labels)
+                if num_variables_consensus <= 20:
+                    width_consensus, height_consensus = 800, 600
+                    tip_labels_style_consensus = {"font-size": "10px"}
+                elif num_variables_consensus <= 50:
+                    width_consensus, height_consensus = 1200, 900
+                    tip_labels_style_consensus = {"font-size": "8px"}
+                elif num_variables_consensus <= 100:
+                    width_consensus, height_consensus = 1600, 1200
+                    tip_labels_style_consensus = {"font-size": "6px"}
+                else:
+                    width_consensus, height_consensus = 2000, 1500
+                    tip_labels_style_consensus = {"font-size": "5px"}
+                
+                # Truncar nomes muito longos para Consensus Tree
+                truncated_consensus_labels = []
+                for label in new_tip_labels:
+                    if len(label) > 15:  # Truncar nomes muito longos
+                        truncated_consensus_labels.append(label[:12] + "...")
+                    else:
+                        truncated_consensus_labels.append(label)
+                
+                # Desenhar a árvore de consenso com dimensões adaptativas
                 canvas_tuple = ctre.draw(
-                    tip_labels=new_tip_labels,
+                    tip_labels=truncated_consensus_labels,
                     node_labels='support',
                     use_edge_lengths=False,
-                    node_sizes=32
+                    node_sizes=32,
+                    width=width_consensus,
+                    height=height_consensus,
+                    tip_labels_style=tip_labels_style_consensus
                 )
                 consensus_canvas = canvas_tuple[0]
                 consensus_tree_path = os.path.join(OUTPUT_DIR, "consensus_tree.pdf")
@@ -542,13 +607,35 @@ if not checkpoint_manager.is_step_completed("visualization"):
                 if not MATPLOTLIB_AVAILABLE:
                     print("⚠️ Aviso: Biblioteca matplotlib não encontrada. Visualização gráfica não será gerada.")
                 else:
-                    # Configurar a figura
-                    fig = plt.figure(figsize=(12, 8))
+                    # Calcular dimensões adaptativas para Biopython tree
+                    num_leaves = len(list(tree.get_terminals()))
+                    if num_leaves <= 20:
+                        figsize = (12, 8)
+                        fontsize = 10
+                    elif num_leaves <= 50:
+                        figsize = (16, 12)
+                        fontsize = 8
+                    elif num_leaves <= 100:
+                        figsize = (20, 15)
+                        fontsize = 6
+                    else:
+                        figsize = (24, 18)
+                        fontsize = 5
+                    
+                    # Configurar a figura com dimensões adaptativas
+                    fig = plt.figure(figsize=figsize)
                     axes = fig.add_subplot(1, 1, 1)
                     
+                    # Configurar tamanho da fonte para os labels
+                    plt.rcParams.update({'font.size': fontsize})
+                    
                     # Desenhar a árvore com nomes originais
-                    Phylo.draw(tree, axes=axes, show_confidence=True)
-                    plt.title('Árvore Filogenética (Biopython)')
+                    Phylo.draw(tree, axes=axes, show_confidence=True, 
+                              label_func=lambda x: x.name[:15] + '...' if x.name and len(x.name) > 15 else x.name)
+                    plt.title('Árvore Filogenética (Biopython)', fontsize=fontsize+2)
+                    
+                    # Ajustar layout para evitar sobreposição
+                    plt.tight_layout()
                     
                     # Salvar a figura
                     if os.path.exists(os.path.join(OUTPUT_DIR, 'tree_biopython.png')):
