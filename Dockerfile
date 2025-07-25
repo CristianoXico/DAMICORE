@@ -76,10 +76,12 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 
 # Labels para metadados da imagem
 LABEL maintainer="DAMICORE Team" \
-      version="2.0" \
-      description="DAMICORE Pipeline with Resume Functionality and Ultra-Large File Support" \
+      version="2.1" \
+      description="DAMICORE Pipeline with Fixed Visualizations, Resume Functionality and Ultra-Large File Support" \
       python.version="3.11" \
-      features="checkpoint,resume,streaming,ultra-large-files"
+      features="checkpoint,resume,streaming,ultra-large-files,adaptive-visualizations,variable-name-mapping" \
+      last_updated="2025-01-25" \
+      visualization_fixes="variable-names,adaptive-sizing,label-truncation"
 
-# Comando padrão - script otimizado para arquivos grandes
-ENTRYPOINT ["python", "src/scripts/DAMICORE_Pareto_script_chunks_external.py"]
+# Comando padrão - script otimizado para arquivos grandes com visualizações corrigidas
+ENTRYPOINT ["python", "src/scripts/DAMICORE_File_Slicer_Processor.py"]
