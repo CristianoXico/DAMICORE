@@ -15,7 +15,7 @@ except ImportError:
     print("⚠️  toytree não disponível, usando fallbacks")
 
 
-def generate_visualizations(newick_files, damicore_dir, index_to_name=None):
+def generate_visualizations(newick_files, damicore_dir, index_to_name=None, num_variables=None):
     """
     Gera 3 visualizações finais seguindo a lógica original completa:
     1. cloud_tree.pdf - múltiplas árvores sobrepostas (toytree)
@@ -26,12 +26,16 @@ def generate_visualizations(newick_files, damicore_dir, index_to_name=None):
         newick_files: Lista de arquivos newick
         damicore_dir: Diretório de saída
         index_to_name: Dicionário para mapear índices para nomes originais
+        num_variables: Número de variáveis para dimensionamento adaptativo
     """
-    print("🎨 Gerando visualizações finais (lógica original completa)...")
+    print("🎨 Gerando visualizações finais (lógica original completa com correções)...")
     
     # Usar diretório de saída fornecido diretamente
     output_dir = damicore_dir
     os.makedirs(output_dir, exist_ok=True)
+    
+    # Calcula dimensões adaptativas baseadas no número de variáveis
+    width, height = _calculate_adaptive_dimensions(num_variables or 35)
     
     # === 1. Coleta dos arquivos newick (seguindo lógica original) ===
     results_dir = os.path.dirname(newick_files[0]) if newick_files else None
@@ -452,16 +456,84 @@ def _generate_all_fallbacks(output_dir):
         print(f"❌ Erro no fallback: {e}")
 
 
+def _calculate_adaptive_dimensions(num_variables):
+    """
+    Calcula dimensões adaptativas baseadas no número de variáveis.
+    
+    Args:
+        num_variables: Número de variáveis no dataset
+        
+    Returns:
+        tuple: (width, height) em pixels
+    """
+    if num_variables <= 0:
+        return 800, 600  # Dimensões padrão
+        
+    # Lógica adaptativa baseada no número de variáveis
+    base_width = 800
+    base_height = 600
+    
+    # Aumenta proporcionalmente ao número de variáveis
+    if num_variables > 50:
+        width = base_width + (num_variables - 50) * 15
+        height = base_height + (num_variables - 50) * 10
+    elif num_variables > 20:
+        width = base_width + (num_variables - 20) * 10
+        height = base_height + (num_variables - 20) * 8
+    else:
+        width = base_width
+        height = base_height
+        
+    # Limites máximos para evitar imagens muito grandes
+    width = min(width, 2400)
+    height = min(height, 1800)
+    
+    return width, height
+
+
+def _fix_newick_variable_names(newick_content, index_to_name):
+    """
+    Corrige nomes das variáveis em conteúdo newick.
+    
+    Args:
+        newick_content: Conteúdo do arquivo newick
+        index_to_name: Dicionário de mapeamento índice -> nome original
+        
+    Returns:
+        str: Conteúdo newick com nomes corrigidos
+    """
+    if not index_to_name or not newick_content:
+        return newick_content
+        
+    import re
+    fixed_content = newick_content
+    
+    # Substitui padrões 'col_X.txt' pelos nomes originais
+    pattern = r"'col_(\d+)\.txt'"
+    
+    def replace_match(match):
+        col_index = match.group(1)
+        if col_index in index_to_name:
+            original_name = index_to_name[col_index]
+            # Sanitiza o nome para uso em newick (remove caracteres especiais)
+            sanitized_name = re.sub(r'[^\w\-_.]', '_', original_name)
+            return f"'{sanitized_name}'"
+        return match.group(0)
+    
+    fixed_content = re.sub(pattern, replace_match, fixed_content)
+    return fixed_content
+
+
 def create_index_to_name_mapping(df):
     """
     Cria o dicionário index_to_name a partir do DataFrame original.
     Mapeia índices de colunas para nomes originais das colunas.
     """
-    index_to_name = {}
+    if df is None or df.empty:
+        return {}
     
-    # Mapeia índices das colunas para seus nomes originais
-    for idx, col_name in enumerate(df.columns):
-        index_to_name[str(idx)] = col_name
+    column_names = df.columns.tolist()
+    index_to_name = {str(i): name for i, name in enumerate(column_names)}
     
     return index_to_name
 
