@@ -475,27 +475,33 @@ if not checkpoint_manager.is_step_completed("visualization"):
                     cloud_tip_labels.append(n)
                 
                 # Calcular dimensões adaptativas baseadas no número de variáveis
+                # Aumentando dimensões e tamanhos de fonte para melhor legibilidade
                 num_variables = len(cloud_tip_labels)
                 if num_variables <= 20:
-                    width, height = 800, 600
-                    tip_labels_style = {"font-size": "10px"}
+                    width, height = 1000, 800
+                    tip_labels_style = {"font-size": "12px"}
+                    max_label_length = 50  # Nomes completos
                 elif num_variables <= 50:
-                    width, height = 1200, 900
-                    tip_labels_style = {"font-size": "8px"}
-                elif num_variables <= 100:
                     width, height = 1600, 1200
-                    tip_labels_style = {"font-size": "6px"}
+                    tip_labels_style = {"font-size": "10px"}
+                    max_label_length = 40
+                elif num_variables <= 100:
+                    width, height = 2200, 1600
+                    tip_labels_style = {"font-size": "9px"}
+                    max_label_length = 35
                 else:
-                    width, height = 2000, 1500
-                    tip_labels_style = {"font-size": "5px"}
+                    width, height = 2800, 2000
+                    tip_labels_style = {"font-size": "8px"}
+                    max_label_length = 30
                 
-                # Truncar nomes muito longos para evitar sobreposição
+                # Truncamento mais inteligente - apenas para nomes muito longos
                 truncated_labels = []
                 for label in cloud_tip_labels:
-                    if len(label) > 15:  # Truncar nomes muito longos
-                        truncated_labels.append(label[:12] + "...")
+                    if len(label) > max_label_length:
+                        # Truncar mantendo parte significativa do nome
+                        truncated_labels.append(label[:max_label_length-3] + "...")
                     else:
-                        truncated_labels.append(label)
+                        truncated_labels.append(label)  # Manter nome completo
                 
                 # Desenhar Cloud Tree com dimensões adaptativas
                 canvas_tuple = mtree.draw_cloud_tree(
@@ -535,27 +541,33 @@ if not checkpoint_manager.is_step_completed("visualization"):
                     node.support = node.support
                 
                 # Calcular dimensões adaptativas para Consensus Tree
+                # Usando as mesmas dimensões melhoradas do Cloud Tree
                 num_variables_consensus = len(new_tip_labels)
                 if num_variables_consensus <= 20:
-                    width_consensus, height_consensus = 800, 600
-                    tip_labels_style_consensus = {"font-size": "10px"}
+                    width_consensus, height_consensus = 1000, 800
+                    tip_labels_style_consensus = {"font-size": "12px"}
+                    max_label_length_consensus = 50  # Nomes completos
                 elif num_variables_consensus <= 50:
-                    width_consensus, height_consensus = 1200, 900
-                    tip_labels_style_consensus = {"font-size": "8px"}
-                elif num_variables_consensus <= 100:
                     width_consensus, height_consensus = 1600, 1200
-                    tip_labels_style_consensus = {"font-size": "6px"}
+                    tip_labels_style_consensus = {"font-size": "10px"}
+                    max_label_length_consensus = 40
+                elif num_variables_consensus <= 100:
+                    width_consensus, height_consensus = 2200, 1600
+                    tip_labels_style_consensus = {"font-size": "9px"}
+                    max_label_length_consensus = 35
                 else:
-                    width_consensus, height_consensus = 2000, 1500
-                    tip_labels_style_consensus = {"font-size": "5px"}
+                    width_consensus, height_consensus = 2800, 2000
+                    tip_labels_style_consensus = {"font-size": "8px"}
+                    max_label_length_consensus = 30
                 
-                # Truncar nomes muito longos para Consensus Tree
+                # Truncamento mais inteligente para Consensus Tree
                 truncated_consensus_labels = []
                 for label in new_tip_labels:
-                    if len(label) > 15:  # Truncar nomes muito longos
-                        truncated_consensus_labels.append(label[:12] + "...")
+                    if len(label) > max_label_length_consensus:
+                        # Truncar mantendo parte significativa do nome
+                        truncated_consensus_labels.append(label[:max_label_length_consensus-3] + "...")
                     else:
-                        truncated_consensus_labels.append(label)
+                        truncated_consensus_labels.append(label)  # Manter nome completo
                 
                 # Desenhar a árvore de consenso com dimensões adaptativas
                 canvas_tuple = ctre.draw(
@@ -608,19 +620,24 @@ if not checkpoint_manager.is_step_completed("visualization"):
                     print("⚠️ Aviso: Biblioteca matplotlib não encontrada. Visualização gráfica não será gerada.")
                 else:
                     # Calcular dimensões adaptativas para Biopython tree
+                    # Usando dimensões maiores e fontes mais legíveis
                     num_leaves = len(list(tree.get_terminals()))
                     if num_leaves <= 20:
-                        figsize = (12, 8)
-                        fontsize = 10
+                        figsize = (15, 10)
+                        fontsize = 12
+                        max_name_length = 50
                     elif num_leaves <= 50:
-                        figsize = (16, 12)
-                        fontsize = 8
-                    elif num_leaves <= 100:
                         figsize = (20, 15)
-                        fontsize = 6
+                        fontsize = 10
+                        max_name_length = 40
+                    elif num_leaves <= 100:
+                        figsize = (28, 20)
+                        fontsize = 9
+                        max_name_length = 35
                     else:
-                        figsize = (24, 18)
-                        fontsize = 5
+                        figsize = (35, 25)
+                        fontsize = 8
+                        max_name_length = 30
                     
                     # Configurar a figura com dimensões adaptativas
                     fig = plt.figure(figsize=figsize)
@@ -629,9 +646,9 @@ if not checkpoint_manager.is_step_completed("visualization"):
                     # Configurar tamanho da fonte para os labels
                     plt.rcParams.update({'font.size': fontsize})
                     
-                    # Desenhar a árvore com nomes originais
+                    # Desenhar a árvore com nomes originais usando truncamento inteligente
                     Phylo.draw(tree, axes=axes, show_confidence=True, 
-                              label_func=lambda x: x.name[:15] + '...' if x.name and len(x.name) > 15 else x.name)
+                              label_func=lambda x: x.name[:max_name_length-3] + '...' if x.name and len(x.name) > max_name_length else x.name)
                     plt.title('Árvore Filogenética (Biopython)', fontsize=fontsize+2)
                     
                     # Ajustar layout para evitar sobreposição
