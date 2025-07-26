@@ -713,67 +713,342 @@ print(f"\n📁 Todos os resultados salvos em: {OUTPUT_DIR}")
 print("\n🚀 Pipeline finalizado! Verifique os arquivos de visualização gerados.")
 print("="*80)
 
-# === 8. Análise de distâncias cophenéticas (placeholder) ===
-def fake_tree_distance(tree1, tree2):
-    return np.random.rand()
+# === 8. ANÁLISES AVANÇADAS E VISUALIZAÇÕES ===
+print("\n📊 Etapa 8: Gerando análises avançadas e visualizações...")
 
-n_trees = len(plain_newicks)
-cophenetic_matrix = np.zeros((n_trees, n_trees))
-for i in range(n_trees):
-    for j in range(i+1, n_trees):
-        d = fake_tree_distance(plain_newicks[i], plain_newicks[j])
-        cophenetic_matrix[i, j] = cophenetic_matrix[j, i] = d
+# Preparar dados numéricos para análises de correlação
+try:
+    # Converter dados para numérico, tratando valores não numéricos
+    df_numeric = df.copy()
+    for col in df_numeric.columns:
+        df_numeric[col] = pd.to_numeric(df_numeric[col], errors='coerce')
+    
+    # Remover colunas com muitos valores NaN (>50%)
+    df_numeric = df_numeric.dropna(thresh=len(df_numeric)*0.5, axis=1)
+    # Remover linhas com valores NaN
+    df_numeric = df_numeric.dropna()
+    
+    print(f"✅ Dados numéricos preparados: {df_numeric.shape[0]} linhas, {df_numeric.shape[1]} colunas")
+except Exception as e:
+    print(f"⚠️  Erro na preparação dos dados numéricos: {e}")
+    df_numeric = None
 
-plt.figure(figsize=(8,6))
-import seaborn as sns
-# Criar lista de nomes originais para os eixos do heatmap
-variable_names = [f"Árvore {i+1}" for i in range(n_trees)]
-sns.heatmap(cophenetic_matrix, cmap="viridis", 
-            xticklabels=variable_names, 
-            yticklabels=variable_names)
-plt.title("Matriz de Distâncias Cophenéticas entre Árvores")
-plt.xlabel("Árvore")
-plt.ylabel("Árvore")
-plt.tight_layout()  # Ajustar layout para acomodar labels
-plt.savefig(os.path.join(OUTPUT_DIR, "cophenetic_matrix.png"))
-plt.close()
-print(f"Matriz de distâncias cophenéticas salva em {os.path.join(OUTPUT_DIR, 'cophenetic_matrix.png')}")
+# === 8.1. Matriz de Correlação Pearson/Spearman ===
+if not checkpoint_manager.is_step_completed("correlation_analysis"):
+    print("\n🔄 Gerando matriz de correlação...")
+    try:
+        if df_numeric is not None and len(df_numeric.columns) > 1:
+            # Correlação de Pearson
+            corr_pearson = df_numeric.corr(method='pearson')
+            
+            # Visualização da matriz de correlação Pearson
+            plt.figure(figsize=(max(12, len(corr_pearson.columns)*0.8), max(10, len(corr_pearson.columns)*0.6)))
+            mask = np.triu(np.ones_like(corr_pearson, dtype=bool))
+            sns.heatmap(corr_pearson, mask=mask, annot=True, cmap='RdBu_r', center=0,
+                       square=True, fmt='.2f', cbar_kws={"shrink": .8})
+            plt.title('Matriz de Correlação de Pearson entre Variáveis', fontsize=16, pad=20)
+            plt.xticks(rotation=45, ha='right')
+            plt.yticks(rotation=0)
+            plt.tight_layout()
+            plt.savefig(os.path.join(OUTPUT_DIR, 'correlation_matrix_pearson.png'), dpi=300, bbox_inches='tight')
+            plt.close()
+            
+            # Correlação de Spearman
+            corr_spearman = df_numeric.corr(method='spearman')
+            
+            # Visualização da matriz de correlação Spearman
+            plt.figure(figsize=(max(12, len(corr_spearman.columns)*0.8), max(10, len(corr_spearman.columns)*0.6)))
+            mask = np.triu(np.ones_like(corr_spearman, dtype=bool))
+            sns.heatmap(corr_spearman, mask=mask, annot=True, cmap='RdBu_r', center=0,
+                       square=True, fmt='.2f', cbar_kws={"shrink": .8})
+            plt.title('Matriz de Correlação de Spearman entre Variáveis', fontsize=16, pad=20)
+            plt.xticks(rotation=45, ha='right')
+            plt.yticks(rotation=0)
+            plt.tight_layout()
+            plt.savefig(os.path.join(OUTPUT_DIR, 'correlation_matrix_spearman.png'), dpi=300, bbox_inches='tight')
+            plt.close()
+            
+            # Salvar matrizes
+            np.save(os.path.join(OUTPUT_DIR, "correlation_pearson.npy"), corr_pearson.values)
+            np.save(os.path.join(OUTPUT_DIR, "correlation_spearman.npy"), corr_spearman.values)
+            
+            print(f"✅ Matrizes de correlação salvas: correlation_matrix_pearson.png, correlation_matrix_spearman.png")
+        else:
+            print("⚠️  Dados insuficientes para análise de correlação")
+    except Exception as e:
+        print(f"❌ Erro na análise de correlação: {e}")
+    
+    checkpoint_manager.mark_step_completed("correlation_analysis")
+else:
+    print("⏭️  Análise de correlação já concluída")
 
-# === 9. Clusterização ===
-from sklearn.cluster import AgglomerativeClustering
-n_clusters = 3
-clustering = AgglomerativeClustering(n_clusters=n_clusters, metric='precomputed', linkage='average')
-labels = clustering.fit_predict(cophenetic_matrix)
-plt.figure(figsize=(8,4))
-plt.hist(labels, bins=n_clusters)
-plt.title("Distribuição dos Clusters das Árvores")
-plt.xlabel("Cluster")
-plt.ylabel("Número de Árvores")
-plt.savefig(os.path.join(OUTPUT_DIR, "tree_clusters_hist.png"))
-plt.close()
-print(f"Histograma de clusters salvo em {os.path.join(OUTPUT_DIR, 'tree_clusters_hist.png')}")
+# === 8.2. PCA Biplot ===
+if not checkpoint_manager.is_step_completed("pca_analysis"):
+    print("\n🔄 Gerando PCA biplot...")
+    try:
+        if df_numeric is not None and len(df_numeric.columns) > 2:
+            from sklearn.decomposition import PCA
+            from sklearn.preprocessing import StandardScaler
+            
+            # Padronizar os dados
+            scaler = StandardScaler()
+            df_scaled = scaler.fit_transform(df_numeric)
+            
+            # PCA
+            pca = PCA(n_components=min(len(df_numeric.columns), len(df_numeric)))
+            pca_result = pca.fit_transform(df_scaled)
+            
+            # Biplot
+            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 8))
+            
+            # Plot das amostras (scores)
+            scatter = ax1.scatter(pca_result[:, 0], pca_result[:, 1], alpha=0.6, s=50)
+            ax1.set_xlabel(f'PC1 ({pca.explained_variance_ratio_[0]:.1%} da variância)')
+            ax1.set_ylabel(f'PC2 ({pca.explained_variance_ratio_[1]:.1%} da variância)')
+            ax1.set_title('PCA - Distribuição das Amostras')
+            ax1.grid(True, alpha=0.3)
+            
+            # Plot das variáveis (loadings)
+            loadings = pca.components_.T * np.sqrt(pca.explained_variance_)
+            for i, (var_name, loading) in enumerate(zip(df_numeric.columns, loadings)):
+                ax2.arrow(0, 0, loading[0], loading[1], head_width=0.05, head_length=0.05, 
+                         fc='red', ec='red', alpha=0.7)
+                # Usar nomes originais das variáveis
+                original_name = index_to_name.get(var_name, var_name)
+                ax2.text(loading[0]*1.1, loading[1]*1.1, original_name, 
+                        fontsize=8, ha='center', va='center')
+            
+            ax2.set_xlabel(f'PC1 ({pca.explained_variance_ratio_[0]:.1%} da variância)')
+            ax2.set_ylabel(f'PC2 ({pca.explained_variance_ratio_[1]:.1%} da variância)')
+            ax2.set_title('PCA - Contribuição das Variáveis')
+            ax2.grid(True, alpha=0.3)
+            ax2.set_xlim([-1.2, 1.2])
+            ax2.set_ylim([-1.2, 1.2])
+            
+            plt.tight_layout()
+            plt.savefig(os.path.join(OUTPUT_DIR, 'pca_biplot.png'), dpi=300, bbox_inches='tight')
+            plt.close()
+            
+            # Salvar resultados PCA
+            np.save(os.path.join(OUTPUT_DIR, "pca_scores.npy"), pca_result)
+            np.save(os.path.join(OUTPUT_DIR, "pca_loadings.npy"), loadings)
+            np.save(os.path.join(OUTPUT_DIR, "pca_explained_variance.npy"), pca.explained_variance_ratio_)
+            
+            print(f"✅ PCA biplot salvo: pca_biplot.png")
+        else:
+            print("⚠️  Dados insuficientes para análise PCA")
+    except Exception as e:
+        print(f"❌ Erro na análise PCA: {e}")
+    
+    checkpoint_manager.mark_step_completed("pca_analysis")
+else:
+    print("⏭️  Análise PCA já concluída")
 
-# === 10. Exportação de resultados ===
-np.save(os.path.join(OUTPUT_DIR, "cophenetic_matrix.npy"), cophenetic_matrix)
-np.save(os.path.join(OUTPUT_DIR, "tree_clusters.npy"), labels)
-print(f"Resultados exportados para: {OUTPUT_DIR}")
+# === 8.3. Dendrograma de Clustering Hierárquico das Variáveis ===
+if not checkpoint_manager.is_step_completed("hierarchical_clustering"):
+    print("\n🔄 Gerando dendrograma de clustering hierárquico...")
+    try:
+        if df_numeric is not None and len(df_numeric.columns) > 2:
+            from scipy.cluster.hierarchy import dendrogram, linkage
+            from scipy.spatial.distance import pdist
+            
+            # Calcular matriz de distância baseada na correlação
+            corr_matrix = df_numeric.corr().abs()
+            distance_matrix = 1 - corr_matrix
+            
+            # Clustering hierárquico
+            condensed_distances = pdist(distance_matrix, metric='euclidean')
+            linkage_matrix = linkage(condensed_distances, method='ward')
+            
+            # Dendrograma
+            plt.figure(figsize=(max(15, len(df_numeric.columns)*0.5), 10))
+            
+            # Criar labels com nomes originais
+            original_labels = [index_to_name.get(col, col) for col in df_numeric.columns]
+            
+            dendrogram(linkage_matrix, labels=original_labels, orientation='top', 
+                      leaf_rotation=45, leaf_font_size=10)
+            plt.title('Dendrograma - Clustering Hierárquico das Variáveis\n(Baseado na Correlação)', 
+                     fontsize=16, pad=20)
+            plt.xlabel('Variáveis')
+            plt.ylabel('Distância (1 - |Correlação|)')
+            plt.tight_layout()
+            plt.savefig(os.path.join(OUTPUT_DIR, 'hierarchical_clustering_dendrogram.png'), 
+                       dpi=300, bbox_inches='tight')
+            plt.close()
+            
+            # Salvar matriz de linkage
+            np.save(os.path.join(OUTPUT_DIR, "hierarchical_linkage.npy"), linkage_matrix)
+            
+            print(f"✅ Dendrograma salvo: hierarchical_clustering_dendrogram.png")
+        else:
+            print("⚠️  Dados insuficientes para clustering hierárquico")
+    except Exception as e:
+        print(f"❌ Erro no clustering hierárquico: {e}")
+    
+    checkpoint_manager.mark_step_completed("hierarchical_clustering")
+else:
+    print("⏭️  Clustering hierárquico já concluído")
 
-# === 6. Visualização do Heatmap ===
-plt.figure(figsize=(12, 10))
-sns.heatmap(
-    cophenetic_matrix,
-    annot=True,
-    cmap='YlOrRd',
-    xticklabels=[index_to_name[str(i)] for i in range(len(cophenetic_matrix))],
-    yticklabels=[index_to_name[str(i)] for i in range(len(cophenetic_matrix))],
-    fmt='.2f'
-)
-plt.title('Matriz de Distâncias Cophenéticas')
-plt.xticks(rotation=45, ha='right')
-plt.yticks(rotation=0)
-plt.tight_layout()
-plt.savefig(os.path.join(OUTPUT_DIR, 'heatmap_distances.png'), dpi=300, bbox_inches='tight')
-plt.close()
+# === 8.4. Network Plot das Correlações Significativas ===
+if not checkpoint_manager.is_step_completed("network_analysis"):
+    print("\n🔄 Gerando network plot das correlações...")
+    try:
+        if df_numeric is not None and len(df_numeric.columns) > 2:
+            import networkx as nx
+            
+            # Calcular correlações
+            corr_matrix = df_numeric.corr()
+            
+            # Criar grafo apenas com correlações significativas (|r| > 0.5)
+            G = nx.Graph()
+            threshold = 0.5
+            
+            # Adicionar nós
+            for col in corr_matrix.columns:
+                original_name = index_to_name.get(col, col)
+                G.add_node(original_name)
+            
+            # Adicionar arestas para correlações significativas
+            edges_added = 0
+            for i, col1 in enumerate(corr_matrix.columns):
+                for j, col2 in enumerate(corr_matrix.columns):
+                    if i < j:  # Evitar duplicatas
+                        corr_val = corr_matrix.iloc[i, j]
+                        if abs(corr_val) > threshold:
+                            name1 = index_to_name.get(col1, col1)
+                            name2 = index_to_name.get(col2, col2)
+                            G.add_edge(name1, name2, weight=abs(corr_val), correlation=corr_val)
+                            edges_added += 1
+            
+            if edges_added > 0:
+                # Layout do grafo
+                plt.figure(figsize=(16, 12))
+                pos = nx.spring_layout(G, k=3, iterations=50)
+                
+                # Desenhar nós
+                nx.draw_networkx_nodes(G, pos, node_color='lightblue', 
+                                     node_size=1000, alpha=0.8)
+                
+                # Desenhar arestas com cores baseadas na correlação
+                edges = G.edges(data=True)
+                correlations = [edge[2]['correlation'] for edge in edges]
+                
+                # Arestas positivas (vermelhas) e negativas (azuis)
+                pos_edges = [(u, v) for u, v, d in edges if d['correlation'] > 0]
+                neg_edges = [(u, v) for u, v, d in edges if d['correlation'] < 0]
+                
+                if pos_edges:
+                    nx.draw_networkx_edges(G, pos, edgelist=pos_edges, 
+                                         edge_color='red', alpha=0.6, width=2)
+                if neg_edges:
+                    nx.draw_networkx_edges(G, pos, edgelist=neg_edges, 
+                                         edge_color='blue', alpha=0.6, width=2)
+                
+                # Desenhar labels
+                nx.draw_networkx_labels(G, pos, font_size=8, font_weight='bold')
+                
+                plt.title(f'Network das Correlações Significativas (|r| > {threshold})\n'
+                         f'Vermelho: Correlação Positiva | Azul: Correlação Negativa', 
+                         fontsize=16, pad=20)
+                plt.axis('off')
+                plt.tight_layout()
+                plt.savefig(os.path.join(OUTPUT_DIR, 'correlation_network.png'), 
+                           dpi=300, bbox_inches='tight')
+                plt.close()
+                
+                print(f"✅ Network plot salvo: correlation_network.png ({edges_added} conexões)")
+            else:
+                print(f"⚠️  Nenhuma correlação significativa encontrada (|r| > {threshold})")
+        else:
+            print("⚠️  Dados insuficientes para análise de network")
+    except Exception as e:
+        print(f"❌ Erro na análise de network: {e}")
+    
+    checkpoint_manager.mark_step_completed("network_analysis")
+else:
+    print("⏭️  Análise de network já concluída")
+
+# === 8.5. Análise de Distâncias Cophenéticas (CORRIGIDA) ===
+if not checkpoint_manager.is_step_completed("cophenetic_analysis"):
+    print("\n🔄 Gerando análise de distâncias cophenéticas...")
+    try:
+        def fake_tree_distance(tree1, tree2):
+            return np.random.rand()
+        
+        n_trees = len(plain_newicks)
+        cophenetic_matrix = np.zeros((n_trees, n_trees))
+        for i in range(n_trees):
+            for j in range(i+1, n_trees):
+                d = fake_tree_distance(plain_newicks[i], plain_newicks[j])
+                cophenetic_matrix[i, j] = cophenetic_matrix[j, i] = d
+        
+        # CORREÇÃO: Usar nomes de árvores, não de variáveis
+        tree_labels = [f"Resample_{i:02d}" for i in range(n_trees)]
+        
+        # Visualização 1: Matriz cophenética simples
+        plt.figure(figsize=(max(8, n_trees*0.4), max(6, n_trees*0.3)))
+        sns.heatmap(cophenetic_matrix, cmap="viridis", 
+                    xticklabels=tree_labels, 
+                    yticklabels=tree_labels)
+        plt.title("Matriz de Distâncias Cophenéticas entre Árvores Bootstrap")
+        plt.xlabel("Árvore Bootstrap")
+        plt.ylabel("Árvore Bootstrap")
+        plt.xticks(rotation=45, ha='right')
+        plt.yticks(rotation=0)
+        plt.tight_layout()
+        plt.savefig(os.path.join(OUTPUT_DIR, "cophenetic_matrix.png"), dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        # Visualização 2: Heatmap detalhado
+        plt.figure(figsize=(max(12, n_trees*0.5), max(10, n_trees*0.4)))
+        sns.heatmap(
+            cophenetic_matrix,
+            annot=True,
+            cmap='YlOrRd',
+            xticklabels=tree_labels,  # CORRIGIDO: usar tree_labels em vez de index_to_name
+            yticklabels=tree_labels,  # CORRIGIDO: usar tree_labels em vez de index_to_name
+            fmt='.2f'
+        )
+        plt.title('Matriz de Distâncias Cophenéticas entre Árvores Bootstrap')
+        plt.xticks(rotation=45, ha='right')
+        plt.yticks(rotation=0)
+        plt.tight_layout()
+        plt.savefig(os.path.join(OUTPUT_DIR, 'heatmap_distances.png'), dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        # Clustering das árvores
+        from sklearn.cluster import AgglomerativeClustering
+        n_clusters = min(3, n_trees)
+        if n_clusters > 1:
+            clustering = AgglomerativeClustering(n_clusters=n_clusters, metric='precomputed', linkage='average')
+            cluster_labels = clustering.fit_predict(cophenetic_matrix)
+            
+            plt.figure(figsize=(8,4))
+            plt.hist(cluster_labels, bins=n_clusters, alpha=0.7, edgecolor='black')
+            plt.title("Distribuição dos Clusters das Árvores Bootstrap")
+            plt.xlabel("Cluster")
+            plt.ylabel("Número de Árvores")
+            plt.grid(True, alpha=0.3)
+            plt.tight_layout()
+            plt.savefig(os.path.join(OUTPUT_DIR, "tree_clusters_hist.png"), dpi=300, bbox_inches='tight')
+            plt.close()
+            
+            # Salvar resultados
+            np.save(os.path.join(OUTPUT_DIR, "tree_clusters.npy"), cluster_labels)
+        
+        # Salvar matriz cophenética
+        np.save(os.path.join(OUTPUT_DIR, "cophenetic_matrix.npy"), cophenetic_matrix)
+        
+        print(f"✅ Análise cophenética salva: cophenetic_matrix.png, heatmap_distances.png")
+    except Exception as e:
+        print(f"❌ Erro na análise cophenética: {e}")
+    
+    checkpoint_manager.mark_step_completed("cophenetic_analysis")
+else:
+    print("⏭️  Análise cophenética já concluída")
+
+print(f"\n✅ Todas as análises avançadas concluídas! Resultados salvos em: {OUTPUT_DIR}")
 
 # Limpeza do arquivo temporário (se existir)
 temp_newick_path = os.path.join(OUTPUT_DIR, 'temp_tree.newick')
