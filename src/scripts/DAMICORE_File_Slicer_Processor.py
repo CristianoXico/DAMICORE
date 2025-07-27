@@ -1544,7 +1544,7 @@ def generate_slice_visualization(newick_files, slice_output_dir, slice_idx, slic
 
 def compile_all_newick_files(output_dir, progress_manager):
     """
-    Compila todos os arquivos newick gerados das fatias.
+    Compila todos os arquivos newick gerados das fatias usando busca direta no disco.
     
     Args:
         output_dir (str): Diretório base de saída
@@ -1553,66 +1553,110 @@ def compile_all_newick_files(output_dir, progress_manager):
     Returns:
         list: Lista de todos os arquivos newick compilados
     """
-    print(f"\n🌳 COMPILANDO ARQUIVOS NEWICK")
+    print(f"\n🌳 COMPILANDO ARQUIVOS NEWICK (BUSCA DIRETA NO DISCO)")
+    
+    # 🔧 CORREÇÃO CRÍTICA: Usar busca direta no disco em vez de checkpoint desatualizado
+    print(f"🔍 Buscando arquivos newick reais no disco...")
     
     all_newick_files = []
+    slices_dir = os.path.join(output_dir, "slices")
     
-    # Coletar arquivos newick de todas as fatias processadas
-    slice_results = progress_manager.progress_data.get("slice_results", {})
+    if not os.path.exists(slices_dir):
+        print(f"❌ Diretório de fatias não encontrado: {slices_dir}")
+        return []
     
-    for slice_idx_str, slice_data in slice_results.items():
-        slice_idx = int(slice_idx_str)
-        newick_files = slice_data.get("newick_files", [])
-        print(f"📁 Fatia {slice_idx + 1}: {len(newick_files)} arquivos newick")
-        all_newick_files.extend(newick_files)
+    # Buscar todos os arquivos .newick nas fatias
+    for root, dirs, files in os.walk(slices_dir):
+        for file in files:
+            if file.endswith('.newick'):
+                full_path = os.path.join(root, file)
+                # Filtrar apenas arquivos das fatias (não de testes)
+                if '/slices/slice_' in full_path and '/damicore_results/' in full_path:
+                    all_newick_files.append(full_path)
+    
+    # Organizar por fatia para relatório
+    slice_files_count = {}
+    for newick_file in all_newick_files:
+        path_parts = newick_file.split(os.sep)
+        slice_info = "unknown"
+        for part in path_parts:
+            if part.startswith("slice_"):
+                slice_info = part
+                break
+        
+        if slice_info not in slice_files_count:
+            slice_files_count[slice_info] = 0
+        slice_files_count[slice_info] += 1
+    
+    # Relatório detalhado
+    print(f"\n📊 ARQUIVOS ENCONTRADOS POR FATIA:")
+    for slice_name in sorted(slice_files_count.keys()):
+        if slice_name != "unknown":
+            slice_num = slice_name.replace("slice_", "")
+            print(f"📁 Fatia {int(slice_num) + 1}: {slice_files_count[slice_name]} arquivos newick")
     
     print(f"\n📊 RESUMO DA COMPILAÇÃO:")
-    print(f"🌳 Total de arquivos newick: {len(all_newick_files)}")
-    print(f"📁 Fatias processadas: {len(slice_results)}")
+    print(f"🌳 Total de arquivos newick encontrados: {len(all_newick_files)}")
+    print(f"📁 Fatias com arquivos: {len([k for k in slice_files_count.keys() if k != 'unknown'])}")
+    
+    if not all_newick_files:
+        print(f"❌ Nenhum arquivo newick encontrado para compilação!")
+        return []
     
     # Criar diretório compilado
     compiled_dir = os.path.join(output_dir, "compiled_results")
     os.makedirs(compiled_dir, exist_ok=True)
     
+    # Limpar diretório compilado anterior
+    for existing_file in os.listdir(compiled_dir):
+        existing_path = os.path.join(compiled_dir, existing_file)
+        if os.path.isfile(existing_path):
+            os.remove(existing_path)
+    
     # Copiar todos os arquivos newick para o diretório compilado
-    print(f"\n📋 Copiando arquivos newick para diretório compilado...")
+    print(f"\n📋 Copiando {len(all_newick_files)} arquivos newick para diretório compilado...")
     compiled_newick_files = []
     
     for i, newick_file in enumerate(all_newick_files):
-        if os.path.exists(newick_file):
-            # Criar nome único para evitar conflitos
-            original_name = os.path.basename(newick_file)
+        if not os.path.exists(newick_file):
+            print(f"⚠️  Arquivo não existe: {newick_file}")
+            continue
             
-            # Extrair informação da fatia do caminho
-            path_parts = newick_file.split(os.sep)
-            slice_info = "unknown"
-            for part in path_parts:
-                if part.startswith("slice_"):
-                    slice_info = part
-                    break
-            
-            # Criar nome único: slice_XXXX_original_name
-            compiled_name = f"{slice_info}_{original_name}"
-            compiled_path = os.path.join(compiled_dir, compiled_name)
-            
-            # Verificar se já existe (para debug)
-            if os.path.exists(compiled_path):
-                print(f"⚠️  Arquivo já existe, sobrescrevendo: {compiled_name}")
-            
-            try:
-                shutil.copy2(newick_file, compiled_path)
-                compiled_newick_files.append(compiled_path)
-            except Exception as e:
-                print(f"❌ Erro ao copiar {newick_file}: {e}")
-                continue
+        # Criar nome único para evitar conflitos
+        original_name = os.path.basename(newick_file)
+        
+        # Extrair informação da fatia do caminho
+        path_parts = newick_file.split(os.sep)
+        slice_info = "unknown"
+        for part in path_parts:
+            if part.startswith("slice_"):
+                slice_info = part
+                break
+        
+        # Criar nome único: slice_XXXX_original_name
+        compiled_name = f"{slice_info}_{original_name}"
+        compiled_path = os.path.join(compiled_dir, compiled_name)
+        
+        try:
+            shutil.copy2(newick_file, compiled_path)
+            compiled_newick_files.append(compiled_path)
             
             if i < 5:  # Mostrar apenas os primeiros 5
                 print(f"  ✅ {compiled_name}")
             elif i == 5:
-                print(f"  ... e mais {len(all_newick_files) - 5} arquivos")
+                print(f"  ... copiando mais {len(all_newick_files) - 5} arquivos...")
+                
+        except Exception as e:
+            print(f"❌ Erro ao copiar {newick_file}: {e}")
+            continue
     
-    print(f"\n✅ Compilação concluída!")
-    print(f"📁 Arquivos compilados salvos em: {compiled_dir}")
+    print(f"\n✅ COMPILAÇÃO CONCLUÍDA COM SUCESSO!")
+    print(f"📁 Arquivos compilados: {len(compiled_newick_files)}")
+    print(f"📁 Diretório: {compiled_dir}")
+    
+    # Verificação final
+    final_count = len(os.listdir(compiled_dir))
+    print(f"🔍 Verificação final: {final_count} arquivos na pasta compiled_results")
     
     return compiled_newick_files
 

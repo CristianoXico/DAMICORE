@@ -1,0 +1,69 @@
+{
+  "start_time": "2025-07-23T14:17:53.323033",
+  "data_path": "/home/cristiano-xico/github/CristianoXico/DAMICORE/src/scripts/arquivo_pequeno.csv",
+  "total_samples": 23,
+  "completed_steps": {
+    "data_loading": true,
+    "bootstrap_sampling": true,
+    "sample_files_creation": true,
+    "damicore_execution": true,
+    "newick_collection": true,
+    "visualization": true
+  },
+  "completed_samples": [
+    "resample_19",
+    "resample_18",
+    "resample_16",
+    "resample_02",
+    "resample_21",
+    "resample_08",
+    "resample_00",
+    "resample_10",
+    "resample_12",
+    "resample_15",
+    "resample_03",
+    "resample_17",
+    "resample_05",
+    "resample_13",
+    "resample_09",
+    "resample_04",
+    "resample_14",
+    "resample_22",
+    "resample_11",
+    "resample_01",
+    "resample_06",
+    "resample_07"
+  ],
+  "failed_samples": [
+    {
+      "sample": "resample_20",
+      "error": "Código de saída: 1",
+      "timestamp": "2025-07-23T14:20:16.487420"
+    }
+  ],
+  "newick_files": [
+    "resample_05-tree.newick",
+    "resample_19-tree.newick",
+    "resample_03-tree.newick",
+    "resample_06-tree.newick",
+    "resample_16-tree.newick",
+    "resample_10-tree.newick",
+    "resample_04-tree.newick",
+    "resample_15-tree.newick",
+    "resample_01-tree.newick",
+    "resample_08-tree.newick",
+    "resample_12-tree.newick",
+    "resample_17-tree.newick",
+    "resample_02-tree.newick",
+    "resample_09-tree.newick",
+    "resample_11-tree.newick",
+    "resample_00-tree.newick",
+    "resample_18-tree.newick",
+    "resample_21-tree.newick",
+    "resample_07-tree.newick",
+    "resample_14-tree.newick",
+    "resample_22-tree.newick",
+    "resample_13-tree.newick"
+  ],
+  "last_update": "2025-07-24T18:58:56.492477"
+}

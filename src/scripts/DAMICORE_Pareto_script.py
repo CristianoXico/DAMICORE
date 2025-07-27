@@ -58,7 +58,20 @@ def run_damicore_analysis(input_path):
 
     # === 4. Execução do DAMICORE para cada amostra ===
     print("Executando análise DAMICORE...")
-    DAMICORE_CLI_PATH = "/home/cristiano-xico/Desktop/work_space_vs_code/CristianoXico-repos/DAMICORE/damicore_py3/damicore.py"
+    # 🔧 CAMINHO RELATIVO PORTÁVEL PARA O DAMICORE
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)  # /DAMICORE/src
+    DAMICORE_CLI_PATH = os.path.join(project_root, "damicore.py")
+    
+    # Fallback para estrutura alternativa (damicore_py3)
+    if not os.path.exists(DAMICORE_CLI_PATH):
+        alt_path = os.path.join(os.path.dirname(project_root), "damicore_py3", "damicore.py")
+        if os.path.exists(alt_path):
+            DAMICORE_CLI_PATH = alt_path
+        else:
+            print(f"⚠️ Aviso: DAMICORE não encontrado em {DAMICORE_CLI_PATH} ou {alt_path}")
+    
+    print(f"🔧 Usando DAMICORE: {DAMICORE_CLI_PATH}")
     results_dir = os.path.join(DAMICORE_DIR, "damicore_results")
     os.makedirs(results_dir, exist_ok=True)
     

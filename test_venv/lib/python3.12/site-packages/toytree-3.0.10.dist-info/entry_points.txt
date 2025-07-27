@@ -1,0 +1,2 @@
+[console_scripts]
+toytree = toytree.cli.main:main

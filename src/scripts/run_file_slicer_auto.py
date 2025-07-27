@@ -8,6 +8,23 @@ import subprocess
 import sys
 import os
 
+
+def get_file_slicer_path():
+    """
+    🔧 Obtém o caminho relativo portável para o DAMICORE_File_Slicer_Processor.py.
+    
+    Returns:
+        str: Caminho absoluto para o DAMICORE_File_Slicer_Processor.py
+    """
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    slicer_path = os.path.join(script_dir, "DAMICORE_File_Slicer_Processor.py")
+    
+    if not os.path.exists(slicer_path):
+        print(f"⚠️ Aviso: DAMICORE_File_Slicer_Processor.py não encontrado em {slicer_path}")
+    
+    return slicer_path
+
+
 def run_file_slicer():
     """Executa o File Slicer com respostas automatizadas"""
     
@@ -26,7 +43,7 @@ def run_file_slicer():
     input_data = "\n".join(responses) + "\n"
     
     # Executar o script
-    script_path = "/home/cristiano-xico/github/CristianoXico/DAMICORE/src/scripts/DAMICORE_File_Slicer_Processor.py"
+    script_path = get_file_slicer_path()
     
     print("🚀 Iniciando DAMICORE File Slicer Processor...")
     print(f"📁 Arquivo: {csv_file}")

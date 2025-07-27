@@ -1,0 +1,133 @@
+{
+  "start_time": "2025-07-26T14:15:41.416599",
+  "data_path": "/home/cristiano-xico/github/CristianoXico/DAMICORE/examples/example_input.csv",
+  "total_samples": 23,
+  "completed_steps": {
+    "data_loading": true,
+    "bootstrap_sampling": true,
+    "sample_files_creation": true,
+    "damicore_execution": true,
+    "newick_collection": false,
+    "visualization": false
+  },
+  "completed_samples": [],
+  "failed_samples": [
+    {
+      "sample": "resample_19",
+      "error": "Código de saída: 1",
+      "timestamp": "2025-07-26T14:15:42.111994"
+    },
+    {
+      "sample": "resample_18",
+      "error": "Código de saída: 1",
+      "timestamp": "2025-07-26T14:15:42.662211"
+    },
+    {
+      "sample": "resample_16",
+      "error": "Código de saída: 1",
+      "timestamp": "2025-07-26T14:15:42.879581"
+    },
+    {
+      "sample": "resample_02",
+      "error": "Código de saída: 1",
+      "timestamp": "2025-07-26T14:15:43.146249"
+    },
+    {
+      "sample": "resample_21",
+      "error": "Código de saída: 1",
+      "timestamp": "2025-07-26T14:15:43.416047"
+    },
+    {
+      "sample": "resample_08",
+      "error": "Código de saída: 1",
+      "timestamp": "2025-07-26T14:15:43.811247"
+    },
+    {
+      "sample": "resample_00",
+      "error": "Código de saída: 1",
+      "timestamp": "2025-07-26T14:15:44.131345"
+    },
+    {
+      "sample": "resample_10",
+      "error": "Código de saída: 1",
+      "timestamp": "2025-07-26T14:15:44.468961"
+    },
+    {
+      "sample": "resample_12",
+      "error": "Código de saída: 1",
+      "timestamp": "2025-07-26T14:15:44.749390"
+    },
+    {
+      "sample": "resample_15",
+      "error": "Código de saída: 1",
+      "timestamp": "2025-07-26T14:15:45.010962"
+    },
+    {
+      "sample": "resample_03",
+      "error": "Código de saída: 1",
+      "timestamp": "2025-07-26T14:15:45.225328"
+    },
+    {
+      "sample": "resample_17",
+      "error": "Código de saída: 1",
+      "timestamp": "2025-07-26T14:15:45.593502"
+    },
+    {
+      "sample": "resample_05",
+      "error": "Código de saída: 1",
+      "timestamp": "2025-07-26T14:15:45.795063"
+    },
+    {
+      "sample": "resample_13",
+      "error": "Código de saída: 1",
+      "timestamp": "2025-07-26T14:15:46.157595"
+    },
+    {
+      "sample": "resample_09",
+      "error": "Código de saída: 1",
+      "timestamp": "2025-07-26T14:15:46.575068"
+    },
+    {
+      "sample": "resample_04",
+      "error": "Código de saída: 1",
+      "timestamp": "2025-07-26T14:15:46.833094"
+    },
+    {
+      "sample": "resample_14",
+      "error": "Código de saída: 1",
+      "timestamp": "2025-07-26T14:15:47.285577"
+    },
+    {
+      "sample": "resample_22",
+      "error": "Código de saída: 1",
+      "timestamp": "2025-07-26T14:15:47.514708"
+    },
+    {
+      "sample": "resample_11",
+      "error": "Código de saída: 1",
+      "timestamp": "2025-07-26T14:15:47.717373"
+    },
+    {
+      "sample": "resample_20",
+      "error": "Código de saída: 1",
+      "timestamp": "2025-07-26T14:15:47.955291"
+    },
+    {
+      "sample": "resample_01",
+      "error": "Código de saída: 1",
+      "timestamp": "2025-07-26T14:15:48.288005"
+    },
+    {
+      "sample": "resample_06",
+      "error": "Código de saída: 1",
+      "timestamp": "2025-07-26T14:15:48.549603"
+    },
+    {
+      "sample": "resample_07",
+      "error": "Código de saída: 1",
+      "timestamp": "2025-07-26T14:15:48.879740"
+    }
+  ],
+  "newick_files": [],
+  "last_update": "2025-07-26T14:21:10.487668"
+}

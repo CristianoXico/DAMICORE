@@ -47,6 +47,45 @@ from tqdm import tqdm
 import json
 from datetime import datetime
 
+
+def get_damicore_path():
+    """
+    🔧 Obtém o caminho relativo portável para o DAMICORE.
+    
+    Returns:
+        str: Caminho absoluto para o damicore.py
+    """
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)  # /DAMICORE/src
+    damicore_path = os.path.join(project_root, "damicore.py")
+    
+    # Fallback para estrutura alternativa (damicore_py3)
+    if not os.path.exists(damicore_path):
+        alt_path = os.path.join(os.path.dirname(project_root), "damicore_py3", "damicore.py")
+        if os.path.exists(alt_path):
+            damicore_path = alt_path
+        else:
+            print(f"⚠️ Aviso: DAMICORE não encontrado em {damicore_path} ou {alt_path}")
+    
+    return damicore_path
+
+
+def get_filograma_script_path():
+    """
+    🔧 Obtém o caminho relativo portável para o DAMICORE_Filograma_script.py.
+    
+    Returns:
+        str: Caminho absoluto para o DAMICORE_Filograma_script.py
+    """
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    filograma_path = os.path.join(script_dir, "DAMICORE_Filograma_script.py")
+    
+    if not os.path.exists(filograma_path):
+        print(f"⚠️ Aviso: DAMICORE_Filograma_script.py não encontrado em {filograma_path}")
+    
+    return filograma_path
+
+
 # ============================================================================
 # SISTEMA DE CHECKPOINT/RETOMADA
 # ============================================================================
@@ -599,7 +638,7 @@ def main():
             os.makedirs(os.path.dirname(tree_output_path), exist_ok=True)
             
             cmd = [
-                "python", "/home/cristiano-xico/Desktop/work_space_vs_code/CristianoXico-repos/DAMICORE/damicore_py3/damicore.py",
+                "python", get_damicore_path(),
                 "--compressor", "gzip",
                 "--serial",  # Força modo serial para evitar problemas de multiprocessing
                 "--tree-output", tree_output_path,
@@ -718,7 +757,7 @@ def main():
         
         try:
             cmd = [
-                "python", "/home/cristiano-xico/github/CristianoXico/DAMICORE/src/damicore.py",
+                "python", get_damicore_path(),
                 "--compressor", "gzip",
                 "--tree-output", tree_output,
                 resample_path
@@ -1179,7 +1218,7 @@ def process_chunk_with_filograma_script(chunk_df, chunk_idx, DAMICORE_DIR, resul
     print(f"💾 Chunk salvo como: {chunk_csv_path}")
     
     # === 3. Executar DAMICORE_Filograma_script.py no chunk ===
-    filograma_script_path = "/home/cristiano-xico/github/CristianoXico/DAMICORE/src/scripts/DAMICORE_Filograma_script.py"
+    filograma_script_path = get_filograma_script_path()
     
     if not os.path.exists(filograma_script_path):
         print(f"❌ Erro: Script Filograma não encontrado em {filograma_script_path}")
@@ -1299,7 +1338,7 @@ def process_single_chunk_with_visualizations(chunk_df, chunk_idx, bootstrap_samp
         
         try:
             # Usar o mesmo caminho do DAMICORE que funciona no script Filograma
-            DAMICORE_CLI_PATH = "/home/cristiano-xico/Desktop/work_space_vs_code/CristianoXico-repos/DAMICORE/damicore_py3/damicore.py"
+            DAMICORE_CLI_PATH = get_damicore_path()
             
             cmd = [
                 "python3", DAMICORE_CLI_PATH,

@@ -39,6 +39,28 @@ from large_file_processor import process_large_file_without_pandas
 # CONFIGURAÇÃO DO DRIVE EXTERNO
 # ============================================================================
 
+def get_damicore_path():
+    """
+    🔧 Obtém o caminho relativo portável para o DAMICORE.
+    
+    Returns:
+        str: Caminho absoluto para o damicore.py
+    """
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)  # /DAMICORE/src
+    damicore_path = os.path.join(project_root, "damicore.py")
+    
+    # Fallback para estrutura alternativa (damicore_py3)
+    if not os.path.exists(damicore_path):
+        alt_path = os.path.join(os.path.dirname(project_root), "damicore_py3", "damicore.py")
+        if os.path.exists(alt_path):
+            damicore_path = alt_path
+        else:
+            print(f"⚠️ Aviso: DAMICORE não encontrado em {damicore_path} ou {alt_path}")
+    
+    return damicore_path
+
+
 def detect_external_drive():
     """Detecta automaticamente drives externos montados"""
     media_path = f"/media/{os.getenv('USER', 'user')}/"
@@ -424,7 +446,7 @@ def main():
         
         try:
             cmd = [
-                "python", "/home/cristiano-xico/github/CristianoXico/DAMICORE/src/damicore.py",
+                "python", get_damicore_path(),
                 "--compressor", "gzip",
                 "--tree-output", tree_output,
                 resample_path
@@ -580,7 +602,7 @@ def execute_chunk_processing(input_path, file_size_gb, OUTPUT_DIR, DAMICORE_DIR)
         os.makedirs(damicore_results_dir, exist_ok=True)
         
         import subprocess
-        DAMICORE_CLI_PATH = "/home/cristiano-xico/github/CristianoXico/DAMICORE/src/damicore.py"
+        DAMICORE_CLI_PATH = get_damicore_path()
         
         for m in os.listdir(sample_dir):
             resampleddatasource = os.path.join(sample_dir, m)
