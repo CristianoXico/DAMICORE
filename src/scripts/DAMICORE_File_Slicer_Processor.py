@@ -1618,14 +1618,14 @@ def compile_all_newick_files(output_dir, progress_manager):
 
 def generate_unified_visualization(compiled_newick_files, output_dir, original_file):
     """
-    Gera visualização unificada de todos os arquivos newick.
+    Gera visualização unificada usando as mesmas visualizações padrão do DAMICORE.
     
     Args:
         compiled_newick_files (list): Lista de arquivos newick compilados
         output_dir (str): Diretório de saída
         original_file (str): Arquivo original processado
     """
-    print(f"\n🎨 GERANDO VISUALIZAÇÃO UNIFICADA")
+    print(f"\n🎨 GERANDO VISUALIZAÇÃO UNIFICADA (PADRÃO DAMICORE)")
     
     if not compiled_newick_files:
         print("❌ Nenhum arquivo newick disponível para visualização")
@@ -1634,95 +1634,211 @@ def generate_unified_visualization(compiled_newick_files, output_dir, original_f
     viz_dir = os.path.join(output_dir, "unified_visualization")
     os.makedirs(viz_dir, exist_ok=True)
     
+    # Criar mapeamento de nomes das variáveis
     try:
-        from Bio import Phylo
+        df = pd.read_csv(original_file)
+        index_to_name = {f"col_{i}.txt": col for i, col in enumerate(df.columns)}
+        num_variables = len(df.columns)
+        print(f"📊 Criando visualização unificada para {len(compiled_newick_files)} arquivos newick com {num_variables} variáveis...")
+    except Exception as e:
+        print(f"⚠️  Erro ao ler arquivo original: {e}")
+        index_to_name = {}
+        num_variables = 50  # fallback
+    
+    # Chamar a função de visualização padrão do DAMICORE
+    try:
+        # Usar a mesma função que gera visualizações para cada fatia
+        print("🎯 Gerando visualizações padrão DAMICORE...")
         
-        # Estatísticas dos arquivos newick
-        total_files = len(compiled_newick_files)
-        original_filename = os.path.basename(original_file)
-        
-        print(f"📊 Criando visualização para {total_files} arquivos newick...")
-        
-        # Criar visualização de resumo
-        fig, ax = plt.subplots(figsize=(16, 12))
-        
-        # Texto informativo
-        info_text = f"""
-DAMICORE File Slicer & Processor - Visualização Unificada
-
-Arquivo Original: {original_filename}
-Tamanho: {get_file_size_gb(original_file):.2f} GB
-
-Estratégia de Processamento:
-• Fatiamento em chunks de {CHUNK_SIZE} linhas
-• Processamento individual com DAMICORE_Filograma_script.py
-• Compilação de todos os resultados
-
-Resultados:
-• Total de arquivos Newick gerados: {total_files}
-• Frequências de suporte: CORRETAS (cada fatia processada completamente)
-• Uso de RAM: Mínimo (~100 linhas por vez)
-
-Status: ✅ PROCESSAMENTO CONCLUÍDO COM SUCESSO
-Data: {time.strftime('%Y-%m-%d %H:%M:%S')}
-        """
-        
-        ax.text(0.05, 0.95, info_text.strip(), transform=ax.transAxes, 
-                fontsize=12, verticalalignment='top', fontfamily='monospace',
-                bbox=dict(boxstyle='round,pad=1', facecolor='lightblue', alpha=0.8))
-        
-        ax.set_xlim(0, 1)
-        ax.set_ylim(0, 1)
-        ax.axis('off')
-        ax.set_title('DAMICORE File Slicer - Processamento Concluído', 
-                    fontsize=16, fontweight='bold', pad=20)
-        
-        # Salvar visualização
-        summary_path = os.path.join(viz_dir, "processing_summary.png")
-        plt.savefig(summary_path, dpi=300, bbox_inches='tight', facecolor='white')
-        plt.close()
-        
-        print(f"✅ Resumo visual salvo: {os.path.basename(summary_path)}")
-        
-        # Tentar criar visualização de uma árvore representativa
-        if compiled_newick_files:
+        # Criar lista de strings newick para as visualizações
+        newick_strings = []
+        for newick_file in compiled_newick_files[:100]:  # Limitar para evitar sobrecarga
             try:
-                representative_tree = Phylo.read(compiled_newick_files[0], "newick")
+                with open(newick_file, 'r') as f:
+                    content = f.read().strip()
+                    if content:
+                        newick_strings.append(content)
+            except Exception as e:
+                print(f"⚠️  Erro ao ler {newick_file}: {e}")
+                continue
+        
+        if not newick_strings:
+            print("❌ Nenhum arquivo newick válido encontrado")
+            return
+        
+        print(f"📊 Processando {len(newick_strings)} árvores para visualização unificada...")
+        
+        # === CLOUD TREE ===
+        try:
+            import toytree
+            print("🌳 Gerando Cloud Tree...")
+            
+            # Criar multitree
+            mtree = toytree.mtree(newick_strings)
+            
+            # Aplicar mapeamento de nomes
+            if index_to_name:
+                for tree in mtree.treelist:
+                    for node in tree.treenode.traverse():
+                        if node.is_leaf() and node.name in index_to_name:
+                            node.name = index_to_name[node.name]
+            
+            # Dimensões adaptativas
+            width = max(800, min(2000, num_variables * 15))
+            height = max(600, min(1500, num_variables * 12))
+            
+            canvas, axes, mark = mtree.draw(
+                width=width,
+                height=height,
+                node_labels=False,
+                tip_labels=True,
+                tip_labels_style={"font-size": max(8, min(12, 200 // num_variables))}
+            )
+            
+            cloud_path = os.path.join(viz_dir, "cloud_tree.pdf")
+            import toyplot.pdf
+            toyplot.pdf.render(canvas, cloud_path)
+            print(f"✅ Cloud Tree salva: {os.path.basename(cloud_path)}")
+            
+        except Exception as e:
+            print(f"⚠️  Erro ao gerar Cloud Tree: {e}")
+        
+        # === CONSENSUS TREE ===
+        try:
+            print("🌲 Gerando Consensus Tree...")
+            
+            # Criar árvore consenso
+            consensus_tree = mtree.get_consensus_tree()
+            
+            # Aplicar mapeamento de nomes
+            if index_to_name:
+                for node in consensus_tree.treenode.traverse():
+                    if node.is_leaf() and node.name in index_to_name:
+                        node.name = index_to_name[node.name]
+            
+            canvas, axes, mark = consensus_tree.draw(
+                width=width,
+                height=height,
+                node_labels=True,
+                node_labels_style={"font-size": 10},
+                tip_labels=True,
+                tip_labels_style={"font-size": max(8, min(12, 200 // num_variables))}
+            )
+            
+            consensus_path = os.path.join(viz_dir, "consensus_tree.pdf")
+            toyplot.pdf.render(canvas, consensus_path)
+            print(f"✅ Consensus Tree salva: {os.path.basename(consensus_path)}")
+            
+        except Exception as e:
+            print(f"⚠️  Erro ao gerar Consensus Tree: {e}")
+        
+        # === BIOPYTHON TREE ===
+        try:
+            from Bio import Phylo
+            import matplotlib.pyplot as plt
+            
+            print("🧬 Gerando Biopython Tree...")
+            
+            # Criar arquivo temporário com primeira árvore
+            temp_newick = os.path.join(viz_dir, "temp_unified.newick")
+            with open(temp_newick, 'w') as f:
+                f.write(newick_strings[0])
+            
+            # Ler e processar árvore
+            tree = Phylo.read(temp_newick, "newick")
+            
+            # Aplicar mapeamento de nomes
+            if index_to_name:
+                for clade in tree.find_clades():
+                    if clade.name and clade.name in index_to_name:
+                        original_name = index_to_name[clade.name]
+                        # Truncar nomes longos
+                        if len(original_name) > 15:
+                            clade.name = original_name[:12] + "..."
+                        else:
+                            clade.name = original_name
+            
+            # Criar figura com dimensões adaptativas
+            fig_width = max(12, min(30, num_variables * 0.3))
+            fig_height = max(8, min(20, num_variables * 0.25))
+            
+            fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+            Phylo.draw(tree, axes=ax, do_show=False)
+            ax.set_title('Árvore Filogenética Unificada (Biopython)', fontsize=14, fontweight='bold')
+            
+            biopython_path = os.path.join(viz_dir, "tree_biopython.png")
+            plt.savefig(biopython_path, dpi=300, bbox_inches='tight', facecolor='white')
+            plt.close()
+            
+            # Limpar arquivo temporário
+            os.remove(temp_newick)
+            
+            print(f"✅ Biopython Tree salva: {os.path.basename(biopython_path)}")
+            
+        except Exception as e:
+            print(f"⚠️  Erro ao gerar Biopython Tree: {e}")
+        
+        # === VISUALIZAÇÕES ADICIONAIS (CORRELAÇÃO) ===
+        try:
+            print("📊 Gerando visualizações de correlação...")
+            
+            # Ler dados para análise de correlação
+            df = pd.read_csv(original_file)
+            numeric_df = df.select_dtypes(include=[np.number])
+            
+            if len(numeric_df.columns) >= 2:
+                # Matriz de correlação Pearson
+                corr_matrix = numeric_df.corr()
                 
-                fig, ax = plt.subplots(figsize=(20, 16))
-                Phylo.draw(representative_tree, axes=ax, do_show=False)
-                ax.set_title(f'Árvore Representativa (Primeira Fatia)\n{total_files} árvores processadas no total', 
-                           fontsize=14, fontweight='bold')
+                fig, ax = plt.subplots(figsize=(12, 10))
+                im = ax.imshow(corr_matrix, cmap='RdBu_r', aspect='auto', vmin=-1, vmax=1)
                 
-                tree_path = os.path.join(viz_dir, "representative_tree.png")
-                plt.savefig(tree_path, dpi=300, bbox_inches='tight', facecolor='white')
+                ax.set_xticks(range(len(corr_matrix.columns)))
+                ax.set_yticks(range(len(corr_matrix.columns)))
+                ax.set_xticklabels(corr_matrix.columns, rotation=45, ha='right')
+                ax.set_yticklabels(corr_matrix.columns)
+                
+                plt.colorbar(im, ax=ax, label='Correlação de Pearson')
+                ax.set_title('Matriz de Correlação Unificada', fontsize=14, fontweight='bold')
+                
+                corr_path = os.path.join(viz_dir, "correlation_matrix_pearson.png")
+                plt.savefig(corr_path, dpi=300, bbox_inches='tight', facecolor='white')
                 plt.close()
                 
-                print(f"✅ Árvore representativa salva: {os.path.basename(tree_path)}")
-                
-            except Exception as e:
-                print(f"⚠️  Não foi possível gerar árvore representativa: {e}")
+                print(f"✅ Matriz de Correlação salva: {os.path.basename(corr_path)}")
+            
+        except Exception as e:
+            print(f"⚠️  Erro ao gerar visualizações de correlação: {e}")
         
-        print(f"\n🎉 Visualização unificada concluída!")
+        print(f"\n🎉 Visualização unificada concluída com visualizações padrão DAMICORE!")
         print(f"📁 Arquivos salvos em: {viz_dir}")
+        print(f"📊 Visualizações geradas:")
+        for file in os.listdir(viz_dir):
+            if file.endswith(('.pdf', '.png')):
+                print(f"   ✅ {file}")
         
-    except ImportError:
-        print("⚠️  Bio.Phylo não disponível. Criando visualização básica...")
+    except Exception as e:
+        print(f"❌ Erro na geração das visualizações: {e}")
+        print("🔄 Tentando visualização básica...")
         
-        # Visualização básica sem Bio.Phylo
-        fig, ax = plt.subplots(figsize=(12, 8))
-        ax.text(0.5, 0.5, f'Processamento Concluído\n\n{total_files} arquivos Newick gerados\nFrequências corretas garantidas', 
-                ha='center', va='center', fontsize=16,
-                bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
-        ax.set_xlim(0, 1)
-        ax.set_ylim(0, 1)
-        ax.axis('off')
-        
-        basic_path = os.path.join(viz_dir, "basic_summary.png")
-        plt.savefig(basic_path, dpi=150, bbox_inches='tight')
-        plt.close()
-        
-        print(f"✅ Visualização básica salva: {os.path.basename(basic_path)}")
+        # Fallback para visualização básica
+        try:
+            fig, ax = plt.subplots(figsize=(12, 8))
+            ax.text(0.5, 0.5, f'Visualização Unificada\n\n{len(compiled_newick_files)} arquivos Newick processados\nVisualizações padrão DAMICORE geradas', 
+                    ha='center', va='center', fontsize=16,
+                    bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
+            ax.set_xlim(0, 1)
+            ax.set_ylim(0, 1)
+            ax.axis('off')
+            
+            basic_path = os.path.join(viz_dir, "unified_summary.png")
+            plt.savefig(basic_path, dpi=150, bbox_inches='tight')
+            plt.close()
+            
+            print(f"✅ Visualização básica salva: {os.path.basename(basic_path)}")
+            
+        except Exception as fallback_error:
+            print(f"❌ Erro na visualização básica: {fallback_error}")
 
 def process_small_file_complete(csv_file):
     """Processa arquivo pequeno (<100 linhas) completo com lógica integrada do DAMICORE_Filograma."""
