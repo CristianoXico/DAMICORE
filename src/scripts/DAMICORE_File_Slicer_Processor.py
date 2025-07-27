@@ -2140,6 +2140,14 @@ def main():
     # Obter fatias pendentes para processamento
     pending_slices = progress_manager.get_pending_slices()
     
+    # 🔧 CORREÇÃO CRÍTICA: Filtrar apenas índices válidos para evitar IndexError
+    valid_pending_slices = [idx for idx in pending_slices if 0 <= idx < len(slice_files)]
+    
+    if len(valid_pending_slices) != len(pending_slices):
+        invalid_count = len(pending_slices) - len(valid_pending_slices)
+        print(f"⚠️  {invalid_count} índices inválidos removidos do checkpoint (fora do range 0-{len(slice_files)-1})")
+        pending_slices = valid_pending_slices
+    
     if not pending_slices:
         print("\n✅ Todas as fatias já foram processadas!")
         
@@ -2183,6 +2191,11 @@ def main():
         pipeline_start_time = time.time()
         
         for i, slice_idx in enumerate(pending_slices):
+            # 🔧 PROTEÇÃO ADICIONAL: Verificar range antes de acessar slice_files
+            if slice_idx >= len(slice_files) or slice_idx < 0:
+                print(f"⚠️  Índice inválido {slice_idx} ignorado (range válido: 0-{len(slice_files)-1})")
+                continue
+                
             slice_file = slice_files[slice_idx]
             slice_name = os.path.basename(slice_file)
             slice_start_time = time.time()
