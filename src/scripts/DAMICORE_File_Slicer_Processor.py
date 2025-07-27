@@ -1660,16 +1660,80 @@ def compile_all_newick_files(output_dir, progress_manager):
     
     return compiled_newick_files
 
+def calculate_memory_safe_sample_size(total_files, available_memory_gb=2):
+    """
+    Calcula um tamanho de amostra seguro baseado na memória disponível.
+    
+    Args:
+        total_files (int): Número total de arquivos newick
+        available_memory_gb (float): Memória disponível estimada em GB
+    
+    Returns:
+        int: Número seguro de arquivos para processar
+    """
+    # Estimativa: cada árvore newick consome ~1-5MB na memória
+    # Para ser conservador, assumimos 5MB por árvore
+    max_files_per_gb = 200  # ~200 árvores por GB
+    max_safe_files = int(available_memory_gb * max_files_per_gb)
+    
+    # Limites absolutos
+    min_sample = 10   # Mínimo para ter representatividade
+    max_sample = 50   # Máximo para evitar OOM mesmo em sistemas pequenos
+    
+    safe_sample = min(max_safe_files, total_files, max_sample)
+    safe_sample = max(safe_sample, min_sample)
+    
+    print(f"📊 Amostra calculada: {safe_sample} de {total_files} arquivos ({safe_sample/total_files*100:.1f}%)")
+    return safe_sample
+
+def select_representative_sample(newick_files, sample_size):
+    """
+    Seleciona uma amostra representativa dos arquivos newick.
+    
+    Args:
+        newick_files (list): Lista completa de arquivos newick
+        sample_size (int): Tamanho da amostra desejada
+    
+    Returns:
+        list: Amostra representativa dos arquivos
+    """
+    import random
+    
+    if len(newick_files) <= sample_size:
+        return newick_files
+    
+    # Estratégia: pegar arquivos distribuídos uniformemente
+    step = len(newick_files) // sample_size
+    representative_sample = []
+    
+    for i in range(0, len(newick_files), step):
+        if len(representative_sample) < sample_size:
+            representative_sample.append(newick_files[i])
+    
+    # Se ainda não temos o suficiente, pegar aleatoriamente do resto
+    remaining_needed = sample_size - len(representative_sample)
+    if remaining_needed > 0:
+        remaining_files = [f for f in newick_files if f not in representative_sample]
+        if remaining_files:
+            additional = random.sample(remaining_files, min(remaining_needed, len(remaining_files)))
+            representative_sample.extend(additional)
+    
+    print(f"🎯 Amostra selecionada: {len(representative_sample)} arquivos")
+    return representative_sample
+
 def generate_unified_visualization(compiled_newick_files, output_dir, original_file):
     """
-    Gera visualização unificada usando as mesmas visualizações padrão do DAMICORE.
+    Gera visualização unificada com uso eficiente de memória para evitar OOM.
     
     Args:
         compiled_newick_files (list): Lista de arquivos newick compilados
         output_dir (str): Diretório de saída
         original_file (str): Arquivo original processado
     """
-    print(f"\n🎨 GERANDO VISUALIZAÇÃO UNIFICADA (PADRÃO DAMICORE)")
+    import gc
+    
+    print(f"\n🚀 GERANDO VISUALIZAÇÃO UNIFICADA (MEMORY-EFFICIENT)")
+    print("="*60)
     
     if not compiled_newick_files:
         print("❌ Nenhum arquivo newick disponível para visualização")
@@ -1678,47 +1742,66 @@ def generate_unified_visualization(compiled_newick_files, output_dir, original_f
     viz_dir = os.path.join(output_dir, "unified_visualization")
     os.makedirs(viz_dir, exist_ok=True)
     
+    total_files = len(compiled_newick_files)
+    print(f"📊 Total de arquivos newick: {total_files}")
+    
     # Criar mapeamento de nomes das variáveis
     try:
         df = pd.read_csv(original_file)
         index_to_name = {f"col_{i}.txt": col for i, col in enumerate(df.columns)}
         num_variables = len(df.columns)
-        print(f"📊 Criando visualização unificada para {len(compiled_newick_files)} arquivos newick com {num_variables} variáveis...")
+        print(f"📋 Variáveis detectadas: {num_variables}")
     except Exception as e:
         print(f"⚠️  Erro ao ler arquivo original: {e}")
         index_to_name = {}
         num_variables = 50  # fallback
     
-    # Chamar a função de visualização padrão do DAMICORE
+    # Calcular amostra segura para evitar OOM
+    safe_sample_size = calculate_memory_safe_sample_size(total_files)
+    representative_files = select_representative_sample(compiled_newick_files, safe_sample_size)
+    
+    # Forçar limpeza de memória antes de começar
+    gc.collect()
+    
+    success_count = 0
+    
+    # === CLOUD TREE (MEMORY-EFFICIENT) ===
     try:
-        # Usar a mesma função que gera visualizações para cada fatia
-        print("🎯 Gerando visualizações padrão DAMICORE...")
+        import toytree
+        print("🌳 Gerando Cloud Tree (memory-efficient)...")
         
-        # Criar lista de strings newick para as visualizações
-        newick_strings = []
-        for newick_file in compiled_newick_files[:100]:  # Limitar para evitar sobrecarga
-            try:
-                with open(newick_file, 'r') as f:
-                    content = f.read().strip()
-                    if content:
-                        newick_strings.append(content)
-            except Exception as e:
-                print(f"⚠️  Erro ao ler {newick_file}: {e}")
-                continue
+        # Processar em lotes pequenos para evitar OOM
+        batch_size = 10
+        all_trees = []
         
-        if not newick_strings:
-            print("❌ Nenhum arquivo newick válido encontrado")
-            return
-        
-        print(f"📊 Processando {len(newick_strings)} árvores para visualização unificada...")
-        
-        # === CLOUD TREE ===
-        try:
-            import toytree
-            print("🌳 Gerando Cloud Tree...")
+        for i in range(0, len(representative_files), batch_size):
+            batch = representative_files[i:i+batch_size]
+            batch_strings = []
             
-            # Criar multitree
-            mtree = toytree.mtree(newick_strings)
+            for newick_file in batch:
+                try:
+                    with open(newick_file, 'r') as f:
+                        content = f.read().strip()
+                        if content:
+                            batch_strings.append(content)
+                except Exception as e:
+                    print(f"⚠️  Erro ao ler {newick_file}: {e}")
+                    continue
+            
+            if batch_strings:
+                # Processar lote
+                batch_mtree = toytree.mtree(batch_strings)
+                all_trees.extend(batch_mtree.treelist)
+                
+                # Limpeza de memória
+                del batch_mtree
+                del batch_strings
+                gc.collect()
+        
+        if all_trees:
+            # Criar multitree final com amostra limitada
+            limited_trees = all_trees[:30]  # Máximo 30 árvores para evitar OOM
+            mtree = toytree.mtree([tree.write() for tree in limited_trees])
             
             # Aplicar mapeamento de nomes
             if index_to_name:
@@ -1727,31 +1810,53 @@ def generate_unified_visualization(compiled_newick_files, output_dir, original_f
                         if node.is_leaf() and node.name in index_to_name:
                             node.name = index_to_name[node.name]
             
-            # Dimensões adaptativas
-            width = max(800, min(2000, num_variables * 15))
-            height = max(600, min(1500, num_variables * 12))
+            # Dimensões adaptativas (conservadoras)
+            width = max(600, min(1200, num_variables * 10))
+            height = max(400, min(800, num_variables * 8))
             
             canvas, axes, mark = mtree.draw(
                 width=width,
                 height=height,
                 node_labels=False,
                 tip_labels=True,
-                tip_labels_style={"font-size": max(8, min(12, 200 // num_variables))}
+                tip_labels_style={"font-size": max(6, min(10, 150 // num_variables))}
             )
             
             cloud_path = os.path.join(viz_dir, "cloud_tree.pdf")
             import toyplot.pdf
             toyplot.pdf.render(canvas, cloud_path)
             print(f"✅ Cloud Tree salva: {os.path.basename(cloud_path)}")
+            success_count += 1
             
-        except Exception as e:
-            print(f"⚠️  Erro ao gerar Cloud Tree: {e}")
+            # Limpeza
+            del mtree
+            del all_trees
+            gc.collect()
         
-        # === CONSENSUS TREE ===
-        try:
-            print("🌲 Gerando Consensus Tree...")
-            
-            # Criar árvore consenso
+    except Exception as e:
+        print(f"⚠️  Erro ao gerar Cloud Tree: {e}")
+    
+    # === CONSENSUS TREE (MEMORY-EFFICIENT) ===
+    try:
+        import toytree
+        print("🌲 Gerando Consensus Tree (memory-efficient)...")
+        
+        # Usar apenas uma amostra menor para consensus
+        sample_for_consensus = representative_files[:20]  # Máximo 20 árvores
+        
+        newick_strings = []
+        for newick_file in sample_for_consensus:
+            try:
+                with open(newick_file, 'r') as f:
+                    content = f.read().strip()
+                    if content:
+                        newick_strings.append(content)
+            except Exception as e:
+                continue
+        
+        if newick_strings:
+            # Criar multitree e consensus
+            mtree = toytree.mtree(newick_strings)
             consensus_tree = mtree.get_consensus_tree()
             
             # Aplicar mapeamento de nomes
@@ -1760,37 +1865,50 @@ def generate_unified_visualization(compiled_newick_files, output_dir, original_f
                     if node.is_leaf() and node.name in index_to_name:
                         node.name = index_to_name[node.name]
             
+            # Dimensões adaptativas
+            width = max(600, min(1200, num_variables * 10))
+            height = max(400, min(800, num_variables * 8))
+            
             canvas, axes, mark = consensus_tree.draw(
                 width=width,
                 height=height,
                 node_labels=True,
-                node_labels_style={"font-size": 10},
+                node_labels_style={"font-size": 8},
                 tip_labels=True,
-                tip_labels_style={"font-size": max(8, min(12, 200 // num_variables))}
+                tip_labels_style={"font-size": max(6, min(10, 150 // num_variables))}
             )
             
             consensus_path = os.path.join(viz_dir, "consensus_tree.pdf")
+            import toyplot.pdf
             toyplot.pdf.render(canvas, consensus_path)
             print(f"✅ Consensus Tree salva: {os.path.basename(consensus_path)}")
+            success_count += 1
             
-        except Exception as e:
-            print(f"⚠️  Erro ao gerar Consensus Tree: {e}")
+            # Limpeza
+            del mtree
+            del consensus_tree
+            gc.collect()
         
-        # === BIOPYTHON TREE ===
-        try:
-            from Bio import Phylo
-            import matplotlib.pyplot as plt
-            
-            print("🧬 Gerando Biopython Tree...")
-            
-            # Criar arquivo temporário com primeira árvore
-            temp_newick = os.path.join(viz_dir, "temp_unified.newick")
-            with open(temp_newick, 'w') as f:
-                f.write(newick_strings[0])
-            
-            # Ler e processar árvore
-            tree = Phylo.read(temp_newick, "newick")
-            
+    except Exception as e:
+        print(f"⚠️  Erro ao gerar Consensus Tree: {e}")
+    
+    # === BIOPYTHON TREE (MEMORY-EFFICIENT) ===
+    try:
+        from Bio import Phylo
+        import matplotlib.pyplot as plt
+        
+        print("🧬 Gerando Biopython Tree (memory-efficient)...")
+        
+        # Usar apenas a primeira árvore válida
+        tree = None
+        for newick_file in representative_files[:5]:  # Tentar até 5 arquivos
+            try:
+                tree = Phylo.read(newick_file, "newick")
+                break
+            except Exception:
+                continue
+        
+        if tree:
             # Aplicar mapeamento de nomes
             if index_to_name:
                 for clade in tree.find_clades():
@@ -1802,87 +1920,92 @@ def generate_unified_visualization(compiled_newick_files, output_dir, original_f
                         else:
                             clade.name = original_name
             
-            # Criar figura com dimensões adaptativas
-            fig_width = max(12, min(30, num_variables * 0.3))
-            fig_height = max(8, min(20, num_variables * 0.25))
+            # Dimensões adaptativas
+            fig_width = max(8, min(20, num_variables * 0.3))
+            fig_height = max(6, min(15, num_variables * 0.25))
             
-            fig, ax = plt.subplots(figsize=(fig_width, fig_height))
-            Phylo.draw(tree, axes=ax, do_show=False)
-            ax.set_title('Árvore Filogenética Unificada (Biopython)', fontsize=14, fontweight='bold')
+            plt.figure(figsize=(fig_width, fig_height))
+            Phylo.draw(tree, do_show=False, 
+                      axes=plt.gca(),
+                      label_func=lambda x: x.name if x.name else "")
+            
+            plt.title("Phylogenetic Tree (Unified)", fontsize=14, fontweight='bold')
+            plt.tight_layout()
             
             biopython_path = os.path.join(viz_dir, "tree_biopython.png")
-            plt.savefig(biopython_path, dpi=300, bbox_inches='tight', facecolor='white')
+            plt.savefig(biopython_path, dpi=300, bbox_inches='tight')
             plt.close()
-            
-            # Limpar arquivo temporário
-            os.remove(temp_newick)
             
             print(f"✅ Biopython Tree salva: {os.path.basename(biopython_path)}")
+            success_count += 1
             
-        except Exception as e:
-            print(f"⚠️  Erro ao gerar Biopython Tree: {e}")
-        
-        # === VISUALIZAÇÕES ADICIONAIS (CORRELAÇÃO) ===
-        try:
-            print("📊 Gerando visualizações de correlação...")
-            
-            # Ler dados para análise de correlação
-            df = pd.read_csv(original_file)
-            numeric_df = df.select_dtypes(include=[np.number])
-            
-            if len(numeric_df.columns) >= 2:
-                # Matriz de correlação Pearson
-                corr_matrix = numeric_df.corr()
-                
-                fig, ax = plt.subplots(figsize=(12, 10))
-                im = ax.imshow(corr_matrix, cmap='RdBu_r', aspect='auto', vmin=-1, vmax=1)
-                
-                ax.set_xticks(range(len(corr_matrix.columns)))
-                ax.set_yticks(range(len(corr_matrix.columns)))
-                ax.set_xticklabels(corr_matrix.columns, rotation=45, ha='right')
-                ax.set_yticklabels(corr_matrix.columns)
-                
-                plt.colorbar(im, ax=ax, label='Correlação de Pearson')
-                ax.set_title('Matriz de Correlação Unificada', fontsize=14, fontweight='bold')
-                
-                corr_path = os.path.join(viz_dir, "correlation_matrix_pearson.png")
-                plt.savefig(corr_path, dpi=300, bbox_inches='tight', facecolor='white')
-                plt.close()
-                
-                print(f"✅ Matriz de Correlação salva: {os.path.basename(corr_path)}")
-            
-        except Exception as e:
-            print(f"⚠️  Erro ao gerar visualizações de correlação: {e}")
-        
-        print(f"\n🎉 Visualização unificada concluída com visualizações padrão DAMICORE!")
-        print(f"📁 Arquivos salvos em: {viz_dir}")
-        print(f"📊 Visualizações geradas:")
-        for file in os.listdir(viz_dir):
-            if file.endswith(('.pdf', '.png')):
-                print(f"   ✅ {file}")
+            # Limpeza
+            del tree
+            gc.collect()
         
     except Exception as e:
-        print(f"❌ Erro na geração das visualizações: {e}")
-        print("🔄 Tentando visualização básica...")
+        print(f"⚠️  Erro ao gerar Biopython Tree: {e}")
         
-        # Fallback para visualização básica
-        try:
-            fig, ax = plt.subplots(figsize=(12, 8))
-            ax.text(0.5, 0.5, f'Visualização Unificada\n\n{len(compiled_newick_files)} arquivos Newick processados\nVisualizações padrão DAMICORE geradas', 
-                    ha='center', va='center', fontsize=16,
-                    bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
-            ax.set_xlim(0, 1)
-            ax.set_ylim(0, 1)
-            ax.axis('off')
+    # === VISUALIZAÇÕES ADICIONAIS (CORRELAÇÃO) ===
+    try:
+        print("📊 Gerando visualizações de correlação...")
+        
+        # Ler dados para análise de correlação (apenas amostra para economizar memória)
+        df_sample = pd.read_csv(original_file, nrows=1000)  # Apenas 1000 linhas para correlação
+        numeric_df = df_sample.select_dtypes(include=[np.number])
+        
+        if len(numeric_df.columns) >= 2:
+            # Matriz de correlação Pearson
+            corr_matrix = numeric_df.corr()
             
-            basic_path = os.path.join(viz_dir, "unified_summary.png")
-            plt.savefig(basic_path, dpi=150, bbox_inches='tight')
+            # Dimensões adaptativas para correlação
+            fig_size = max(8, min(16, len(corr_matrix.columns) * 0.5))
+            
+            fig, ax = plt.subplots(figsize=(fig_size, fig_size))
+            im = ax.imshow(corr_matrix, cmap='RdBu_r', aspect='auto', vmin=-1, vmax=1)
+            
+            ax.set_xticks(range(len(corr_matrix.columns)))
+            ax.set_yticks(range(len(corr_matrix.columns)))
+            ax.set_xticklabels(corr_matrix.columns, rotation=45, ha='right', fontsize=8)
+            ax.set_yticklabels(corr_matrix.columns, fontsize=8)
+            
+            plt.colorbar(im, ax=ax, label='Correlação de Pearson')
+            ax.set_title('Matriz de Correlação Unificada', fontsize=14, fontweight='bold')
+            
+            corr_path = os.path.join(viz_dir, "correlation_matrix_pearson.png")
+            plt.savefig(corr_path, dpi=300, bbox_inches='tight')
             plt.close()
             
-            print(f"✅ Visualização básica salva: {os.path.basename(basic_path)}")
+            print(f"✅ Matriz de Correlação salva: {os.path.basename(corr_path)}")
+            success_count += 1
             
-        except Exception as fallback_error:
-            print(f"❌ Erro na visualização básica: {fallback_error}")
+            # Limpeza
+            del df_sample
+            del numeric_df
+            del corr_matrix
+            gc.collect()
+        
+    except Exception as e:
+        print(f"⚠️  Erro ao gerar visualizações de correlação: {e}")
+    
+    # === RESUMO FINAL ===
+    print(f"\n🎯 VISUALIZAÇÃO UNIFICADA CONCLUÍDA (MEMORY-EFFICIENT)")
+    print(f"✅ {success_count}/4 visualizações geradas com sucesso")
+    print(f"📁 Diretório: {viz_dir}")
+    print(f"💾 Uso de memória otimizado: {len(representative_files)}/{total_files} arquivos processados")
+    
+    # Listar arquivos gerados
+    if os.path.exists(viz_dir):
+        generated_files = [f for f in os.listdir(viz_dir) if f.endswith(('.pdf', '.png'))]
+        if generated_files:
+            print(f"📊 Visualizações geradas:")
+            for file in generated_files:
+                print(f"   ✅ {file}")
+        else:
+            print("⚠️  Nenhuma visualização foi gerada com sucesso")
+    
+    # Limpeza final
+    gc.collect()
 
 def process_small_file_complete(csv_file):
     """Processa arquivo pequeno (<100 linhas) completo com lógica integrada do DAMICORE_Filograma."""
