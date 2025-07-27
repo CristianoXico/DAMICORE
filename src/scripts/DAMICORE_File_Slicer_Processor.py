@@ -1560,8 +1560,9 @@ def compile_all_newick_files(output_dir, progress_manager):
     # Coletar arquivos newick de todas as fatias processadas
     slice_results = progress_manager.progress_data.get("slice_results", {})
     
-    for slice_idx_str, newick_files in slice_results.items():
+    for slice_idx_str, slice_data in slice_results.items():
         slice_idx = int(slice_idx_str)
+        newick_files = slice_data.get("newick_files", [])
         print(f"📁 Fatia {slice_idx + 1}: {len(newick_files)} arquivos newick")
         all_newick_files.extend(newick_files)
     
@@ -1581,12 +1582,29 @@ def compile_all_newick_files(output_dir, progress_manager):
         if os.path.exists(newick_file):
             # Criar nome único para evitar conflitos
             original_name = os.path.basename(newick_file)
-            slice_info = os.path.basename(os.path.dirname(newick_file))
+            
+            # Extrair informação da fatia do caminho
+            path_parts = newick_file.split(os.sep)
+            slice_info = "unknown"
+            for part in path_parts:
+                if part.startswith("slice_"):
+                    slice_info = part
+                    break
+            
+            # Criar nome único: slice_XXXX_original_name
             compiled_name = f"{slice_info}_{original_name}"
             compiled_path = os.path.join(compiled_dir, compiled_name)
             
-            shutil.copy2(newick_file, compiled_path)
-            compiled_newick_files.append(compiled_path)
+            # Verificar se já existe (para debug)
+            if os.path.exists(compiled_path):
+                print(f"⚠️  Arquivo já existe, sobrescrevendo: {compiled_name}")
+            
+            try:
+                shutil.copy2(newick_file, compiled_path)
+                compiled_newick_files.append(compiled_path)
+            except Exception as e:
+                print(f"❌ Erro ao copiar {newick_file}: {e}")
+                continue
             
             if i < 5:  # Mostrar apenas os primeiros 5
                 print(f"  ✅ {compiled_name}")
