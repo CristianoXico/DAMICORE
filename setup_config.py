@@ -7,9 +7,10 @@ from pathlib import Path
 def find_damicore_cli():
     """Localiza o caminho do damicore.py na estrutura do projeto."""
     possible_paths = [
+        "src/damicore.py",
         "damicore_py3/damicore.py",
         "../damicore_py3/damicore.py",
-        "DAMICORE/damicore_py3/damicore.py"
+        "DAMICORE/src/damicore.py"
     ]
     
     for path in possible_paths:

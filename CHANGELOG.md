@@ -1,5 +1,36 @@
 # CHANGELOG - DAMICORE Project
 
+## [2025-08-25] - Melhorias de Documentação e Docker
+
+### 📚 Melhorias na Documentação
+
+- Adicionado README.md abrangente em português e inglês
+- Criado CONTRIBUTING.md com diretrizes detalhadas para contribuições
+- Adicionada documentação sobre visualizações avançadas
+- Incluída seção de solução de problemas comuns
+- Documentado suporte a drive externo
+
+### 🐳 Suporte a Docker Aprimorado
+
+- Dockerfile otimizado com multi-stage builds
+- Scripts de build e execução simplificados
+- Documentação atualizada para uso com Docker
+- Configuração de ambiente consistente
+
+### 🧪 Testes e Qualidade de Código
+
+- Adicionado pre-commit hooks para formatação automática
+- Configuração de linters (black, flake8, isort, mypy)
+- Dependências de desenvolvimento organizadas em requirements-dev.txt
+- Testes automatizados para validação de visualizações
+
+### 🚀 Otimizações de Desempenho
+
+- Processamento em lotes para arquivos grandes
+- Gerenciamento de memória aprimorado
+- Suporte a execução em múltiplos núcleos
+- Checkpoints automáticos para recuperação de falhas
+
 ## [2025-01-XX] - Correções Críticas do Sistema de Checkpoint
 
 ### 🛠️ Correções Implementadas

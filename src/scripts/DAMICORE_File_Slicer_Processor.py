@@ -1,5 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
+import os
+import sys
+import gc
+import time
+import random
+import shutil
+import logging
+import tempfile
+import subprocess
+from pathlib import Path
+from typing import List, Dict, Tuple, Optional, Any, Union
+
 """
 DAMICORE File Slicer & Processor - Estratégia Drástica para Arquivos Grandes
 
@@ -36,6 +49,11 @@ from datetime import datetime
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
+# Adiciona o diretório src ao caminho do Python para encontrar o módulo progress_bar
+SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if SRC_DIR not in sys.path:
+    sys.path.insert(0, SRC_DIR)
 
 # ============================================================================
 # CONFIGURAÇÕES GLOBAIS
@@ -1253,11 +1271,49 @@ def generate_slice_visualization_fallback(newick_files, output_dir, csv_file):
         print(f"❌ Erro no fallback: {e}")
 
 
-def generate_slice_visualization(newick_files, slice_output_dir, slice_idx, slice_file):
+def save_consensus_tree(newick_files, output_dir, slice_idx):
     """
-    Gera visualizações padrão DAMICORE para uma fatia específica com conteúdo real:
+    Gera e salva uma árvore de consenso a partir de múltiplos arquivos newick.
+    
+    Args:
+        newick_files (list): Lista de caminhos para arquivos newick
+        output_dir (str): Diretório de saída
+        slice_idx (int): Índice da fatia (opcional)
+        
+    Returns:
+        str: Caminho para o arquivo da árvore de consenso gerada
+    """
+    print("\n🌳 Gerando árvore de consenso...")
+    
+    # Contar topologias para encontrar a mais frequenso se não existir
+    try:
+        import toytree
+        
+        # Criar diretório para árvores de consenso se não existir
+        consensus_dir = os.path.join(output_dir, "compiled_newick")
+        os.makedirs(consensus_dir, exist_ok=True)
+        
+        # Gerar árvore de consenso
+        mtree = toytree.mtree(trees)
+        consensus = mtree.get_consensus()
+        
+        # Salvar árvore de consenso
+        consensus_file = os.path.join(consensus_dir, f"consensus_slice_{slice_idx:04d}.newick")
+        consensus.write(consensus_file, tree_format=0)
+        
+        print(f"✅ Árvore de consenso salva: {consensus_file}")
+        return consensus_file
+        
+    except Exception as e:
+        print(f"⚠️  Erro ao salvar árvore de consenso: {e}")
+        return None
+
+def generate_slice_visualization(newick_files, slice_output_dir, slice_idx, slice_file):
+    """Gera visualizações padrão DAMICORE para uma fatia específica com conteúdo real.
+    
+    Gera os seguintes arquivos:
     - cloud_tree.pdf
-    - consensus_tree.pdf  
+    - consensus_tree.pdf
     - tree_biopython.png
     
     Args:
@@ -1266,6 +1322,8 @@ def generate_slice_visualization(newick_files, slice_output_dir, slice_idx, slic
         slice_idx (int): Índice da fatia
         slice_file (str): Caminho do arquivo CSV da fatia
     """
+    # Salvar árvore de consenso para visualização unificada
+    save_consensus_tree(newick_files, os.path.dirname(slice_output_dir), slice_idx)
     print(f"\n🎨 GERANDO VISUALIZAÇÕES ROBUSTAS - Fatia {slice_idx + 1}")
     
     if not newick_files:
@@ -1721,9 +1779,93 @@ def select_representative_sample(newick_files, sample_size):
     print(f"🎯 Amostra selecionada: {len(representative_sample)} arquivos")
     return representative_sample
 
-def generate_unified_visualization(compiled_newick_files, output_dir, original_file):
+def get_tree_topology_frequencies(newick_files):
     """
-    Gera visualização unificada com uso eficiente de memória para evitar OOM.
+    Analisa a frequência de topologias de árvores únicas.
+    
+    Args:
+        newick_files (list): Lista de caminhos para arquivos newick
+        
+    Returns:
+        tuple: (topology_counts, topology_to_files) onde:
+            - topology_counts: dicionário {topologia: contagem}
+            - topology_to_files: dicionário {topologia: [lista_de_arquivos]}
+    """
+    from collections import defaultdict
+    import toytree
+    from tqdm import tqdm
+    
+    topology_counts = defaultdict(int)
+    topology_to_files = defaultdict(list)
+    
+    print("\n🔍 Analisando frequência das topologias de árvores...")
+    for file in tqdm(newick_files, desc="Processando árvores"):
+        try:
+            with open(file, 'r') as f:
+                newick_str = f.read().strip()
+                if not newick_str:
+                    continue
+                
+                # Usar apenas a topologia (ignorar comprimentos dos ramos)
+                tree = toytree.tree(newick_str)
+                topology = tree.tree.write(tree_format=9)  # Formato 9 é apenas topologia
+                
+                topology_counts[topology] += 1
+                topology_to_files[topology].append(file)
+                
+        except Exception as e:
+            print(f"⚠️  Erro ao processar {file}: {e}")
+            continue
+    
+    return dict(topology_counts), dict(topology_to_files)
+
+def select_top_frequent_trees(topology_counts, topology_to_files, top_percent=20):
+    """
+    Seleciona as árvores mais frequentes.
+    
+    Args:
+        topology_counts: Dicionário {topologia: contagem}
+        topology_to_files: Dicionário {topologia: [lista_de_arquivos]}
+        top_percent: Percentual das topologias mais frequentes a selecionar
+        
+    Returns:
+        list: Lista de caminhos para os arquivos das árvores mais frequentes
+    """
+    if not topology_counts:
+        return []
+    
+    # Ordenar por frequência (mais frequentes primeiro)
+    sorted_topologies = sorted(topology_counts.items(), 
+                             key=lambda x: x[1], 
+                             reverse=True)
+    
+    # Calcular quantas topologias pegar (20%)
+    total_topologies = len(topology_counts)
+    top_count = max(1, int(total_topologies * (top_percent / 100)))
+    
+    print(f"\n🌳 Topologias únicas: {total_topologies}")
+    print(f"📊 Selecionando top {top_percent}% ({top_count} topologias mais frequentes)")
+    
+    # Coletar arquivos das topologias mais frequentes
+    selected_files = []
+    for topology, count in sorted_topologies[:top_count]:
+        selected_files.extend(topology_to_files[topology])
+        print(f"  - Frequência {count}: {len(topology_to_files[topology])} árvores")
+    
+    return selected_files
+
+def generate_unified_visualization(compiled_newick_files, output_dir, original_file, max_workers=None):
+    """
+    Gera visualização unificada com processamento otimizado para grandes conjuntos de dados.
+    
+    Args:
+        compiled_newick_files (list): Lista de arquivos newick compilados
+        output_dir (str): Diretório de saída
+        original_file (str): Arquivo original processado
+        max_workers (int): Número máximo de processos paralelos
+    """
+    """
+    Gera visualização unificada com processamento otimizado para grandes conjuntos de dados.
     
     Args:
         compiled_newick_files (list): Lista de arquivos newick compilados
@@ -1731,130 +1873,393 @@ def generate_unified_visualization(compiled_newick_files, output_dir, original_f
         original_file (str): Arquivo original processado
     """
     import gc
+    import os
+    import psutil
+    import logging
+    import tempfile
+    from concurrent.futures import ProcessPoolExecutor, as_completed
+    from tqdm import tqdm
     
-    print(f"\n🚀 GERANDO VISUALIZAÇÃO UNIFICADA (MEMORY-EFFICIENT)")
+    # Configuração de memória
+    total_memory = psutil.virtual_memory().total / (1024 ** 2)  # MB
+    available_memory = psutil.virtual_memory().available / (1024 ** 2)  # MB
+    
+    # Usar 60% da memória disponível ou 2GB, o que for menor
+    MEMORY_LIMIT_MB = min(available_memory * 0.6, 2048)
+    
+    # Configuração de paralelismo
+    if max_workers is None:
+        # Limitar o número de workers com base na memória disponível
+        max_workers = max(1, min(os.cpu_count() or 4, int(MEMORY_LIMIT_MB / 300)))
+    
+    # Tamanho dos lotes baseado na memória disponível
+    MIN_BATCH_SIZE = 1
+    MAX_BATCH_SIZE = max(5, int((len(compiled_newick_files) ** 0.5) / 2))
+    
+    # Configuração básica
+    print(f"\n🚀 GERANDO VISUALIZAÇÃO UNIFICADA (MEMORY-OPTIMIZED)")
     print("="*60)
+    print(f"🔧 Limite de memória: {MEMORY_LIMIT_MB:.1f}MB")
     
-    if not compiled_newick_files:
-        print("❌ Nenhum arquivo newick disponível para visualização")
-        return
+    # Configurar logging
+    log_file = os.path.join(output_dir, "unified_visualization.log")
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(log_file),
+            logging.StreamHandler()
+        ]
+    )
+    logger = logging.getLogger(__name__)
     
+    def get_memory_usage():
+        """Retorna o uso de memória atual em MB"""
+        return psutil.Process().memory_info().rss / (1024 ** 2)  # MB
+        
+    def get_batch_size(available_memory, avg_tree_size_mb=5):
+        """
+        Calcula o tamanho do lote com base na memória disponível.
+        
+        Args:
+            available_memory: Memória disponível em MB
+            avg_tree_size_mb: Tamanho médio estimado de uma árvore em MB
+        """
+        if avg_tree_size_mb == 0:
+            return MIN_BATCH_SIZE
+            
+        # Calcular batch size com margem de segurança
+        safe_batch = int((available_memory * 0.8) / (avg_tree_size_mb * 3))
+        
+        # Limitar o tamanho máximo do lote
+        batch_size = max(MIN_BATCH_SIZE, min(MAX_BATCH_SIZE, safe_batch))
+        
+        # Ajuste adicional baseado no número de workers
+        if max_workers > 1:
+            batch_size = max(batch_size, max_workers * 2)
+            
+        return batch_size
+    
+    # Criar diretórios necessários
     viz_dir = os.path.join(output_dir, "unified_visualization")
-    os.makedirs(viz_dir, exist_ok=True)
+    consensus_dir = os.path.join(output_dir, "compiled_newick")
+    temp_dir = tempfile.mkdtemp(prefix="damicore_")
     
-    total_files = len(compiled_newick_files)
-    print(f"📊 Total de arquivos newick: {total_files}")
+    for directory in [viz_dir, consensus_dir]:
+        os.makedirs(directory, exist_ok=True)
+        
+    def cleanup():
+        """Limpa recursos temporários"""
+        try:
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+            gc.collect()
+        except Exception as e:
+            logger.warning(f"Erro na limpeza: {e}")
     
-    # Criar mapeamento de nomes das variáveis
+    def process_tree_file(tree_file):
+        """Processa um único arquivo de árvore"""
+        try:
+            with open(tree_file, 'r') as f:
+                content = f.read().strip()
+                if content:
+                    return content, os.path.getsize(tree_file) / (1024 ** 2)  # Tamanho em MB
+        except Exception as e:
+            logger.warning(f"Erro ao ler {tree_file}: {e}")
+        return None, 0
+    
+    def process_trees_in_batches(tree_files, max_workers):
+        """
+        Processa árvores em paralelo com gerenciamento de memória aprimorado.
+        
+        Args:
+            tree_files: Lista de arquivos de árvores a serem processados
+            max_workers: Número máximo de workers em paralelo
+            
+        Returns:
+            tuple: (topology_counts, avg_tree_size_mb)
+        """
+        from collections import defaultdict
+        import queue
+        
+        topology_counts = defaultdict(int)
+        total_size_mb = 0
+        processed_files = 0
+        
+        # Fila para controlar o processamento em lotes
+        file_queue = queue.Queue()
+        for f in tree_files:
+            file_queue.put(f)
+            
+        def process_batch(batch_files):
+            """Processa um lote de arquivos e retorna os resultados"""
+            batch_results = []
+            for f in batch_files:
+                try:
+                    with open(f, 'r') as file_obj:
+                        content = file_obj.read().strip()
+                        if content:
+                            size_mb = os.path.getsize(f) / (1024 ** 2)
+                            batch_results.append((content, size_mb))
+                except Exception as e:
+                    logger.warning(f"Erro ao processar {f}: {e}")
+                    batch_results.append((None, 0))
+            return batch_results
+            
+        with tqdm(total=len(tree_files), desc="Analisando topologias") as pbar:
+            while not file_queue.empty():
+                # Calcular tamanho do lote dinâmico
+                available_memory = max(100, MEMORY_LIMIT_MB - get_memory_usage())
+                batch_size = get_batch_size(available_memory)
+                
+                # Coletar lote de arquivos
+                batch_files = []
+                while len(batch_files) < batch_size and not file_queue.empty():
+                    batch_files.append(file_queue.get())
+                
+                if not batch_files:
+                    break
+                    
+                # Processar lote atual
+                batch_results = process_batch(batch_files)
+                
+                # Atualizar contagens
+                for content, size_mb in batch_results:
+                    if content:
+                        topology_counts[content] += 1
+                        total_size_mb += size_mb
+                    processed_files += 1
+                    pbar.update(1)
+                
+                # Limpeza de memória
+                del batch_results
+                gc.collect()
+                
+                # Ajuste dinâmico de workers
+                if processed_files % 10 == 0:
+                    current_memory = get_memory_usage()
+                    memory_per_worker = current_memory / max(1, max_workers)
+                    
+                    # Reduzir workers se o uso de memória estiver alto
+                    if current_memory > MEMORY_LIMIT_MB * 0.8 and max_workers > 1:
+                        max_workers = max(1, max_workers - 1)
+                        logger.info(f"Reduzindo para {max_workers} workers (uso de memória: {current_memory:.1f}MB)")
+                    # Aumentar workers se houver memória disponível
+                    elif current_memory < MEMORY_LIMIT_MB * 0.5 and memory_per_worker < 300:
+                        max_workers = min(os.cpu_count() or 4, max_workers + 1)
+                        logger.info(f"Aumentando para {max_workers} workers (memória/worker: {memory_per_worker:.1f}MB)")
+        
+        # Calcular tamanho médio das árvores processadas
+        avg_tree_size = total_size_mb / max(1, processed_files) if processed_files > 0 else 0
+        return dict(topology_counts), avg_tree_size
+    
+    def load_consensus_trees():
+        """Carrega árvores de consenso se existirem, senão usa as compiladas"""
+        if not os.path.exists(consensus_dir):
+            return compiled_newick_files
+            
+        consensus_files = []
+        for f in os.listdir(consensus_dir):
+            if f.endswith(".newick"):
+                consensus_files.append(os.path.join(consensus_dir, f))
+                
+        return consensus_files if consensus_files else compiled_newick_files
+    
     try:
-        df = pd.read_csv(original_file)
-        index_to_name = {f"col_{i}.txt": col for i, col in enumerate(df.columns)}
-        num_variables = len(df.columns)
-        print(f"📋 Variáveis detectadas: {num_variables}")
+        # Carregar árvores de entrada
+        input_trees = load_consensus_trees()
+        if not input_trees:
+            logger.error("❌ Nenhuma árvore disponível para visualização")
+            return
+        
+        total_files = len(input_trees)
+        logger.info(f"📊 Total de árvores para processamento: {total_files}")
+        
+        # 1. Análise de frequência das topologias
+        logger.info("🔍 Analisando topologias das árvores...")
+        topology_counts, avg_tree_size = process_trees_in_batches(input_trees, max_workers=max_workers)
+        
+        if not topology_counts:
+            logger.warning("⚠️ Nenhuma topologia válida encontrada, usando amostragem aleatória")
+            raise ValueError("Nenhuma topologia válida")
+        
+        # 2. Selecionar topologias mais frequentes
+        top_percent = 0.2  # Top 20% mais frequentes
+        sorted_topologies = sorted(topology_counts.items(), key=lambda x: -x[1])
+        top_hashes = [t[0] for t in sorted_topologies[:max(1, int(len(sorted_topologies) * top_percent))]]
+        
+        # 3. Selecionar árvores representativas
+        max_sample_size = min(30, len(compiled_newick_files))  # Máximo de 30 árvores
+        sample_size = min(max_sample_size, int(safe_memory_limit / 100))  # ~100MB por árvore
+        
+        # Coletar árvores representativas mantendo proporcionalidade
+        representative_trees = []
+        for tree_hash in top_hashes:
+            if len(representative_trees) >= sample_size:
+                break
+            if tree_hash in topology_to_files and topology_to_files[tree_hash]:
+                # Pega o primeiro arquivo desta topologia
+                representative_trees.append(topology_to_files[tree_hash][0])
+        
+        # Se não encontrou o suficiente, completa com amostra aleatória
+        if len(representative_trees) < sample_size and len(representative_trees) < len(compiled_newick_files):
+            remaining = sample_size - len(representative_trees)
+            available_files = [f for f in compiled_newick_files if f not in representative_trees]
+            if available_files:
+                representative_trees.extend(random.sample(available_files, min(remaining, len(available_files))))
+        
+        logger.info(f"🌿 {len(representative_trees)} árvores selecionadas para visualização (de {len(compiled_newick_files)} totais)")
+        
     except Exception as e:
-        print(f"⚠️  Erro ao ler arquivo original: {e}")
-        index_to_name = {}
-        num_variables = 50  # fallback
-    
-    # Calcular amostra segura para evitar OOM
-    safe_sample_size = calculate_memory_safe_sample_size(total_files)
-    representative_files = select_representative_sample(compiled_newick_files, safe_sample_size)
+        logger.error(f"❌ Erro na análise de frequência: {e}")
+        logger.warning("🔄 Usando amostragem aleatória como fallback")
+        sample_size = min(20, len(compiled_newick_files))
+        representative_trees = random.sample(compiled_newick_files, sample_size) if compiled_newick_files else []
     
     # Forçar limpeza de memória antes de começar
     gc.collect()
     
     success_count = 0
     
-    # === CLOUD TREE (MEMORY-EFFICIENT) ===
+    # === CLOUD TREE (STREAMING) ===
+    mtree = None
+    all_trees = None
+    canvas = None
     try:
         import toytree
-        print("🌳 Gerando Cloud Tree (memory-efficient)...")
+        print("🌳 Gerando Cloud Tree (streaming)...")
         
-        # Processar em lotes pequenos para evitar OOM
-        batch_size = 10
+        # Processar em micro-lotes para uso mínimo de memória
+        micro_batch_size = 3  # Apenas 3 árvores por vez
         all_trees = []
         
-        for i in range(0, len(representative_files), batch_size):
-            batch = representative_files[i:i+batch_size]
-            batch_strings = []
+        # Processar árvores em micro-lotes
+        for i in range(0, len(representative_trees), micro_batch_size):
+            batch_files = representative_trees[i:i+micro_batch_size]
+            batch_newicks = []
             
-            for newick_file in batch:
+            # Ler e processar micro-lote atual
+            for newick_file in batch_files:
                 try:
                     with open(newick_file, 'r') as f:
                         content = f.read().strip()
                         if content:
-                            batch_strings.append(content)
+                            batch_newicks.append(content)
                 except Exception as e:
                     print(f"⚠️  Erro ao ler {newick_file}: {e}")
                     continue
             
-            if batch_strings:
-                # Processar lote
-                batch_mtree = toytree.mtree(batch_strings)
+            if not batch_newicks:
+                continue
+                
+            try:
+                # Processar micro-lote atual
+                batch_mtree = toytree.mtree(batch_newicks)
+                
+                # Aplicar mapeamento de nomes imediatamente
+                if index_to_name:
+                    for tree in batch_mtree.treelist:
+                        for node in tree.treenode.traverse():
+                            if node.is_leaf() and node.name in index_to_name:
+                                node.name = index_to_name[node.name]
+                
+                # Adicionar árvores processadas à lista
                 all_trees.extend(batch_mtree.treelist)
                 
-                # Limpeza de memória
+                # Limpar memória
                 del batch_mtree
-                del batch_strings
                 gc.collect()
-        
-        if all_trees:
-            # Criar multitree final com amostra limitada
-            limited_trees = all_trees[:30]  # Máximo 30 árvores para evitar OOM
-            mtree = toytree.mtree([tree.write() for tree in limited_trees])
+                
+            except Exception as e:
+                print(f"⚠️  Erro ao processar lote de árvores: {e}")
+                if 'batch_mtree' in locals():
+                    del batch_mtree
+                gc.collect()
+                continue
             
-            # Aplicar mapeamento de nomes
-            if index_to_name:
-                for tree in mtree.treelist:
-                    for node in tree.treenode.traverse():
-                        if node.is_leaf() and node.name in index_to_name:
-                            node.name = index_to_name[node.name]
-            
-            # Dimensões adaptativas (conservadoras)
-            width = max(600, min(1200, num_variables * 10))
-            height = max(400, min(800, num_variables * 8))
-            
-            canvas, axes, mark = mtree.draw(
-                width=width,
-                height=height,
-                node_labels=False,
-                tip_labels=True,
-                tip_labels_style={"font-size": max(6, min(10, 150 // num_variables))}
-            )
-            
-            cloud_path = os.path.join(viz_dir, "cloud_tree.pdf")
-            import toyplot.pdf
-            toyplot.pdf.render(canvas, cloud_path)
-            print(f"✅ Cloud Tree salva: {os.path.basename(cloud_path)}")
-            success_count += 1
-            
-            # Limpeza
-            del mtree
-            del all_trees
+            # Limpeza entre micro-lotes
+            del batch_newicks
             gc.collect()
         
+        # Criar a árvore final com o conjunto limitado
+        if all_trees:
+            print(f"🌿 Gerando visualização com {len(all_trees)} árvores...")
+            
+            # Usar o menor conjunto possível para a visualização final
+            final_trees = all_trees[:20]  # Limite máximo
+            
+            # Criar a árvore final em um escopo limitado
+            try:
+                mtree = toytree.mtree(final_trees)
+                
+                # Dimensões adaptativas baseadas no número de variáveis
+                width = max(800, min(1600, num_variables * 12))
+                height = max(600, min(1200, num_variables * 10))
+                
+                # Configurações de desenho otimizadas para uso de memória
+                canvas, axes, mark = mtree.draw(
+                    width=width,
+                    height=height,
+                    node_labels=False,
+                    tip_labels=True,
+                    tip_labels_style={"font-size": max(6, min(10, 150 // num_variables))}
+                )
+                
+                cloud_path = os.path.join(viz_dir, "cloud_tree.pdf")
+                import toyplot.pdf
+                toyplot.pdf.render(canvas, cloud_path)
+                print(f"✅ Cloud Tree salva: {os.path.basename(cloud_path)}")
+                success_count += 1
+                
+            except Exception as e:
+                print(f"⚠️  Erro ao gerar Cloud Tree: {e}")
+                raise  # Re-raise para tratamento externo, se necessário
+                
+            finally:
+                # Limpeza garantida mesmo em caso de erro
+                if 'mtree' in locals():
+                    del mtree
+                if 'all_trees' in locals():
+                    del all_trees
+                if 'canvas' in locals():
+                    del canvas
+                gc.collect()
+        
     except Exception as e:
-        print(f"⚠️  Erro ao gerar Cloud Tree: {e}")
+        print(f"⚠️  Erro durante o processamento da Cloud Tree: {e}")
+    finally:
+        # Garantir que todos os recursos sejam liberados
+        for var in ['mtree', 'all_trees', 'canvas']:
+            if var in locals() and locals()[var] is not None:
+                del locals()[var]
+        gc.collect()
     
     # === CONSENSUS TREE (MEMORY-EFFICIENT) ===
-    try:
-        import toytree
-        print("🌲 Gerando Consensus Tree (memory-efficient)...")
-        
-        # Usar apenas uma amostra menor para consensus
-        sample_for_consensus = representative_files[:20]  # Máximo 20 árvores
-        
-        newick_strings = []
-        for newick_file in sample_for_consensus:
-            try:
-                with open(newick_file, 'r') as f:
-                    content = f.read().strip()
-                    if content:
-                        newick_strings.append(content)
-            except Exception as e:
-                continue
-        
-        if newick_strings:
+        try:
+            mtree = None
+            consensus_tree = None
+            canvas = None
+            import toytree
+            print("🌲 Gerando Consensus Tree (memory-efficient)...")
+            
+            # Usar apenas uma amostra menor para consensus
+            sample_for_consensus = representative_trees[:20]  # Máximo 20 árvores
+            
+            newick_strings = []
+            for newick_file in sample_for_consensus:
+                try:
+                    with open(newick_file, 'r') as f:
+                        content = f.read().strip()
+                        if content:
+                            newick_strings.append(content)
+                except Exception as e:
+                    print(f"⚠️  Erro ao ler {newick_file}: {e}")
+                    continue
+            
+            if not newick_strings:
+                print("⚠️  Nenhuma árvore válida encontrada para gerar consenso")
+                return
+                
             # Criar multitree e consensus
             mtree = toytree.mtree(newick_strings)
             consensus_tree = mtree.get_consensus_tree()
@@ -1884,67 +2289,88 @@ def generate_unified_visualization(compiled_newick_files, output_dir, original_f
             print(f"✅ Consensus Tree salva: {os.path.basename(consensus_path)}")
             success_count += 1
             
-            # Limpeza
-            del mtree
-            del consensus_tree
+        except Exception as e:
+            print(f"⚠️  Erro ao gerar Consensus Tree: {e}")
+        finally:
+            # Limpeza de memória
+            if 'mtree' in locals() and mtree is not None:
+                del mtree
+            if 'consensus_tree' in locals() and consensus_tree is not None:
+                del consensus_tree
+            if 'canvas' in locals() and canvas is not None:
+                del canvas
             gc.collect()
-        
-    except Exception as e:
-        print(f"⚠️  Erro ao gerar Consensus Tree: {e}")
     
     # === BIOPYTHON TREE (MEMORY-EFFICIENT) ===
+    tree = None
+    fig = None
+    
+    # Verificar se há árvores para processar
+    if not representative_trees or not isinstance(representative_trees, list) or len(representative_trees) == 0:
+        print("⚠️  Nenhuma árvore representativa disponível para gerar visualização Biopython")
+        return
+        
+    # Processar a primeira árvore representativa
+    first_tree_file = representative_trees[0]
+    
     try:
+        with open(first_tree_file, 'r') as f:
+            newick_str = f.read().strip()
+            
+        if not newick_str:
+            print("⚠️  Arquivo de árvore vazio")
+            return
+            
         from Bio import Phylo
         import matplotlib.pyplot as plt
-        
+            
         print("🧬 Gerando Biopython Tree (memory-efficient)...")
         
-        # Usar apenas a primeira árvore válida
-        tree = None
-        for newick_file in representative_files[:5]:  # Tentar até 5 arquivos
-            try:
-                tree = Phylo.read(newick_file, "newick")
-                break
-            except Exception:
-                continue
+        # Criar um buffer de string para a árvore
+        from io import StringIO
+        tree_handle = StringIO(newick_str)
         
-        if tree:
-            # Aplicar mapeamento de nomes
-            if index_to_name:
-                for clade in tree.find_clades():
-                    if clade.name and clade.name in index_to_name:
-                        original_name = index_to_name[clade.name]
-                        # Truncar nomes longos
-                        if len(original_name) > 15:
-                            clade.name = original_name[:12] + "..."
-                        else:
-                            clade.name = original_name
-            
-            # Dimensões adaptativas
-            fig_width = max(8, min(20, num_variables * 0.3))
-            fig_height = max(6, min(15, num_variables * 0.25))
-            
-            plt.figure(figsize=(fig_width, fig_height))
-            Phylo.draw(tree, do_show=False, 
-                      axes=plt.gca(),
-                      label_func=lambda x: x.name if x.name else "")
-            
-            plt.title("Phylogenetic Tree (Unified)", fontsize=14, fontweight='bold')
-            plt.tight_layout()
-            
-            biopython_path = os.path.join(viz_dir, "tree_biopython.png")
-            plt.savefig(biopython_path, dpi=300, bbox_inches='tight')
-            plt.close()
-            
-            print(f"✅ Biopython Tree salva: {os.path.basename(biopython_path)}")
-            success_count += 1
-            
-            # Limpeza
-            del tree
-            gc.collect()
+        # Ler a árvore do Newick
+        tree = Phylo.read(tree_handle, 'newick')
+        
+        # Configurar tamanho da figura com base no número de folhas
+        num_leaves = len(tree.get_terminals())
+        fig_size = min(20, max(10, num_leaves * 0.5))  # Ajuste dinâmico do tamanho
+        
+        # Configurar estilo
+        plt.style.use('default')
+        plt.rcParams['figure.figsize'] = [fig_size, fig_size]
+        plt.rcParams['axes.facecolor'] = 'white'
+        
+        # Criar figura e eixos
+        fig, ax = plt.subplots()
+        
+        # Desenhar a árvore
+        Phylo.draw(tree, axes=ax, do_show=False)
+        
+        # Adicionar título e ajustar layout
+        ax.set_title(f'Árvore Filogenética (Amostra: {os.path.basename(first_tree_file)})', 
+                    fontsize=12, pad=20)
+        
+        # Salvar a figura
+        biopython_output = os.path.join(output_dir, 'unified_visualization', 'biopython_tree.png')
+        plt.tight_layout()
+        plt.savefig(biopython_output, dpi=300, bbox_inches='tight')
+        plt.close(fig)
+        
+        print(f"✅ Visualização Biopython salva em: {biopython_output}")
         
     except Exception as e:
-        print(f"⚠️  Erro ao gerar Biopython Tree: {e}")
+        print(f"⚠️  Erro ao gerar visualização Biopython: {e}")
+    finally:
+        # Limpeza de memória
+        if 'tree' in locals() and tree is not None:
+            del tree
+        if 'fig' in locals() and fig is not None:
+            plt.close(fig)
+        if 'plt' in locals():
+            plt.close('all')
+        gc.collect()
         
     # === VISUALIZAÇÕES ADICIONAIS (CORRELAÇÃO) ===
     try:
@@ -1992,7 +2418,7 @@ def generate_unified_visualization(compiled_newick_files, output_dir, original_f
     print(f"\n🎯 VISUALIZAÇÃO UNIFICADA CONCLUÍDA (MEMORY-EFFICIENT)")
     print(f"✅ {success_count}/4 visualizações geradas com sucesso")
     print(f"📁 Diretório: {viz_dir}")
-    print(f"💾 Uso de memória otimizado: {len(representative_files)}/{total_files} arquivos processados")
+    print(f"💾 Uso de memória otimizado: {len(representative_trees)}/{total_files} arquivos processados")
     
     # Listar arquivos gerados
     if os.path.exists(viz_dir):
@@ -2462,39 +2888,48 @@ def main():
     else:
         print(f"\n🔄 Processando {len(pending_slices)} fatias pendentes...")
         
+        # Importa a barra de progresso personalizada
+        from progress_bar import ProgressBar
+        
         # 📊 BARRA DE PROGRESSO E STATUS DETALHADO
         total_slices = len(slice_files)
         completed_slices = len([s for s in range(total_slices) if s not in pending_slices])
         
-        def print_progress_bar(current, total, slice_name="", status=""):
-            """Exibe barra de progresso visual com informações detalhadas"""
-            percent = (current / total) * 100
-            filled = int(50 * current // total)
-            bar = '█' * filled + '░' * (50 - filled)
+        # Inicializa a barra de progresso
+        progress_bar = ProgressBar(end=total_slices, length=50)
+        
+        def update_progress(current, total, slice_name="", status=""):
+            """Atualiza a barra de progresso com informações detalhadas.
             
-            print(f"\r📊 Progresso: [{bar}] {percent:.1f}% ({current}/{total}) | {slice_name} {status}", end='', flush=True)
+            Args:
+                current (int): Número atual de itens processados
+                total (int): Número total de itens a processar
+                slice_name (str): Nome da fatia atual
+                status (str): Status atual do processamento
+            """
+            # Atualiza o contador da barra de progresso
+            while progress_bar.count < current and progress_bar.count < total:
+                progress_bar.increment()
+            
+            # Exibe informações adicionais
+            if slice_name or status:
+                sys.stderr.write(f" | {slice_name} {status}")
+                sys.stderr.flush()
         
         def print_detailed_status(slice_idx, slice_name, start_time):
-            """Exibe status detalhado da fatia atual"""
-            elapsed = time.time() - start_time
-            completed = len([s for s in range(len(slice_files)) if s not in pending_slices and s <= slice_idx])
+           
             
-            print(f"\n\n{'='*80}")
-            print(f"🚀 PROCESSANDO FATIA {slice_idx + 1}/{total_slices}")
-            print(f"📁 Arquivo: {slice_name}")
-            print(f"⏱️  Tempo decorrido: {elapsed:.1f}s")
-            print(f"📊 Progresso geral: {completed}/{total_slices} fatias ({(completed/total_slices)*100:.1f}%)")
-            print(f"🔧 Comando: python3 DAMICORE_Filograma_script.py {slice_name}")
-            print(f"{'='*80}")
+            elapsed = time.time() - start_time
+            elapsed_str = time.strftime("%H:%M:%S", time.gmtime(elapsed))
+            print(f"\n🔍 Processando fatia {slice_idx + 1}/{total_slices} - {slice_name}")
+            print(f"⏱️  Tempo decorrido: {elapsed_str}")
+            print("-" * 50)
         
-        # Processar cada fatia pendente com progresso visual
-        import time
-        pipeline_start_time = time.time()
-        
+        # Processa cada fatia pendente
         for i, slice_idx in enumerate(pending_slices):
             # 🔧 PROTEÇÃO ADICIONAL: Verificar range antes de acessar slice_files
             if slice_idx >= len(slice_files) or slice_idx < 0:
-                print(f"⚠️  Índice inválido {slice_idx} ignorado (range válido: 0-{len(slice_files)-1})")
+                print(f"❌ ERRO CRÍTICO: Índice de fatia inválido {slice_idx}. Pulando...")
                 continue
                 
             slice_file = slice_files[slice_idx]
@@ -2506,19 +2941,19 @@ def main():
             
             # Barra de progresso inicial
             current_completed = completed_slices + i
-            print_progress_bar(current_completed, total_slices, slice_name, "🔄 Iniciando...")
+            update_progress(current_completed, total_slices, slice_name, "🔄 Iniciando...")
             
             try:
                 # Marcar início do processamento
                 progress_manager.mark_slice_started(slice_idx)
                 
-                # Processar a fatia
+                # Processa a fatia e gera arquivos newick
                 newick_files = process_single_slice(slice_file, slice_idx, output_dir, adaptive_resamples)
                 
                 if newick_files:
                     # Atualizar barra de progresso - processamento concluído
                     slice_elapsed = time.time() - slice_start_time
-                    print_progress_bar(current_completed, total_slices, slice_name, f"🔄 Gerando visualizações... ({slice_elapsed:.1f}s)")
+                    update_progress(current_completed, total_slices, slice_name, f"🔄 Gerando visualizações... ({slice_elapsed:.1f}s)")
                     
                     # Marcar como concluída com geração automática de visualizações adaptativas
                     progress_manager.mark_slice_completed(
@@ -2532,7 +2967,7 @@ def main():
                     # Atualizar barra de progresso - fatia concluída
                     total_elapsed = time.time() - slice_start_time
                     current_completed = completed_slices + i + 1
-                    print_progress_bar(current_completed, total_slices, slice_name, f"✅ Concluída ({total_elapsed:.1f}s)")
+                    update_progress(current_completed, total_slices, slice_name, f"✅ Concluída ({total_elapsed:.1f}s)")
                     
                     print(f"\n✅ Fatia {slice_idx + 1} processada com sucesso: {len(newick_files)} arquivos newick gerados")
                     print(f"⏱️  Tempo da fatia: {total_elapsed:.1f}s")
@@ -2546,17 +2981,17 @@ def main():
                 else:
                     # Atualizar barra de progresso - falha
                     slice_elapsed = time.time() - slice_start_time
-                    print_progress_bar(current_completed, total_slices, slice_name, f"❌ Falhou ({slice_elapsed:.1f}s)")
+                    update_progress(current_completed, total_slices, slice_name, f"❌ Falhou ({slice_elapsed:.1f}s)")
                     
                     error_msg = f"Nenhum arquivo newick gerado para a fatia {slice_idx + 1}"
                     progress_manager.mark_slice_failed(slice_idx, error_msg)
                     print(f"\n❌ Fatia {slice_idx + 1} falhou: {error_msg}")
                     print(f"⏱️  Tempo da fatia: {slice_elapsed:.1f}s")
-                    
+            
             except Exception as e:
                 # Atualizar barra de progresso - erro
                 slice_elapsed = time.time() - slice_start_time
-                print_progress_bar(current_completed, total_slices, slice_name, f"💥 Erro ({slice_elapsed:.1f}s)")
+                update_progress(current_completed, total_slices, slice_name, f"💥 Erro ({slice_elapsed:.1f}s)")
                 
                 error_msg = f"Erro ao processar fatia {slice_idx + 1}: {str(e)}"
                 progress_manager.mark_slice_failed(slice_idx, error_msg)

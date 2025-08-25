@@ -1,8 +1,313 @@
 # DAMICORE - Análise de Dados e Fronteira de Pareto
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Docker](https://img.shields.io/badge/Docker-✓-blue.svg)](https://www.docker.com/)
+
 Este projeto implementa um pipeline de análise que combina o método DAMICORE (Data Mining of Code Repositories) com análise de Fronteira de Pareto para exploração e visualização de dados.
 
-## Estrutura do Projeto
+## 🌟 Recursos Principais
+
+- **Processamento Eficiente** de grandes conjuntos de dados
+- **Visualizações Avançadas** incluindo árvores filogenéticas e matrizes de correlação
+- **Análise de Fronteira de Pareto** para otimização multiobjetivo
+- **Suporte a Docker** para fácil implantação
+- **Processamento em Lotes** para arquivos grandes
+- **Mapeamento de Nomes** para variáveis originais
+- **Sistema de Checkpoint** para recuperação de falhas
+
+## 🚀 Começando
+
+### Pré-requisitos
+
+- Python 3.8 ou superior
+- Docker (opcional, mas recomendado)
+- 8GB+ de RAM (16GB+ recomendado para conjuntos de dados grandes)
+- 10GB+ de espaço em disco
+
+### Instalação
+
+#### Método 1: Usando Docker (Recomendado)
+
+```bash
+# Construir a imagem
+./build-docker.sh
+
+# Executar o container
+./run.sh /caminho/para/seu/arquivo.csv
+```
+
+#### Método 2: Instalação Local
+
+1. Clone o repositório:
+```bash
+git clone https://github.com/CristianoXico/DAMICORE.git
+cd DAMICORE
+```
+
+2. Crie e ative o ambiente virtual:
+```bash
+python -m venv venv
+source venv/bin/activate  # No Windows: venv\Scripts\activate
+```
+
+3. Instale as dependências:
+```bash
+pip install -r requirements.txt
+```
+
+## 📊 Uso Básico
+
+### Processando um Arquivo CSV
+
+```bash
+# Usando o script principal
+python src/scripts/DAMICORE_File_Slicer_Processor.py /caminho/para/seu/arquivo.csv
+
+# Para arquivos grandes (>1GB), use a versão com processamento em lotes
+python src/scripts/DAMICORE_Pareto_script_chunks.py /caminho/para/seu/arquivo.csv
+```
+
+### Parâmetros Opcionais
+
+| Parâmetro | Descrição | Padrão |
+|-----------|-----------|--------|
+| `--output-dir` | Diretório de saída | `./results` |
+| `--chunk-size` | Tamanho do lote para processamento | `1000` |
+| `--bootstrap-samples` | Número de amostras bootstrap | `2` |
+| `--external-drive` | Usar drive externo para armazenamento | `False` |
+
+## 🏗️ Estrutura do Projeto
+
+```
+DAMICORE/
+├── config/                  # Arquivos de configuração
+├── docs/                    # Documentação adicional
+├── examples/                # Exemplos de uso
+├── scripts_modulares/       # Módulos auxiliares
+├── src/                     # Código-fonte principal
+│   ├── scripts/             # Scripts de análise
+│   └── tree_simplification.py  # Funções de simplificação de árvores
+├── tests/                   # Testes automatizados
+├── .gitignore
+├── Dockerfile               # Configuração do Docker
+├── README.md                # Este arquivo
+├── requirements.txt         # Dependências Python
+└── run.sh                   # Script de execução
+```
+
+## 🔍 Visualizações Geradas
+
+O pipeline gera vários arquivos de visualização, incluindo:
+
+1. **Árvore de Nuvem** (`cloud_tree.pdf`)
+2. **Árvore de Consenso** (`consensus_tree.pdf`)
+3. **Árvore Filogenética** (`tree_biopython.png`)
+4. **Matriz de Correlação** (`correlation_matrix.png`)
+5. **Análise de Componentes Principais** (`pca_biplot.png`)
+6. **Dendrograma Hierárquico** (`hierarchical_clustering_dendrogram.png`)
+7. **Grafo de Correlação** (`correlation_network.png`)
+
+## 🧪 Testes de Desempenho
+
+Antes de executar em produção, recomenda-se testar o desempenho:
+
+```bash
+# Testar tamanhos de chunk ideais
+python src/scripts/test_chunk_sizes.py /caminho/para/seu/arquivo.csv
+
+# Teste completo de desempenho
+python src/scripts/test_damicore_performance.py /caminho/para/seu/arquivo.csv
+```
+
+## 🛠️ Desenvolvimento
+
+### Estrutura de Dados
+
+O DAMICORE processa arquivos CSV e gera visualizações baseadas em árvores filogenéticas. O mapeamento de nomes de variáveis é mantido para facilitar a interpretação dos resultados.
+
+### Adicionando Novas Visualizações
+
+1. Crie um novo script em `src/scripts/`
+2. Importe as funções necessárias dos módulos existentes
+3. Adicione a nova visualização ao pipeline principal
+4. Atualize a documentação
+
+## 🤝 Contribuição
+
+Contribuições são bem-vindas! Siga estes passos:
+
+1. Faça um Fork do projeto
+2. Crie uma Branch para sua Feature (`git checkout -b feature/AmazingFeature`)
+3. Adicione suas mudanças (`git add .`)
+4. Faça o Commit das suas alterações (`git commit -m 'Add some AmazingFeature'`)
+5. Faça o Push para a Branch (`git push origin feature/AmazingFeature`)
+6. Abra um Pull Request
+
+## 📄 Licença
+
+Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
+
+## 📞 Contato
+
+Cristiano Xico - [@seu_twitter](https://twitter.com/seu_twitter)
+
+Link do Projeto: [https://github.com/CristianoXico/DAMICORE](https://github.com/CristianoXico/DAMICORE)
+
+---
+
+# DAMICORE - Data Analysis and Pareto Frontier
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Docker](https://img.shields.io/badge/Docker-✓-blue.svg)](https://www.docker.com/)
+
+## 🌟 Key Features
+
+- **Efficient Processing** of large datasets
+- **Advanced Visualizations** including phylogenetic trees and correlation matrices
+- **Pareto Frontier Analysis** for multi-objective optimization
+- **Docker Support** for easy deployment
+- **Batch Processing** for large files
+- **Variable Name Mapping** for original column names
+- **Checkpoint System** for failure recovery
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Python 3.8 or higher
+- Docker (optional but recommended)
+- 8GB+ RAM (16GB+ recommended for large datasets)
+- 10GB+ disk space
+
+### Installation
+
+#### Method 1: Using Docker (Recommended)
+
+```bash
+# Build the image
+./build-docker.sh
+
+# Run the container
+./run.sh /path/to/your/file.csv
+```
+
+#### Method 2: Local Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/CristianoXico/DAMICORE.git
+cd DAMICORE
+```
+
+2. Create and activate a virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+3. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+## 📊 Basic Usage
+
+### Processing a CSV File
+
+```bash
+# Using the main script
+python src/scripts/DAMICORE_File_Slicer_Processor.py /path/to/your/file.csv
+
+# For large files (>1GB), use the batch processing version
+python src/scripts/DAMICORE_Pareto_script_chunks.py /path/to/your/file.csv
+```
+
+### Optional Parameters
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `--output-dir` | Output directory | `./results` |
+| `--chunk-size` | Batch size for processing | `1000` |
+| `--bootstrap-samples` | Number of bootstrap samples | `2` |
+| `--external-drive` | Use external drive for storage | `False` |
+
+## 🏗️ Project Structure
+
+```
+DAMICORE/
+├── config/                  # Configuration files
+├── docs/                    # Additional documentation
+├── examples/                # Usage examples
+├── scripts_modulares/       # Helper modules
+├── src/                     # Main source code
+│   ├── scripts/             # Analysis scripts
+│   └── tree_simplification.py  # Tree simplification functions
+├── tests/                   # Automated tests
+├── .gitignore
+├── Dockerfile               # Docker configuration
+├── README.md                # This file
+├── requirements.txt         # Python dependencies
+└── run.sh                   # Execution script
+```
+
+## 🔍 Generated Visualizations
+
+The pipeline generates several visualization files, including:
+
+1. **Cloud Tree** (`cloud_tree.pdf`)
+2. **Consensus Tree** (`consensus_tree.pdf`)
+3. **Phylogenetic Tree** (`tree_biopython.png`)
+4. **Correlation Matrix** (`correlation_matrix.png`)
+5. **Principal Component Analysis** (`pca_biplot.png`)
+6. **Hierarchical Clustering** (`hierarchical_clustering_dendrogram.png`)
+7. **Correlation Network** (`correlation_network.png`)
+
+## 🧪 Performance Testing
+
+Before running in production, it's recommended to test performance:
+
+```bash
+# Test optimal chunk sizes
+python src/scripts/test_chunk_sizes.py /path/to/your/file.csv
+
+# Complete performance test
+python src/scripts/test_damicore_performance.py /path/to/your/file.csv
+```
+
+## 🛠️ Development
+
+### Data Structure
+
+DAMICORE processes CSV files and generates phylogenetic tree-based visualizations. Variable name mapping is maintained to facilitate result interpretation.
+
+### Adding New Visualizations
+
+1. Create a new script in `src/scripts/`
+2. Import necessary functions from existing modules
+3. Add the new visualization to the main pipeline
+4. Update the documentation
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+## 📞 Contact
+
+Cristiano Xico - [@your_twitter](https://twitter.com/your_twitter)
+
+Project Link: [https://github.com/CristianoXico/DAMICORE](https://github.com/CristianoXico/DAMICORE)
 
 ```
 

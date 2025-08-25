@@ -1,57 +1,56 @@
-# Use Python 3.11 for better performance and latest features
-FROM python:3.11-slim
+# Build stage
+FROM python:3.11-slim as builder
 
-# Configurar variáveis de ambiente para otimização
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONHASHSEED=random
-ENV PIP_NO_CACHE_DIR=1
-ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Configurar variáveis específicas para DAMICORE
-ENV DAMICORE_TIMEOUT=7200
-ENV DAMICORE_CHUNK_SIZE=500
-ENV DAMICORE_BOOTSTRAP_SAMPLES=2
-
-# Instalar dependências do sistema necessárias
+# Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
     python3-dev \
-    libc6-dev \
-    gzip \
-    bzip2 \
-    xz-utils \
-    git \
-    curl \
-    wget \
-    build-essential \
-    pkg-config \
     libhdf5-dev \
-    libatlas-base-dev \
-    liblapack-dev \
-    libblas-dev \
-    libffi-dev \
-    libssl-dev \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+    libopenblas-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Criar e definir o diretório de trabalho
+# Create and set working directory
 WORKDIR /app
 
-# Atualizar pip para a versão mais recente
-RUN pip install --upgrade pip setuptools wheel
-
-# Copiar arquivos de requisitos primeiro para aproveitar o cache do Docker
+# Install Python dependencies
 COPY requirements.txt .
+RUN pip install --user -r requirements.txt
 
-# Instalar dependências Python com otimizações
-RUN pip install --no-cache-dir --compile -r requirements.txt
+# Runtime stage
+FROM python:3.11-slim
 
-# Copiar o código fonte
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PATH="/root/.local/bin:${PATH}" \
+    DAMICORE_TIMEOUT=7200 \
+    DAMICORE_CHUNK_SIZE=500 \
+    DAMICORE_BOOTSTRAP_SAMPLES=2
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libhdf5-310 \
+    libhdf5-hl-310 \
+    libopenblas0 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy installed Python packages from builder
+COPY --from=builder /root/.local /root/.local
+
+# Copy application code
 COPY . .
 
-# Criar diretórios necessários para o pipeline DAMICORE
+# Create necessary directories
 RUN mkdir -p \
     examples \
     results \
@@ -62,19 +61,21 @@ RUN mkdir -p \
     external_drive \
     logs
 
-# Configurar permissões adequadas
+# Make scripts executable
 RUN chmod +x src/scripts/*.py
 
-# Criar usuário não-root para segurança
-RUN groupadd -r damicore && useradd -r -g damicore damicore
-RUN chown -R damicore:damicore /app
+# Create non-root user
+RUN groupadd -r damicore && useradd -r -g damicore damicore \
+    && chown -R damicore:damicore /app
+
+# Switch to non-root user
 USER damicore
 
-# Definir ponto de saúde para monitoramento
+# Set health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import sys; sys.exit(0)"
 
-# Labels para metadados da imagem
+# Set labels
 LABEL maintainer="DAMICORE Team" \
       version="2.1" \
       description="DAMICORE Pipeline with Fixed Visualizations, Resume Functionality and Ultra-Large File Support" \
@@ -83,5 +84,5 @@ LABEL maintainer="DAMICORE Team" \
       last_updated="2025-01-25" \
       visualization_fixes="variable-names,adaptive-sizing,label-truncation"
 
-# Comando padrão - script otimizado para arquivos grandes com visualizações corrigidas
+# Set entrypoint
 ENTRYPOINT ["python", "src/scripts/DAMICORE_File_Slicer_Processor.py"]
