@@ -68,12 +68,16 @@ LABEL maintainer="DAMICORE Team" \
       last_updated="2025-01-25" \
       visualization_fixes="variable-names,adaptive-sizing,label-truncation"
 
-# Install Python dependencies (force reinstall to ensure they're in the system path)
+# Install Python dependencies as root to ensure they're in the system path
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Set entrypoint to a shell script that will be created
 COPY entrypoint.sh /app/
 RUN chmod +x /app/entrypoint.sh
+
+# Set environment variables for user damicore
+ENV PATH="/home/damicore/.local/bin:${PATH}"
+ENV PYTHONPATH="/app:${PYTHONPATH}"
 
 # Set entrypoint
 ENTRYPOINT ["/app/entrypoint.sh"]
