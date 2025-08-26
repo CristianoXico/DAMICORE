@@ -1,41 +1,22 @@
-# Build stage
-FROM python:3.11-slim as builder
+# Single stage build for simplicity
+FROM python:3.11-slim
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    DAMICORE_TIMEOUT=7200 \
+    DAMICORE_CHUNK_SIZE=500 \
+    DAMICORE_BOOTSTRAP_SAMPLES=2
 
-# Install build dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
     python3-dev \
     libhdf5-dev \
     libopenblas-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Create and set working directory
-WORKDIR /app
-
-# Install Python dependencies
-COPY requirements.txt .
-RUN pip install --user -r requirements.txt
-
-# Runtime stage
-FROM python:3.11-slim
-
-# Set environment variables
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PATH="/root/.local/bin:${PATH}" \
-    DAMICORE_TIMEOUT=7200 \
-    DAMICORE_CHUNK_SIZE=500 \
-    DAMICORE_BOOTSTRAP_SAMPLES=2
-
-# Install runtime dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
     libhdf5-310 \
     libhdf5-hl-310 \
     libopenblas0 \
@@ -44,18 +25,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Set working directory
 WORKDIR /app
 
-# Copy installed Python packages from builder
-COPY --from=builder /root/.local /root/.local
+# Copy requirements first for better caching
+COPY requirements.txt .
 
-# Copy application code
-COPY . .
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Create necessary directories
 RUN mkdir -p \
     examples \
     results \
     temp \
-    data \
+    data
+
+# Create additional directories
+RUN mkdir -p \
     config \
     damicore_analysis \
     external_drive \
@@ -85,4 +69,4 @@ LABEL maintainer="DAMICORE Team" \
       visualization_fixes="variable-names,adaptive-sizing,label-truncation"
 
 # Set entrypoint
-ENTRYPOINT ["python", "src/scripts/DAMICORE_File_Slicer_Processor.py"]
+ENTRYPOINT ["python", "/app/src/scripts/DAMICORE_File_Slicer_Processor.py"]

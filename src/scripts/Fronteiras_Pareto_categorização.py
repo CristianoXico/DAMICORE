@@ -139,9 +139,44 @@ def save_results(df_categorized, categorization_legends, base_filename="output")
     print(f"Resultados salvos em:\n- {base_filename}_categorized.csv\n- {legends_file}")
 
 
+def main():
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='Processa dados para análise de Fronteira de Pareto.')
+    parser.add_argument('input_file', type=str, help='Caminho para o arquivo de entrada (CSV/XLSX) ou URL')
+    parser.add_argument('--output', '-o', type=str, default='output', help='Nome base para os arquivos de saída (sem extensão)')
+    args = parser.parse_args()
+    
+    try:
+        # Carrega os dados
+        print(f"Carregando dados de: {args.input_file}")
+        df = load_data(args.input_file)
+        print(f"Dados carregados com sucesso. Dimensões: {df.shape}")
+        
+        # Processa os dados
+        print("Processando categorização...")
+        df_categorized, legends = categorize_dataframe(df)
+        
+        # Salva os resultados
+        print(f"Salvando resultados em {args.output}.csv e {args.output}_legendas.txt")
+        save_results(df_categorized, legends, args.output)
+        print("Processo concluído com sucesso!")
+        
+    except Exception as e:
+        print(f"\nErro durante a execução: {str(e)}\n")
+        print("Certifique-se de que:")
+        print("1. O caminho do arquivo está correto")
+        print("2. O arquivo está no formato suportado (CSV ou XLSX)")
+        print("3. Você tem permissão para acessar o arquivo")
+        if "drive.google.com" in str(args.input_file):
+            print("4. O link do Google Drive é público ou você tem permissão de acesso")
+        return 1
+    
+    return 0
+
 if __name__ == "__main__":
-    # Exemplo de uso:
-    # input_path = "dados.csv"
+    import sys
+    sys.exit(main())
     # input_path = "https://example.com/arquivo.csv"
     # input_path = "https://drive.google.com/file/d/FILE_ID/view?usp=sharing"
     input_path = "dados.csv"  # ajuste aqui
