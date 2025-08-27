@@ -13,8 +13,11 @@ fi
 # Create results directory if it doesn't exist
 mkdir -p /app/results
 
-# Find all CSV files in the current directory and process them
-find /app -maxdepth 1 -name "*.csv" -type f | while read -r csv_file; do
+# Create data directory if it doesn't exist
+mkdir -p /app/data
+
+# Find all CSV files in the data directory and process them
+find /app/data -maxdepth 1 -name "*.csv" -type f | while read -r csv_file; do
     filename=$(basename -- "$csv_file")
     base_filename="${filename%.*}"
     output_dir="/app/results/${base_filename}_results"
