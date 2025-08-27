@@ -1,0 +1,64 @@
+# Single stage build for DAMICORE Filograma
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    DAMICORE_TIMEOUT=7200 \
+    DAMICORE_CHUNK_SIZE=500 \
+    DAMICORE_BOOTSTRAP_SAMPLES=2
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    python3-dev \
+    libhdf5-dev \
+    libopenblas-dev \
+    libhdf5-310 \
+    libhdf5-hl-310 \
+    libopenblas0 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy requirements first for better caching
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the DAMICORE source code
+COPY . .
+
+# Make entrypoint script executable
+RUN chmod +x /app/entrypoint_filograma.sh
+
+# Create non-root user
+RUN groupadd -r damicore && useradd -r -g damicore damicore \
+    && chown -R damicore:damicore /app
+
+# Create results directory
+RUN mkdir -p /app/results \
+    && chown -R damicore:damicore /app/results
+
+# Switch to non-root user
+USER damicore
+
+# Set working directory to where the CSV files should be mounted
+WORKDIR /app/data
+
+# Set entrypoint
+ENTRYPOINT ["/app/entrypoint_filograma.sh"]
+
+# Default command (can be overridden)
+CMD ["--help"]
+
+# Set labels
+LABEL maintainer="DAMICORE Team" \
+      version="2.1" \
+      description="DAMICORE Filograma - Process CSV files with DAMICORE Filograma script" \
+      python.version="3.11"
