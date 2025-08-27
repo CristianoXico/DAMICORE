@@ -28,7 +28,7 @@ WORKDIR /app
 # Copy requirements first for better caching
 COPY requirements.txt .
 
-# Install Python dependencies
+# Install Python dependencies as root to ensure they're in the system path
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Create necessary directories
@@ -36,21 +36,19 @@ RUN mkdir -p \
     examples \
     results \
     temp \
-    data
-
-# Create additional directories
-RUN mkdir -p \
+    data \
     config \
     damicore_analysis \
     external_drive \
     logs
 
-# Make scripts executable
-RUN chmod +x src/scripts/*.py
-
 # Create non-root user
 RUN groupadd -r damicore && useradd -r -g damicore damicore \
     && chown -R damicore:damicore /app
+
+# Set environment variables for user damicore
+ENV PATH="/home/damicore/.local/bin:${PATH}"
+ENV PYTHONPATH="/app:${PYTHONPATH}"
 
 # Switch to non-root user
 USER damicore
@@ -68,16 +66,9 @@ LABEL maintainer="DAMICORE Team" \
       last_updated="2025-01-25" \
       visualization_fixes="variable-names,adaptive-sizing,label-truncation"
 
-# Install Python dependencies as root to ensure they're in the system path
-RUN pip install --no-cache-dir -r requirements.txt
-
 # Set entrypoint to a shell script that will be created
 COPY entrypoint.sh /app/
 RUN chmod +x /app/entrypoint.sh
-
-# Set environment variables for user damicore
-ENV PATH="/home/damicore/.local/bin:${PATH}"
-ENV PYTHONPATH="/app:${PYTHONPATH}"
 
 # Set entrypoint
 ENTRYPOINT ["/app/entrypoint.sh"]
