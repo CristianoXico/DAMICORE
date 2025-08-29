@@ -171,16 +171,30 @@ def process_chunk(
         damicore_input_dir = os.path.join(chunk_result_dir, "damicore_input")
         os.makedirs(damicore_input_dir, exist_ok=True)
         
-        # Copy the input file to the temporary directory with a .txt extension
-        # as DAMICORE expects text files for comparison
-        import shutil
-        input_copy = os.path.join(damicore_input_dir, f"chunk_{chunk_id:04d}.txt")
-        shutil.copy2(input_file, input_copy)
+        # Read the input file and add small random noise to avoid zero stddev
+        import random
+        import pandas as pd
         
-        # Create a second copy to have at least two files for comparison
-        # DAMICORE needs at least two files to compute distances
+        # Read the CSV file
+        df = pd.read_csv(input_file)
+        
+        # Add small random noise to numeric columns to avoid zero stddev
+        for col in df.select_dtypes(include=['float64', 'int64']).columns:
+            if df[col].nunique() == 1:  # If all values are the same
+                noise = [random.uniform(-0.0001, 0.0001) for _ in range(len(df))]
+                df[col] = df[col] + noise
+        
+        # Save the processed file
+        input_copy = os.path.join(damicore_input_dir, f"chunk_{chunk_id:04d}.txt")
+        df.to_csv(input_copy, index=False)
+        
+        # Create a second copy with slightly different noise
+        for col in df.select_dtypes(include=['float64', 'int64']).columns:
+            noise = [random.uniform(-0.0001, 0.0001) for _ in range(len(df))]
+            df[col] = df[col] + noise
+            
         input_copy2 = os.path.join(damicore_input_dir, f"chunk_{chunk_id:04d}_copy.txt")
-        shutil.copy2(input_file, input_copy2)
+        df.to_csv(input_copy2, index=False)
         
         # Run DAMICORE on the directory containing the files
         cmd = [
