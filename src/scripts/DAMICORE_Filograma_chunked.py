@@ -172,12 +172,27 @@ def process_chunk(chunk_id: int, chunk_path: str, output_dir: str, compressor: s
         output_tree = os.path.join(output_dir, f"resample_chunk_{chunk_id:04d}-tree.newick")
         logger.info(f"Processando chunk {chunk_id} → {output_tree}")
         
+        # Cria um diretório temporário para o processamento
+        temp_dir = os.path.join(os.path.dirname(chunk_path), f"temp_chunk_{chunk_id}")
+        os.makedirs(temp_dir, exist_ok=True)
+        
+        # Cria um link simbólico para o arquivo dentro do diretório temporário
+        # com um nome padronizado que o DAMICORE espera
+        temp_file = os.path.join(temp_dir, f"chunk_{chunk_id:04d}.csv")
+        if os.path.exists(temp_file):
+            os.remove(temp_file)
+        os.symlink(chunk_path, temp_file)
+        
+        # Cria diretórios temporários necessários
+        os.makedirs(os.path.join(temp_dir, 'tmp'), exist_ok=True)
+        os.makedirs(os.path.join(temp_dir, 'ppmd_tmp'), exist_ok=True)
+        
         cmd = [
             sys.executable,  # Usa o mesmo interpretador Python
             DAMICORE,
             "--compressor", compressor,
             "--tree-output", output_tree,
-            chunk_path
+            temp_dir  # Passa o diretório em vez do arquivo
         ]
         
         success = run_command_with_retry(
