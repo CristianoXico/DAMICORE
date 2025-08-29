@@ -278,49 +278,58 @@ def consolidate_results(results_dir: str, final_dir: str) -> bool:
         logger.info(f"Consolidando {len(newick_files)} árvores...")
         success = True
 
-        # 1. Gera árvore consenso
+        # 1. Gera árvore consenso usando ETE3
         consensus_output = os.path.join(final_dir, "consensus_tree.newick")
         if not os.path.exists(consensus_output):
-            cmd = [
-                sys.executable,
-                DAMICORE,
-                "--consensus-tree",
-                "--output", consensus_output,
-                "--input-trees"
-            ] + newick_files
-            
-            if not run_command_with_retry(cmd, max_retries=2, timeout=SUBPROCESS_TIMEOUT):
-                logger.warning("Falha ao gerar árvore de consenso")
+            try:
+                from ete3 import Tree, TreeList
+                
+                # Carrega todas as árvores
+                trees = TreeList()
+                for nf in newick_files:
+                    try:
+                        t = Tree(nf)
+                        trees.append(t)
+                    except Exception as e:
+                        logger.warning(f"Erro ao carregar árvore {nf}: {str(e)}")
+                
+                if len(trees) > 0:
+                    # Calcula consenso estrito (50% de suporte mínimo)
+                    consensus = trees.consensus(strict=True, threshold=0.5)
+                    consensus.write(outfile=consensus_output)
+                    logger.info(f"Árvore de consenso salva em: {consensus_output}")
+                    
+                    # Calcula similaridade entre as árvores
+                    similarity_file = os.path.join(final_dir, "tree_similarity.txt")
+                    with open(similarity_file, 'w') as f:
+                        f.write("Similaridade entre as árvores:\n\n")
+                        for i, t1 in enumerate(trees):
+                            for j, t2 in enumerate(trees[i+1:], i+1):
+                                rf, max_rf, common_leaves, parts_t1, parts_t2 = t1.robinson_foulds(t2, unrooted_trees=True)
+                                f.write(f"Árvore {i} vs Árvore {j}: RF = {rf} (máx possível = {max_rf})\n")
+                    logger.info(f"Análise de similaridade salva em: {similarity_file}")
+                else:
+                    logger.error("Nenhuma árvore válida encontrada para gerar consenso")
+                    success = False
+                    
+            except ImportError:
+                logger.error("Biblioteca ETE3 não encontrada. Instale com: pip install ete3")
+                success = False
+            except Exception as e:
+                logger.error(f"Erro ao gerar árvore de consenso: {str(e)}")
                 success = False
         else:
             logger.info(f"Arquivo de consenso já existe: {consensus_output}")
-
-        # 2. Gera nuvem de árvores
-        cloud_output = os.path.join(final_dir, "cloud_tree.png")
-        if not os.path.exists(cloud_output):
-            cmd = [
-                sys.executable,
-                DAMICORE,
-                "--cloud-tree",
-                "--output", cloud_output,
-                "--input-trees"
-            ] + newick_files
             
-            if not run_command_with_retry(cmd, max_retries=2, timeout=SUBPROCESS_TIMEOUT):
-                logger.warning("Falha ao gerar nuvem de árvores")
-                success = False
-        else:
-            logger.info(f"Arquivo de nuvem já existe: {cloud_output}")
-
         if success:
             logger.info(f"Resultados consolidados com sucesso em {final_dir}")
-        else:
-            logger.warning("Algumas operações de consolidação falharam")
             
         return success
         
     except Exception as e:
-        logger.error(f"Erro durante a consolidação: {str(e)}", exc_info=True)
+        logger.error(f"Erro durante a consolidação dos resultados: {str(e)}")
+        import traceback
+        logger.debug(f"Traceback: {traceback.format_exc()}")
         return False
 
 
