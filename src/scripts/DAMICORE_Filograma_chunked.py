@@ -160,20 +160,33 @@ def process_chunk(
             logger.info("Arquivo de consenso já existe: %s", consensus_output)
             return True
 
-        # Run DAMICORE on chunk with the correct arguments
+        # Create a temporary directory for DAMICORE input
+        damicore_input_dir = os.path.join(chunk_result_dir, "damicore_input")
+        os.makedirs(damicore_input_dir, exist_ok=True)
+        
+        # Copy the input file to the temporary directory with a .txt extension
+        # as DAMICORE expects text files for comparison
+        import shutil
+        input_copy = os.path.join(damicore_input_dir, f"chunk_{chunk_id:04d}.txt")
+        shutil.copy2(input_file, input_copy)
+        
+        # Create a second copy to have at least two files for comparison
+        # DAMICORE needs at least two files to compute distances
+        input_copy2 = os.path.join(damicore_input_dir, f"chunk_{chunk_id:04d}_copy.txt")
+        shutil.copy2(input_file, input_copy2)
+        
+        # Run DAMICORE on the directory containing the files
         cmd = [
             sys.executable,
             DAMICORE,
-            "-c", "gzip",  # Using gzip as specified in the command line
-            "-o", os.path.join(chunk_result_dir, "output"),
+            "-c", "gzip",
             "--ncd-output", os.path.join(chunk_result_dir, "ncd_matrix.csv"),
             "--tree-output", os.path.join(chunk_result_dir, "tree.newick"),
             "--graph-image", os.path.join(chunk_result_dir, "graph.png"),
-            input_file
+            damicore_input_dir  # Pass the directory, not the file
         ]
         
         # Note: Bootstrap sampling would need to be implemented separately
-        # as DAMICORE's CLI doesn't directly support bootstrap parameter
         if num_bootstraps > 0:
             logger.warning("Bootstrap sampling is not directly supported in this version. "
                          f"Using single run with {num_bootstraps} bootstraps not implemented.")
