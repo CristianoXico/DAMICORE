@@ -165,27 +165,52 @@ def process_chunk(chunk_id: int, chunk_path: str, output_dir: str, compressor: s
         Caminho para o arquivo .newick gerado ou None em caso de falha
     """
     try:
+        # Verifica se o arquivo existe e não está vazio
         if not os.path.exists(chunk_path):
             logger.error(f"Arquivo do chunk {chunk_id} não encontrado: {chunk_path}")
             return None
             
+        if os.path.getsize(chunk_path) == 0:
+            logger.error(f"Arquivo do chunk {chunk_id} está vazio: {chunk_path}")
+            return None
+            
+        # Verifica se o arquivo tem pelo menos 2 linhas (cabeçalho + dados)
+        with open(chunk_path, 'r') as f:
+            lines = f.readlines()
+            if len(lines) < 2:
+                logger.error(f"Arquivo do chunk {chunk_id} não tem dados suficientes (menos de 2 linhas): {chunk_path}")
+                return None
+                
         output_tree = os.path.join(output_dir, f"resample_chunk_{chunk_id:04d}-tree.newick")
         logger.info(f"Processando chunk {chunk_id} → {output_tree}")
         
         # Cria um diretório temporário para o processamento
         temp_dir = os.path.join(os.path.dirname(chunk_path), f"temp_chunk_{chunk_id}")
+        
+        # Limpa diretório temporário se existir
+        if os.path.exists(temp_dir):
+            import shutil
+            shutil.rmtree(temp_dir, ignore_errors=True)
+        
         os.makedirs(temp_dir, exist_ok=True)
         
         # Cria um link simbólico para o arquivo dentro do diretório temporário
         # com um nome padronizado que o DAMICORE espera
         temp_file = os.path.join(temp_dir, f"chunk_{chunk_id:04d}.csv")
-        if os.path.exists(temp_file):
-            os.remove(temp_file)
-        os.symlink(chunk_path, temp_file)
+        try:
+            os.symlink(os.path.abspath(chunk_path), temp_file)
+        except OSError as e:
+            logger.error(f"Erro ao criar link simbólico para {chunk_path}: {str(e)}")
+            return None
         
         # Cria diretórios temporários necessários
         os.makedirs(os.path.join(temp_dir, 'tmp'), exist_ok=True)
         os.makedirs(os.path.join(temp_dir, 'ppmd_tmp'), exist_ok=True)
+        
+        # Verifica se o arquivo está acessível via o link simbólico
+        if not os.path.exists(temp_file) or os.path.getsize(temp_file) == 0:
+            logger.error(f"Falha ao acessar o arquivo via link simbólico: {temp_file}")
+            return None
         
         cmd = [
             sys.executable,  # Usa o mesmo interpretador Python
@@ -208,7 +233,9 @@ def process_chunk(chunk_id: int, chunk_path: str, output_dir: str, compressor: s
         return output_tree
         
     except Exception as e:
-        logger.error(f"Erro ao processar chunk {chunk_id}: {str(e)}", exc_info=True)
+        import traceback
+        logger.error(f"Erro inesperado ao processar chunk {chunk_id}: {str(e)}")
+        logger.debug(f"Traceback: {traceback.format_exc()}")
         return None
 
 
