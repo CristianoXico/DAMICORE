@@ -277,6 +277,66 @@ def signal_handler(signum, frame):
     sys.exit(1)
 
 
+def calculate_tree_similarity(consensus, tree):
+    """Calcula a similaridade entre a árvore de consenso e uma árvore individual.
+    
+    Args:
+        consensus: Árvore de consenso
+        tree: Árvore individual para comparação
+        
+    Returns:
+        dict: Dicionário com métricas de similaridade
+    """
+    try:
+        # Calcula a distância de Robinson-Foulds normalizada
+        rf = consensus.treenode.robinson_foulds(tree.treenode, unrooted_trees=True)[0]
+        max_rf = consensus.treenode.robinson_foulds(tree.treenode, unrooted_trees=True)[1]
+        rf_norm = rf / max_rf if max_rf > 0 else 0.0
+        
+        # Calcula a distância de distância de ramos
+        # Padroniza os comprimentos dos ramos primeiro
+        cons_tree = consensus.copy()
+        comp_tree = tree.copy()
+        
+        for t in [cons_tree, comp_tree]:
+            for node in t.treenode.traverse():
+                if not node.is_leaf() and not node.is_root():
+                    if node.dist is None:
+                        node.dist = 0.0
+        
+        # Calcula a distância euclidiana entre os comprimentos dos ramos
+        def get_branch_lengths(t):
+            return [node.dist for node in t.treenode.traverse() 
+                   if not node.is_root() and node.dist is not None]
+        
+        cons_lengths = get_branch_lengths(cons_tree)
+        comp_lengths = get_branch_lengths(comp_tree)
+        
+        # Preenche com zeros se os comprimentos tiverem tamanhos diferentes
+        max_len = max(len(cons_lengths), len(comp_lengths))
+        cons_lengths.extend([0] * (max_len - len(cons_lengths)))
+        comp_lengths.extend([0] * (max_len - len(comp_lengths)))
+        
+        # Calcula a distância euclidiana normalizada
+        import numpy as np
+        euclidean_dist = np.linalg.norm(np.array(cons_lengths) - np.array(comp_lengths))
+        max_euclidean = np.linalg.norm(np.ones(max_len) * max(max(cons_lengths), max(comp_lengths)))
+        euclidean_norm = euclidean_dist / max_euclidean if max_euclidean > 0 else 0.0
+        
+        # Similaridade geral (1 - média das distâncias normalizadas)
+        similarity = 1 - ((rf_norm + euclidean_norm) / 2)
+        
+        return {
+            'rf_distance': rf,
+            'rf_normalized': rf_norm,
+            'euclidean_distance': float(euclidean_dist),
+            'euclidean_normalized': float(euclidean_norm),
+            'similarity_score': float(similarity)
+        }
+    except Exception as e:
+        logger.error(f"Erro ao calcular similaridade: {str(e)}")
+        return None
+
 def consolidate_results(results_dir: str) -> None:
     """Consolida os resultados dos chunks processados.
 
@@ -308,12 +368,95 @@ def consolidate_results(results_dir: str) -> None:
     
     logger.info("Consolidando %d/%d chunks processados", len(chunk_trees), len(chunk_dirs))
     
-    # Aqui você pode adicionar a lógica para combinar as árvores ou gerar um consenso
-    # Por enquanto, apenas copia a primeira árvore como exemplo
-    if chunk_trees:
+    try:
+        # Tenta importar toytree
+        import toytree
+        
+        # Carrega todas as árvores
+        trees = [toytree.tree(tree_file) for tree_file in chunk_trees]
+        
+        # Cria um objeto mtree (multi-tree) com as árvores
+        mtree = toytree.mtree(trees)
+        
+        # Gera árvore de consenso com 80% de suporte mínimo
+        consensus = mtree.get_consensus(
+            min_support=0.8,  # 80% de suporte mínimo
+            rooted=True       # Mantém a raiz
+        )
+        
+        # Salva a árvore de consenso
+        consensus.write(consensus_output)
+        logger.info("Árvore de consenso (80%%) gerada em: %s", consensus_output)
+        
+        # Gera visualização da árvore de consenso
+        plot_path = os.path.join(final_dir, "consensus_tree.png")
+        canvas = consensus.draw(
+            width=1200,
+            height=800,
+            node_labels="support",
+            node_sizes=12,
+            node_style={"stroke": "#262626"},
+            tip_labels_style={"font-size": "10px"}
+        )
+        canvas.save(plot_path)
+        logger.info("Visualização da árvore de consenso salva em: %s", plot_path)
+        
+        # Calcula similaridade entre árvores
+        similarity_file = os.path.join(final_dir, "tree_similarity.txt")
+        with open(similarity_file, 'w', encoding='utf-8') as f:
+            f.write("Análise de Similaridade entre Árvores\n")
+            f.write("="*50 + "\n\n")
+            
+            # Cabeçalho
+            f.write(f"{'Chunk':<15} {'RF Dist.':<15} {'RF Norm.':<15} "
+                   f"{'Eucl. Dist.':<15} {'Eucl. Norm.':<15} "
+                   f"{'Similaridade':<15}\n")
+            f.write("-"*90 + "\n")
+            
+            # Calcula similaridade para cada árvore
+            total_similarity = 0.0
+            valid_trees = 0
+            
+            for i, tree in enumerate(trees):
+                similarity = calculate_tree_similarity(consensus, tree)
+                if similarity:
+                    chunk_name = f"chunk_{i+1:04d}"
+                    f.write(f"{chunk_name:<15} {similarity['rf_distance']:<15.2f} {similarity['rf_normalized']:<15.4f} "
+                           f"{similarity['euclidean_distance']:<15.4f} {similarity['euclidean_normalized']:<15.4f} "
+                           f"{similarity['similarity_score']*100:<14.2f}%\n")
+                    total_similarity += similarity['similarity_score']
+                    valid_trees += 1
+            
+            # Média de similaridade
+            if valid_trees > 0:
+                avg_similarity = (total_similarity / valid_trees) * 100
+                f.write("\n" + "="*90 + "\n")
+                f.write(f"Média de similaridade: {avg_similarity:.2f}%\n")
+                
+                # Classificação de qualidade
+                if avg_similarity >= 90:
+                    quality = "Excelente"
+                elif avg_similarity >= 75:
+                    quality = "Boa"
+                elif avg_similarity >= 50:
+                    quality = "Razoável"
+                else:
+                    quality = "Baixa"
+                    
+                f.write(f"Qualidade do consenso: {quality}\n")
+        
+        logger.info("Análise de similaridade salva em: %s", similarity_file)
+        
+    except ImportError:
+        logger.warning("toytree não encontrado. Usando árvore do primeiro chunk como consenso.")
         import shutil
         shutil.copy2(chunk_trees[0], consensus_output)
-        logger.info("Árvore de consenso gerada em: %s", consensus_output)
+        logger.info("Árvore de consenso gerada a partir do primeiro chunk: %s", consensus_output)
+    except Exception as e:
+        logger.error("Erro ao gerar árvore de consenso: %s", str(e))
+        import shutil
+        shutil.copy2(chunk_trees[0], consensus_output)
+        logger.info("Usando árvore do primeiro chunk como fallback: %s", consensus_output)
 
 
 def main() -> None:
