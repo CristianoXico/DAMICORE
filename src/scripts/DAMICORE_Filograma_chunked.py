@@ -160,23 +160,25 @@ def process_chunk(
             logger.info("Arquivo de consenso já existe: %s", consensus_output)
             return True
 
-        # Run DAMICORE on chunk
+        # Run DAMICORE on chunk with the correct arguments
         cmd = [
             sys.executable,
             DAMICORE,
-            "--input",
-            input_file,
-            "--output",
-            chunk_result_dir,
-            "--bootstrap",
-            str(num_bootstraps),
-            "--out",
-            chunk_result_dir,
-            "--compressor",
-            "bzip2",
-            "--clustering",
-            "single",
+            "-c", "gzip",  # Using gzip as specified in the command line
+            "-o", os.path.join(chunk_result_dir, "output"),
+            "--ncd-output", os.path.join(chunk_result_dir, "ncd_matrix.csv"),
+            "--tree-output", os.path.join(chunk_result_dir, "tree.newick"),
+            "--graph-image", os.path.join(chunk_result_dir, "graph.png"),
+            input_file
         ]
+        
+        # Note: Bootstrap sampling would need to be implemented separately
+        # as DAMICORE's CLI doesn't directly support bootstrap parameter
+        if num_bootstraps > 0:
+            logger.warning("Bootstrap sampling is not directly supported in this version. "
+                         f"Using single run with {num_bootstraps} bootstraps not implemented.")
+            logger.info("Consider running DAMICORE multiple times with different samples "
+                       "for bootstrap analysis.")
 
         logger.info(f"Processando chunk {chunk_id}: {input_file}")
         success = run_command_with_retry(cmd)
