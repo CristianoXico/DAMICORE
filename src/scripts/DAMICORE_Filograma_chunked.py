@@ -154,8 +154,15 @@ def process_chunk(
 
         # Verifica se o chunk já foi processado
         final_dir = os.path.join(results_dir, "final")
+        os.makedirs(final_dir, exist_ok=True)  # Garante que o diretório final existe
         consensus_output = os.path.join(final_dir, "consensus_tree.newick")
-
+        
+        # Verifica se o chunk já foi processado anteriormente
+        chunk_result_file = os.path.join(results_dir, f"chunk_{chunk_id:04d}", "tree.newick")
+        if os.path.exists(chunk_result_file):
+            logger.info(f"Chunk {chunk_id} já processado anteriormente")
+            return True
+        
         if os.path.exists(consensus_output):
             logger.info("Arquivo de consenso já existe: %s", consensus_output)
             return True
@@ -262,13 +269,37 @@ def consolidate_results(results_dir: str) -> None:
     Args:
         results_dir: Diretório base contendo os resultados
     """
-    try:
-        logger.info("Iniciando consolidação dos resultados em %s", results_dir)
-        # Implementar lógica de consolidação aqui
-        logger.info("Consolidação concluída com sucesso")
-    except Exception as e:
-        logger.error("Erro ao consolidar resultados: %s", str(e))
-        raise
+    # Cria diretório final se não existir
+    final_dir = os.path.join(results_dir, "final")
+    os.makedirs(final_dir, exist_ok=True)
+
+    # Verifica se já existe um arquivo de consenso
+    consensus_output = os.path.join(final_dir, "consensus_tree.newick")
+    if os.path.exists(consensus_output):
+        logger.info("Arquivo de consenso já existe: %s", consensus_output)
+        return
+
+    # Lista todos os diretórios de chunks processados que contêm árvores
+    chunk_trees = []
+    chunk_dirs = sorted(glob.glob(os.path.join(results_dir, "chunk_*")))
+    
+    for chunk_dir in chunk_dirs:
+        tree_file = os.path.join(chunk_dir, "tree.newick")
+        if os.path.exists(tree_file):
+            chunk_trees.append(tree_file)
+    
+    if not chunk_trees:
+        logger.warning("Nenhuma árvore de chunk válida encontrada")
+        return
+    
+    logger.info("Consolidando %d/%d chunks processados", len(chunk_trees), len(chunk_dirs))
+    
+    # Aqui você pode adicionar a lógica para combinar as árvores ou gerar um consenso
+    # Por enquanto, apenas copia a primeira árvore como exemplo
+    if chunk_trees:
+        import shutil
+        shutil.copy2(chunk_trees[0], consensus_output)
+        logger.info("Árvore de consenso gerada em: %s", consensus_output)
 
 
 def main() -> None:
@@ -326,12 +357,15 @@ def main() -> None:
     logger.info("Compressor: %s", args.compressor)
 
     try:
-        # Cria diretórios únicos baseados no nome do arquivo de entrada
-        input_basename = os.path.splitext(os.path.basename(args.input))[0]
-        timestamp = int(time.time())
-        unique_dir = f"{input_basename}_{timestamp}"
-        workdir = os.path.join(args.workdir, unique_dir)
-
+        # Usa um hash do caminho absoluto do arquivo de entrada para criar um diretório consistente
+        input_abs_path = os.path.abspath(args.input)
+        import hashlib
+        input_hash = hashlib.md5(input_abs_path.encode('utf-8')).hexdigest()
+        
+        # Cria um diretório baseado no hash do caminho do arquivo
+        workdir = os.path.join(args.workdir, f"{os.path.basename(args.input)}_{input_hash[:8]}")
+        
+        # Define os subdiretórios
         chunks_dir = os.path.join(workdir, "chunks")
         results_dir = os.path.join(workdir, "damicore_results")
         final_dir = os.path.join(workdir, "final")
@@ -353,17 +387,38 @@ def main() -> None:
 
         logger.info("%d chunks criados com sucesso", len(chunk_files))
 
-        # 2. Processar em paralelo
-        logger.info("Processando chunks em paralelo...")
-        pool_args = [
-            (i, chunk_path, results_dir, 22)  # 22 bootstraps
-            for i, chunk_path in enumerate(chunk_files, 1)
-        ]
-
-        successful_chunks = 0
-        with mp.Pool(args.n_processes) as pool:
-            results = pool.starmap(process_chunk, pool_args)
-            successful_chunks = sum(1 for r in results if r is not None)
+        # 2. Processar em paralelo apenas os chunks não processados
+        logger.info("Verificando chunks já processados...")
+        
+        # Filtra apenas os chunks que ainda não foram processados
+        chunks_to_process = []
+        for i, chunk_path in enumerate(chunk_files, 1):
+            chunk_id = f"{i:04d}"
+            chunk_result_dir = os.path.join(results_dir, f"chunk_{chunk_id}")
+            chunk_tree = os.path.join(chunk_result_dir, "tree.newick")
+            
+            if os.path.exists(chunk_tree):
+                logger.debug("Chunk %s já processado anteriormente", chunk_id)
+            else:
+                chunks_to_process.append((i, chunk_path, results_dir, 22))  # 22 bootstraps
+        
+        if not chunks_to_process:
+            logger.info("Todos os chunks já foram processados anteriormente")
+        else:
+            logger.info("Processando %d/%d chunks em paralelo...", 
+                       len(chunks_to_process), len(chunk_files))
+            
+            successful_chunks = 0
+            with mp.Pool(args.n_processes) as pool:
+                results = pool.starmap(process_chunk, chunks_to_process)
+                successful_chunks = sum(1 for r in results if r is not None)
+            
+            logger.info("%d novos chunks processados com sucesso", successful_chunks)
+        
+        # Conta o total de chunks processados (antigos + novos)
+        processed_chunks = sum(1 for i in range(1, len(chunk_files) + 1)
+                             if os.path.exists(os.path.join(results_dir, f"chunk_{i:04d}", "tree.newick")))
+        successful_chunks = processed_chunks
 
         logger.info(
             "Processamento concluído: %d/%d chunks processados com sucesso",
