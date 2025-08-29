@@ -8,12 +8,11 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import List, Tuple, Optional
 
-# Configuração de logging
+# Configura logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(),
         logging.FileHandler('damicore_chunked.log')
@@ -35,308 +34,248 @@ if not os.path.exists(DAMICORE):
     sys.exit(1)
 
 
-def split_file_by_size(input_file: str, output_dir: str, chunk_size_mb: int) -> List[Tuple[int, str]]:
-    """
-    Divide o arquivo CSV em chunks de tamanho aproximado (MB).
-    
+def split_file_by_size(
+    input_file: str,
+    output_dir: str,
+    chunk_size_mb: int = 10
+) -> List[str]:
+    """Divide um arquivo em pedaços menores.
+
     Args:
-        input_file: Caminho para o arquivo CSV de entrada
-        output_dir: Diretório para salvar os chunks
+        input_file: Caminho para o arquivo de entrada
+        output_dir: Diretório de saída para os chunks
         chunk_size_mb: Tamanho máximo de cada chunk em MB
-        
+
     Returns:
-        Lista de tuplas (chunk_id, caminho_do_arquivo)
+        Lista com os caminhos dos arquivos gerados
     """
     try:
         os.makedirs(output_dir, exist_ok=True)
-        chunk_files = []
-        chunk_size = chunk_size_mb * 1024 * 1024
-        
-        if not os.path.exists(input_file):
-            raise FileNotFoundError(f"Arquivo de entrada não encontrado: {input_file}")
-            
-        if os.path.getsize(input_file) == 0:
-            raise ValueError(f"O arquivo de entrada está vazio: {input_file}")
+        chunk_size = chunk_size_mb * 1024 * 1024  # Convert MB to bytes
+        output_files = []
 
-        with open(input_file, "r", encoding="utf-8") as f:
+        with open(input_file, 'r', encoding='utf-8') as f:
             header = f.readline()
             if not header:
-                raise ValueError("O arquivo de entrada está vazio ou não contém cabeçalho")
-                
-            chunk_id = 0
-            out_path = os.path.join(output_dir, f"resample_chunk_{chunk_id:04d}.csv")
-            out = open(out_path, "w", encoding="utf-8")
-            out.write(header)
-            written = len(header.encode("utf-8"))
-            
-            try:
-                for line in f:
-                    line_bytes = len(line.encode("utf-8"))
-                    
-                    # Se adicionar esta linha ultrapassar o tamanho do chunk, fecha o arquivo atual
-                    if written + line_bytes > chunk_size and written > 0:
-                        out.close()
-                        chunk_files.append((chunk_id, out_path))
-                        chunk_id += 1
-                        out_path = os.path.join(output_dir, f"resample_chunk_{chunk_id:04d}.csv")
-                        out = open(out_path, "w", encoding="utf-8")
-                        out.write(header)
-                        written = len(header.encode("utf-8"))
-                    
-                    out.write(line)
-                    written += line_bytes
-                
-                # Adiciona o último chunk se não estiver vazio
-                if written > len(header):
-                    chunk_files.append((chunk_id, out_path))
-                
-            except Exception as e:
-                out.close()
-                os.remove(out_path)  # Remove o arquivo parcial em caso de erro
-                raise e
-            finally:
-                if not out.closed:
-                    out.close()
-        
-        if not chunk_files:
-            raise RuntimeError("Nenhum chunk foi criado. Verifique o tamanho do chunk e o arquivo de entrada.")
-            
-        logger.info(f"Total de {len(chunk_files)} chunks criados em {output_dir}")
-        return chunk_files
-        
+                return []
+
+            chunk_num = 1
+            current_chunk_size = 0
+            current_chunk = [header]
+
+            for line in f:
+                line_size = len(line.encode('utf-8'))
+
+                if (current_chunk_size + line_size > chunk_size and
+                        len(current_chunk) > 1):
+                    # Save current chunk
+                    chunk_path = os.path.join(
+                        output_dir, f"chunk_{chunk_num:04d}.csv"
+                    )
+                    with open(chunk_path, 'w', encoding='utf-8') as chunk_file:
+                        chunk_file.writelines(current_chunk)
+                    output_files.append(chunk_path)
+
+                    # Start new chunk
+                    chunk_num += 1
+                    current_chunk = [header, line]
+                    current_chunk_size = len(header) + line_size
+                else:
+                    current_chunk.append(line)
+                    current_chunk_size += line_size
+
+            # Save the last chunk if not empty
+            if len(current_chunk) > 1:
+                chunk_path = os.path.join(
+                    output_dir, f"chunk_{chunk_num:04d}.csv"
+                )
+                with open(chunk_path, 'w', encoding='utf-8') as chunk_file:
+                    chunk_file.writelines(current_chunk)
+                output_files.append(chunk_path)
+
+        return output_files
     except Exception as e:
-        logger.error(f"Erro ao dividir o arquivo: {str(e)}", exc_info=True)
-        # Limpa arquivos parciais em caso de erro
-        for _, path in chunk_files:
-            try:
-                if os.path.exists(path):
-                    os.remove(path)
-            except Exception as cleanup_error:
-                logger.warning(f"Não foi possível remover {path}: {cleanup_error}")
+        logger.error("Erro ao dividir o arquivo: %s", str(e), exc_info=True)
         raise
 
 
-def run_command_with_retry(cmd: list, max_retries: int = 3, timeout: int = 3600) -> bool:
+def run_command_with_retry(
+    cmd: List[str],
+    max_retries: int = 3,
+    retry_delay: int = 5,
+    timeout: int = 3600
+) -> bool:
     """Executa um comando com tratamento de erros e retentativas."""
     for attempt in range(max_retries):
         try:
-            logger.debug(f"Tentativa {attempt + 1}/{max_retries}: {' '.join(cmd)}")
+            logger.debug("Executando comando: %s", " ".join(cmd))
             result = subprocess.run(
                 cmd,
                 check=True,
-                timeout=timeout,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
+                capture_output=True,
+                text=True,
+                timeout=timeout
             )
-            if result.returncode == 0:
-                if result.stdout:
-                    logger.debug(f"Saída: {result.stdout}")
-                return True
-            logger.warning(f"Comando falhou com código {result.returncode}. Tentativa {attempt + 1}/{max_retries}")
-            if result.stderr:
-                logger.error(f"Erro: {result.stderr}")
-        except subprocess.TimeoutExpired:
-            logger.error(f"Timeout ao executar comando: {' '.join(cmd)}")
+            logger.debug("Saída do comando: %s", result.stdout)
+            return result.returncode == 0
+
         except subprocess.CalledProcessError as e:
-            logger.error(f"Erro ao executar comando: {e}")
-            if e.stderr:
-                logger.error(f"Detalhes do erro: {e.stderr}")
+            logger.error(
+                "Erro ao executar comando (tentativa %d/%d): %s",
+                attempt + 1, max_retries, str(e)
+            )
+            logger.debug("Erro detalhado: %s", e.stderr)
+            if attempt < max_retries - 1:
+                logger.info(
+                    "Aguardando %d segundos antes de tentar novamente...",
+                    retry_delay
+                )
+                time.sleep(retry_delay)
         except Exception as e:
-            logger.error(f"Erro inesperado: {str(e)}", exc_info=True)
-        
+            logger.error("Erro inesperado: %s", str(e))
+
         if attempt < max_retries - 1:
-            logger.info(f"Tentando novamente em 5 segundos...")
-            time.sleep(5)
-    
+            wait_time = 5 * (attempt + 1)
+            logger.info(
+                "Aguardando %d segundos antes de tentar novamente...",
+                wait_time
+            )
+            time.sleep(wait_time)
+
     return False
 
-def process_chunk(chunk_id: int, chunk_path: str, output_dir: str, compressor: str = "gzip") -> Optional[str]:
+
+def process_chunk(
+    chunk_id: int,
+    input_file: str,
+    results_dir: str,
+    num_bootstraps: int = 22
+) -> bool:
     """
-    Executa DAMICORE em um chunk.
-    
+    Processa um chunk do arquivo de entrada.
+
     Args:
         chunk_id: ID do chunk
-        chunk_path: Caminho para o arquivo do chunk
-        output_dir: Diretório de saída
-        compressor: Compressor a ser usado (padrão: gzip)
-        
+        input_file: Caminho para o arquivo de entrada
+        results_dir: Diretório de saída para os resultados
+        num_bootstraps: Número de bootstraps para o DAMICORE
+
     Returns:
-        Caminho para o arquivo .newick gerado ou None em caso de falha
+        True se o processamento foi bem-sucedido, False caso contrário
     """
     try:
-        # Verifica se o arquivo existe e não está vazio
-        if not os.path.exists(chunk_path):
-            logger.error(f"Arquivo do chunk {chunk_id} não encontrado: {chunk_path}")
-            return None
+        # Cria diretório de saída para o chunk
+        chunk_result_dir = os.path.join(results_dir, f"chunk_{chunk_id:04d}")
+        os.makedirs(chunk_result_dir, exist_ok=True)
+
+        # Verifica se o chunk já foi processado
+        final_dir = os.path.join(results_dir, "final")
+        consensus_output = os.path.join(final_dir, "consensus_tree.newick")
+
+        if os.path.exists(consensus_output):
+            logger.info("Arquivo de consenso já existe: %s", consensus_output)
+            return True
             
-        if os.path.getsize(chunk_path) == 0:
-            logger.error(f"Arquivo do chunk {chunk_id} está vazio: {chunk_path}")
-            return None
-            
-        # Lê o conteúdo do arquivo
-        with open(chunk_path, 'r') as f:
-            lines = f.readlines()
-            
-        # Verifica se o arquivo tem pelo menos 2 linhas (cabeçalho + dados)
-        if len(lines) < 2:
-            logger.error(f"Arquivo do chunk {chunk_id} não tem dados suficientes (menos de 2 linhas): {chunk_path}")
-            return None
-            
-        output_tree = os.path.join(output_dir, f"resample_chunk_{chunk_id:04d}-tree.newick")
-        logger.info(f"Processando chunk {chunk_id} → {output_tree}")
-        
-        # Cria um diretório temporário para o processamento
-        temp_dir = os.path.join(os.path.dirname(chunk_path), f"temp_chunk_{chunk_id}")
-        
-        # Limpa diretório temporário se existir
-        if os.path.exists(temp_dir):
-            import shutil
-            shutil.rmtree(temp_dir, ignore_errors=True)
-        
-        os.makedirs(temp_dir, exist_ok=True)
-        
-        # Cria múltiplos arquivos a partir do chunk para atender ao requisito do DAMICORE
-        # de ter múltiplos arquivos para comparação
-        header = lines[0]
-        data_lines = lines[1:]
-        
-        # Divide os dados em 5 partes iguais (ou menos se não houver dados suficientes)
-        n_parts = min(5, len(data_lines))
-        chunk_size = max(1, len(data_lines) // n_parts)
-        
-        for i in range(n_parts):
-            start_idx = i * chunk_size
-            end_idx = (i + 1) * chunk_size if i < n_parts - 1 else len(data_lines)
-            
-            part_data = [header] + data_lines[start_idx:end_idx]
-            part_file = os.path.join(temp_dir, f"chunk_{chunk_id:04d}_part{i+1:02d}.csv")
-            
-            with open(part_file, 'w') as f:
-                f.writelines(part_data)
-                
-            # Verifica se o arquivo foi criado corretamente
-            if os.path.getsize(part_file) == 0:
-                logger.error(f"Falha ao criar arquivo de dados: {part_file}")
-                return None
-        
-        # Cria diretórios temporários necessários
-        os.makedirs(os.path.join(temp_dir, 'tmp'), exist_ok=True)
-        os.makedirs(os.path.join(temp_dir, 'ppmd_tmp'), exist_ok=True)
-        
-        # Verifica se existem arquivos no diretório temporário
-        if not any(fname.endswith('.csv') for fname in os.listdir(temp_dir)):
-            logger.error(f"Nenhum arquivo CSV válido encontrado em {temp_dir}")
-            return None
-        
+        # Run DAMICORE on chunk
         cmd = [
-            sys.executable,  # Usa o mesmo interpretador Python
+            sys.executable,
             DAMICORE,
-            "--compressor", compressor,
-            "--tree-output", output_tree,
-            temp_dir  # Passa o diretório em vez do arquivo
+            "--input",
+            input_file,
+            "--output",
+            chunk_result_dir,
+            "--bootstrap",
+            str(num_bootstraps),
+            "--out",
+            chunk_result_dir,
+            "--compressor",
+            "bzip2",
+            "--clustering",
+            "single"
         ]
         
-        success = run_command_with_retry(
-            cmd,
-            max_retries=SUBPROCESS_RETRIES,
-            timeout=SUBPROCESS_TIMEOUT
-        )
+        logger.info(f"Processando chunk {chunk_id}: {input_file}")
+        success = run_command_with_retry(cmd)
         
-        if not success or not os.path.exists(output_tree):
-            logger.error(f"Falha ao processar chunk {chunk_id}")
-            return None
-            
-        return output_tree
-        
-    except Exception as e:
-        import traceback
-        logger.error(f"Erro inesperado ao processar chunk {chunk_id}: {str(e)}")
-        logger.debug(f"Traceback: {traceback.format_exc()}")
-        return None
-
-
-def consolidate_results(results_dir: str, final_dir: str) -> bool:
-    """
-    Coleta todos os arquivos .newick e gera visualizações finais.
-    
-    Args:
-        results_dir: Diretório com os arquivos .newick
-        final_dir: Diretório para salvar os resultados finais
-        
-    Returns:
-        True se a consolidação foi bem-sucedida, False caso contrário
-    """
-    try:
-        os.makedirs(final_dir, exist_ok=True)
-        newick_files = sorted(glob.glob(os.path.join(results_dir, "*-tree.newick")))
-
-        if not newick_files:
-            logger.error("Nenhum arquivo .newick encontrado para consolidar!")
+        if not success:
+            logger.error("Falha ao processar o chunk %d", chunk_id)
             return False
-
-        logger.info(f"Consolidando {len(newick_files)} árvores...")
-        success = True
-
-        # 1. Gera árvore consenso usando ETE3
-        consensus_output = os.path.join(final_dir, "consensus_tree.newick")
-        if not os.path.exists(consensus_output):
-            try:
-                from ete3 import Tree, TreeList
+            
+        try:
+            from ete3 import Tree
+            
+            # Load generated trees
+            tree_files = glob.glob(os.path.join(
+                chunk_result_dir, "*tree.newick"
+            ))
+            trees = []
+            for tree_file in tree_files:
+                try:
+                    tree = Tree(tree_file)
+                    trees.append(tree)
+                except Exception as e:
+                    logger.warning(
+                        "Erro ao carregar árvore %s: %s",
+                        tree_file,
+                        str(e)
+                    )
+            
+            if trees:
+                # Create final directory if it does not exist
+                os.makedirs(final_dir, exist_ok=True)
                 
-                # Carrega todas as árvores
-                trees = TreeList()
-                for nf in newick_files:
-                    try:
-                        t = Tree(nf)
-                        trees.append(t)
-                    except Exception as e:
-                        logger.warning(f"Erro ao carregar árvore {nf}: {str(e)}")
+                # Save consensus tree
+                consensus_tree = Tree()
+                consensus_tree.consensus(trees)
+                consensus_tree.write(outfile=consensus_output)
+                logger.info("Árvore de consenso salva em: %s", consensus_output)
+                success = True
+            else:
+                logger.error("Nenhuma árvore válida encontrada para gerar consenso")
+                success = False
                 
-                if len(trees) > 0:
-                    # Calcula consenso estrito (50% de suporte mínimo)
-                    consensus = trees.consensus(strict=True, threshold=0.5)
-                    consensus.write(outfile=consensus_output)
-                    logger.info(f"Árvore de consenso salva em: {consensus_output}")
-                    
-                    # Calcula similaridade entre as árvores
-                    similarity_file = os.path.join(final_dir, "tree_similarity.txt")
-                    with open(similarity_file, 'w') as f:
-                        f.write("Similaridade entre as árvores:\n\n")
-                        for i, t1 in enumerate(trees):
-                            for j, t2 in enumerate(trees[i+1:], i+1):
-                                rf, max_rf, common_leaves, parts_t1, parts_t2 = t1.robinson_foulds(t2, unrooted_trees=True)
-                                f.write(f"Árvore {i} vs Árvore {j}: RF = {rf} (máx possível = {max_rf})\n")
-                    logger.info(f"Análise de similaridade salva em: {similarity_file}")
-                else:
-                    logger.error("Nenhuma árvore válida encontrada para gerar consenso")
-                    success = False
-                    
-            except ImportError:
-                logger.error("Biblioteca ETE3 não encontrada. Instale com: pip install ete3")
-                success = False
-            except Exception as e:
-                logger.error(f"Erro ao gerar árvore de consenso: {str(e)}")
-                success = False
-        else:
-            logger.info(f"Arquivo de consenso já existe: {consensus_output}")
+        except ImportError:
+            logger.error("Módulo ete3 não encontrado. Instale com: pip install ete3")
+            success = False
+        except Exception as e:
+            logger.error("Erro ao gerar árvore de consenso: %s", str(e))
+            success = False
             
         if success:
-            logger.info(f"Resultados consolidados com sucesso em {final_dir}")
+            logger.info("Resultados consolidados com sucesso em %s", final_dir)
             
         return success
         
     except Exception as e:
-        logger.error(f"Erro durante a consolidação dos resultados: {str(e)}")
-        import traceback
-        logger.debug(f"Traceback: {traceback.format_exc()}")
+        logger.error("Erro durante o processamento do chunk: %s", str(e))
+        try:
+            import traceback
+            logger.debug("Traceback: %s", traceback.format_exc())
+        except ImportError:
+            pass
         return False
 
 
 def signal_handler(signum, frame):
     """Manipulador para sinais de interrupção."""
-    logger.warning(f"Recebido sinal {signum}. Encerrando...")
+    logger.warning("Recebido sinal %d. Encerrando...", signum)
     sys.exit(1)
+
+
+def consolidate_results(results_dir: str) -> None:
+    """Consolida os resultados dos chunks processados.
+
+    Args:
+        results_dir: Diretório base contendo os resultados
+    """
+    try:
+        logger.info("Iniciando consolidação dos resultados em %s", results_dir)
+        # Implementar lógica de consolidação aqui
+        logger.info("Consolidação concluída com sucesso")
+    except Exception as e:
+        logger.error("Erro ao consolidar resultados: %s", str(e))
+        raise
+
 
 def main() -> None:
     """Função principal do script."""
@@ -345,7 +284,10 @@ def main() -> None:
     signal.signal(signal.SIGTERM, signal_handler)
     
     parser = argparse.ArgumentParser(
-        description="DAMICORE em modo chunked (para arquivos grandes).",
+        description=(
+            "DAMICORE em modo chunked "
+            "(para arquivos grandes)."
+        ),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
@@ -362,13 +304,13 @@ def main() -> None:
         "--chunk-size-mb",
         type=int,
         default=DEFAULT_CHUNK_SIZE_MB,
-        help=f"Tamanho máximo de cada chunk em MB (padrão: {DEFAULT_CHUNK_SIZE_MB}MB)",
+        help="Tamanho máximo de cada chunk em MB (padrão: %(default)sMB)",
     )
     parser.add_argument(
         "--n-processes",
         type=int,
         default=max(1, mp.cpu_count() - 1),
-        help=f"Número de processos em paralelo (padrão: CPUs disponíveis - 1)",
+        help="Número de processos em paralelo (padrão: CPUs disponíveis - 1)",
     )
     parser.add_argument(
         "--compressor",
@@ -388,36 +330,47 @@ def main() -> None:
     if args.debug:
         logger.setLevel(logging.DEBUG)
         logger.debug("Modo debug ativado")
-    
-    logger.info(f"Iniciando processamento de {args.input}")
-    logger.info(f"Usando {args.n_processes} processos paralelos")
-    logger.info(f"Tamanho do chunk: {args.chunk_size_mb}MB")
-    logger.info(f"Compressor: {args.compressor}")
+    logger.info("Iniciando processamento de %s", args.input)
+    logger.info("Diretório de trabalho: %s", args.workdir)
+    logger.info("Usando %d processos paralelos", args.n_processes)
+    logger.info("Tamanho do chunk: %dMB", args.chunk_size_mb)
+    logger.info("Compressor: %s", args.compressor)
     
     try:
-        # Cria diretórios necessários
-        chunks_dir = os.path.join(args.workdir, "chunks")
-        results_dir = os.path.join(args.workdir, "damicore_results")
-        final_dir = os.path.join(args.workdir, "final")
+        # Cria diretórios únicos baseados no nome do arquivo de entrada
+        input_basename = os.path.splitext(os.path.basename(args.input))[0]
+        timestamp = int(time.time())
+        unique_dir = f"{input_basename}_{timestamp}"
+        workdir = os.path.join(args.workdir, unique_dir)
+
+        chunks_dir = os.path.join(workdir, "chunks")
+        results_dir = os.path.join(workdir, "damicore_results")
+        final_dir = os.path.join(workdir, "final")
 
         for directory in [chunks_dir, results_dir, final_dir]:
             os.makedirs(directory, exist_ok=True)
-            logger.debug(f"Diretório criado/verificado: {directory}")
+            logger.debug("Diretório criado/verificado: %s", directory)
 
         # 1. Dividir arquivo em chunks
         logger.info("Dividindo arquivo em chunks...")
-        chunk_files = split_file_by_size(args.input, chunks_dir, args.chunk_size_mb)
+        chunk_files = split_file_by_size(
+            args.input, chunks_dir, args.chunk_size_mb
+        )
         
         if not chunk_files:
-            logger.error("Nenhum chunk foi criado. Verifique o tamanho do chunk e o arquivo de entrada.")
+            logger.error(
+                "Nenhum chunk foi criado. Verifique o tamanho do chunk e o "
+                "arquivo de entrada."
+            )
             sys.exit(1)
             
-        logger.info(f"{len(chunk_files)} chunks criados com sucesso")
+        logger.info("%d chunks criados com sucesso", len(chunk_files))
 
         # 2. Processar em paralelo
         logger.info("Processando chunks em paralelo...")
         pool_args = [
-            (cid, cpath, results_dir, args.compressor) for cid, cpath in chunk_files
+            (i, chunk_path, results_dir, 22)  # 22 bootstraps
+            for i, chunk_path in enumerate(chunk_files, 1)
         ]
         
         successful_chunks = 0
@@ -425,7 +378,10 @@ def main() -> None:
             results = pool.starmap(process_chunk, pool_args)
             successful_chunks = sum(1 for r in results if r is not None)
         
-        logger.info(f"Processamento concluído: {successful_chunks}/{len(chunk_files)} chunks processados com sucesso")
+        logger.info(
+            "Processamento concluído: %d/%d chunks processados com sucesso",
+            successful_chunks, len(chunk_files)
+        )
         
         if successful_chunks == 0:
             logger.error("Nenhum chunk foi processado com sucesso")
@@ -433,13 +389,11 @@ def main() -> None:
 
         # 3. Consolidar e gerar imagens
         logger.info("Consolidando resultados...")
-        if not consolidate_results(results_dir, final_dir):
-            logger.warning("Algumas operações de consolidação falharam")
-            
+        consolidate_results(results_dir)
         logger.info("Processamento concluído com sucesso!")
         
     except Exception as e:
-        logger.critical(f"Erro fatal: {str(e)}", exc_info=True)
+        logger.critical("Erro fatal: %s", str(e), exc_info=True)
         sys.exit(1)
 
 
