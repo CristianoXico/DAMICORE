@@ -174,13 +174,15 @@ def process_chunk(chunk_id: int, chunk_path: str, output_dir: str, compressor: s
             logger.error(f"Arquivo do chunk {chunk_id} está vazio: {chunk_path}")
             return None
             
-        # Verifica se o arquivo tem pelo menos 2 linhas (cabeçalho + dados)
+        # Lê o conteúdo do arquivo
         with open(chunk_path, 'r') as f:
             lines = f.readlines()
-            if len(lines) < 2:
-                logger.error(f"Arquivo do chunk {chunk_id} não tem dados suficientes (menos de 2 linhas): {chunk_path}")
-                return None
-                
+            
+        # Verifica se o arquivo tem pelo menos 2 linhas (cabeçalho + dados)
+        if len(lines) < 2:
+            logger.error(f"Arquivo do chunk {chunk_id} não tem dados suficientes (menos de 2 linhas): {chunk_path}")
+            return None
+            
         output_tree = os.path.join(output_dir, f"resample_chunk_{chunk_id:04d}-tree.newick")
         logger.info(f"Processando chunk {chunk_id} → {output_tree}")
         
@@ -194,22 +196,37 @@ def process_chunk(chunk_id: int, chunk_path: str, output_dir: str, compressor: s
         
         os.makedirs(temp_dir, exist_ok=True)
         
-        # Cria um link simbólico para o arquivo dentro do diretório temporário
-        # com um nome padronizado que o DAMICORE espera
-        temp_file = os.path.join(temp_dir, f"chunk_{chunk_id:04d}.csv")
-        try:
-            os.symlink(os.path.abspath(chunk_path), temp_file)
-        except OSError as e:
-            logger.error(f"Erro ao criar link simbólico para {chunk_path}: {str(e)}")
-            return None
+        # Cria múltiplos arquivos a partir do chunk para atender ao requisito do DAMICORE
+        # de ter múltiplos arquivos para comparação
+        header = lines[0]
+        data_lines = lines[1:]
+        
+        # Divide os dados em 5 partes iguais (ou menos se não houver dados suficientes)
+        n_parts = min(5, len(data_lines))
+        chunk_size = max(1, len(data_lines) // n_parts)
+        
+        for i in range(n_parts):
+            start_idx = i * chunk_size
+            end_idx = (i + 1) * chunk_size if i < n_parts - 1 else len(data_lines)
+            
+            part_data = [header] + data_lines[start_idx:end_idx]
+            part_file = os.path.join(temp_dir, f"chunk_{chunk_id:04d}_part{i+1:02d}.csv")
+            
+            with open(part_file, 'w') as f:
+                f.writelines(part_data)
+                
+            # Verifica se o arquivo foi criado corretamente
+            if os.path.getsize(part_file) == 0:
+                logger.error(f"Falha ao criar arquivo de dados: {part_file}")
+                return None
         
         # Cria diretórios temporários necessários
         os.makedirs(os.path.join(temp_dir, 'tmp'), exist_ok=True)
         os.makedirs(os.path.join(temp_dir, 'ppmd_tmp'), exist_ok=True)
         
-        # Verifica se o arquivo está acessível via o link simbólico
-        if not os.path.exists(temp_file) or os.path.getsize(temp_file) == 0:
-            logger.error(f"Falha ao acessar o arquivo via link simbólico: {temp_file}")
+        # Verifica se existem arquivos no diretório temporário
+        if not any(fname.endswith('.csv') for fname in os.listdir(temp_dir)):
+            logger.error(f"Nenhum arquivo CSV válido encontrado em {temp_dir}")
             return None
         
         cmd = [
