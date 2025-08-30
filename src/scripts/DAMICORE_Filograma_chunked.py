@@ -341,7 +341,8 @@ def consolidate_results(results_dir: str) -> None:
     
     try:
         import toytree
-        from toytree.consensus import consensus as consensus_util
+        # In toytree 3.0.10, consensus is a method of the toytree module
+        consensus_util = toytree.tree_consensus
         
         # Carrega todas as árvores
         trees = [toytree.tree(tree_file) for tree_file in chunk_trees]
