@@ -379,9 +379,11 @@ def consolidate_results(results_dir: str) -> None:
         mtree = toytree.mtree(trees)
         
         # Gera árvore de consenso com 80% de suporte mínimo
-        consensus = mtree.get_consensus(
+        # Usa majority_consensus com 80% de suporte
+        consensus = mtree.consensus(
             min_support=0.8,  # 80% de suporte mínimo
-            rooted=True       # Mantém a raiz
+            rooted=True,      # Mantém a raiz
+            name_func=lambda x: f"{x*100:.0f}%"  # Formata o suporte como porcentagem
         )
         
         # Salva a árvore de consenso
