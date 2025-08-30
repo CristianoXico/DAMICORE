@@ -7,8 +7,9 @@ import signal
 import subprocess
 import sys
 import time
+import traceback
 from pathlib import Path
-from typing import List
+from typing import List, Optional, Dict, Any
 
 # Configura logging
 logging.basicConfig(
@@ -25,10 +26,13 @@ SUBPROCESS_RETRIES = 3
 # Tamanho do chunk padrão (MB)
 DEFAULT_CHUNK_SIZE_MB = 100
 
-# Usa caminho relativo a partir da localização deste script
-DAMICORE = str(Path(__file__).parent.parent / "damicore.py")
-if not os.path.exists(DAMICORE):
-    logger.error(f"DAMICORE não encontrado em: {DAMICORE}")
+# Configura o caminho para o executável DAMICORE
+try:
+    DAMICORE = str(Path(__file__).resolve().parent.parent / "damicore.py")
+    if not os.path.exists(DAMICORE):
+        raise FileNotFoundError(f"DAMICORE não encontrado em: {DAMICORE}")
+except Exception as e:
+    logger.error(str(e))
     sys.exit(1)
 
 
@@ -136,13 +140,13 @@ def process_chunk(
     chunk_id: int, input_file: str, results_dir: str, num_bootstraps: int = 22
 ) -> bool:
     """
-    Processa um chunk do arquivo de entrada.
+    Processa um chunk do arquivo de entrada, gerando apenas as saídas essenciais.
 
     Args:
         chunk_id: ID do chunk
         input_file: Caminho para o arquivo de entrada
         results_dir: Diretório de saída para os resultados
-        num_bootstraps: Número de bootstraps para o DAMICORE
+        num_bootstraps: Número de bootstraps para o DAMICORE (não utilizado atualmente)
 
     Returns:
         True se o processamento foi bem-sucedido, False caso contrário
@@ -153,121 +157,72 @@ def process_chunk(
         os.makedirs(chunk_result_dir, exist_ok=True)
 
         # Verifica se o chunk já foi processado
-        final_dir = os.path.join(results_dir, "final")
-        os.makedirs(final_dir, exist_ok=True)  # Garante que o diretório final existe
-        consensus_output = os.path.join(final_dir, "consensus_tree.newick")
-        
-        # Verifica se o chunk já foi processado anteriormente
-        chunk_result_file = os.path.join(results_dir, f"chunk_{chunk_id:04d}", "tree.newick")
+        chunk_result_file = os.path.join(chunk_result_dir, "tree.newick")
         if os.path.exists(chunk_result_file):
             logger.info(f"Chunk {chunk_id} já processado anteriormente")
             return True
         
+        # Verifica se já existe um resultado final
+        consensus_output = os.path.join(results_dir, "consensus_tree.newick")
         if os.path.exists(consensus_output):
             logger.info("Arquivo de consenso já existe: %s", consensus_output)
             return True
 
-        # Create a temporary directory for DAMICORE input
+        # Cria diretório temporário para entrada do DAMICORE
         damicore_input_dir = os.path.join(chunk_result_dir, "damicore_input")
         os.makedirs(damicore_input_dir, exist_ok=True)
         
-        # Read the input file and add small random noise to avoid zero stddev
+        # Lê o arquivo CSV e adiciona ruído aleatório para evitar desvio padrão zero
         import random
         import pandas as pd
         
-        # Read the CSV file
+        # Lê o arquivo CSV
         df = pd.read_csv(input_file)
         
-        # Add small random noise to numeric columns to avoid zero stddev
+        # Adiciona ruído aleatório a colunas numéricas com valores iguais
         for col in df.select_dtypes(include=['float64', 'int64']).columns:
-            if df[col].nunique() == 1:  # If all values are the same
+            if df[col].nunique() == 1:  # Se todos os valores forem iguais
                 noise = [random.uniform(-0.0001, 0.0001) for _ in range(len(df))]
                 df[col] = df[col] + noise
         
-        # Save the processed file
+        # Salva o arquivo processado
         input_copy = os.path.join(damicore_input_dir, f"chunk_{chunk_id:04d}.txt")
-        df.to_csv(input_copy, index=False)
+        df.to_csv(input_copy, index=False, header=False)
         
-        # Create a second copy with slightly different noise
-        for col in df.select_dtypes(include=['float64', 'int64']).columns:
-            noise = [random.uniform(-0.0001, 0.0001) for _ in range(len(df))]
-            df[col] = df[col] + noise
-            
-        input_copy2 = os.path.join(damicore_input_dir, f"chunk_{chunk_id:04d}_copy.txt")
-        df.to_csv(input_copy2, index=False)
-        
-        # Run DAMICORE on the directory containing the files
+        # Configura o comando para executar o DAMICORE
         cmd = [
             sys.executable,
             DAMICORE,
-            "-c", "gzip",
-            "--ncd-output", os.path.join(chunk_result_dir, "ncd_matrix.csv"),
-            "--tree-output", os.path.join(chunk_result_dir, "tree.newick"),
-            "--graph-image", os.path.join(chunk_result_dir, "graph.png"),
-            damicore_input_dir  # Pass the directory, not the file
+            "-c",
+            "gzip",
+            "--tree-output",
+            chunk_result_file,  # Saída para o arquivo da árvore
+            input_copy  # Arquivo de entrada
         ]
         
-        # Note: Bootstrap sampling would need to be implemented separately
         if num_bootstraps > 0:
-            logger.warning("Bootstrap sampling is not directly supported in this version. "
-                         f"Using single run with {num_bootstraps} bootstraps not implemented.")
-            logger.info("Consider running DAMICORE multiple times with different samples "
-                       "for bootstrap analysis.")
-
-        logger.info(f"Processando chunk {chunk_id}: {input_file}")
+            logger.info(f"Processando chunk {chunk_id} com {num_bootstraps} réplicas")
+        else:
+            logger.info(f"Processando chunk {chunk_id}")
+            
         success = run_command_with_retry(cmd)
 
         if not success:
             logger.error("Falha ao processar o chunk %d", chunk_id)
             return False
-
-        try:
-            from ete3 import Tree
-
-            # Load generated trees
-            tree_files = glob.glob(os.path.join(chunk_result_dir, "*tree.newick"))
-            trees = []
-            for tree_file in tree_files:
-                try:
-                    tree = Tree(tree_file)
-                    trees.append(tree)
-                except Exception as e:
-                    logger.warning("Erro ao carregar árvore %s: %s", tree_file, str(e))
-
-            if trees:
-                # Create final directory if it does not exist
-                os.makedirs(final_dir, exist_ok=True)
-
-                # Save consensus tree
-                consensus_tree = Tree()
-                consensus_tree.consensus(trees)
-                consensus_tree.write(outfile=consensus_output)
-                logger.info("Árvore de consenso salva em: %s", consensus_output)
-                success = True
-            else:
-                logger.error("Nenhuma árvore válida encontrada para gerar consenso")
-                success = False
-
-        except ImportError:
-            logger.error("Módulo ete3 não encontrado. Instale com: pip install ete3")
-            success = False
-        except Exception as e:
-            logger.error("Erro ao gerar árvore de consenso: %s", str(e))
-            success = False
-
-        if success:
-            logger.info("Resultados consolidados com sucesso em %s", final_dir)
-
-        return success
+            
+        # Verifica se o arquivo da árvore foi gerado
+        if not os.path.exists(chunk_result_file):
+            logger.error("Arquivo de árvore não foi gerado para o chunk %d", chunk_id)
+            return False
+            
+        logger.info("Chunk %d processado com sucesso", chunk_id)
+        return True
 
     except Exception as e:
-        logger.error("Erro durante o processamento do chunk: %s", str(e))
-        try:
-            import traceback
-
-            logger.debug("Traceback: %s", traceback.format_exc())
-        except ImportError:
-            pass
+        logger.error("Erro durante o processamento do chunk %d: %s", chunk_id, str(e))
+        logger.debug("Traceback: %s", traceback.format_exc())
+        return False
         return False
 
 
@@ -338,17 +293,28 @@ def calculate_tree_similarity(consensus, tree):
         return None
 
 def consolidate_results(results_dir: str) -> None:
-    """Consolida os resultados dos chunks processados.
+    """Consolida os resultados dos chunks processados gerando apenas as saídas finais.
+    
+    Saídas geradas:
+    - results_dir/consensus_tree.newick: Árvore de consenso final
+    - results_dir/Consensus_tree/: Visualizações da árvore de consenso
+    - results_dir/Cloud_tree/: Visualização da nuvem de árvores
+    - results_dir/tree_similarity.txt: Análise de similaridade
 
     Args:
         results_dir: Diretório base contendo os resultados
     """
-    # Cria diretório final se não existir
-    final_dir = os.path.join(results_dir, "final")
-    os.makedirs(final_dir, exist_ok=True)
+    # Cria diretórios de saída
+    consensus_dir = os.path.join(results_dir, "Consensus_tree")
+    cloud_dir = os.path.join(results_dir, "Cloud_tree")
+    os.makedirs(consensus_dir, exist_ok=True)
+    os.makedirs(cloud_dir, exist_ok=True)
 
+    # Caminhos dos arquivos de saída
+    consensus_output = os.path.join(results_dir, "consensus_tree.newick")
+    similarity_file = os.path.join(results_dir, "tree_similarity.txt")
+    
     # Verifica se já existe um arquivo de consenso
-    consensus_output = os.path.join(final_dir, "consensus_tree.newick")
     if os.path.exists(consensus_output):
         logger.info("Arquivo de consenso já existe: %s", consensus_output)
         return
@@ -369,59 +335,69 @@ def consolidate_results(results_dir: str) -> None:
     logger.info("Consolidando %d/%d chunks processados", len(chunk_trees), len(chunk_dirs))
     
     try:
-        # Tenta importar toytree
         import toytree
+        from toytree.utils import consensus as consensus_util
         
         # Carrega todas as árvores
         trees = [toytree.tree(tree_file) for tree_file in chunk_trees]
         
-        # Gera a árvore de consenso usando o método majority_rule_consensus
-        # que é o método correto nas versões mais recentes do toytree
-        from toytree.utils import consensus as consensus_util
-        
-        # Converte as árvores para newick strings
+        # Gera a árvore de consenso
         newicks = [t.write() for t in trees]
-        
-        # Gera a árvore de consenso com 80% de suporte
         consensus_newick = consensus_util.majority_rule_consensus(
             newicks,
             min_freq=0.8,  # 80% de suporte mínimo
-            name_func=lambda x: f"{x*100:.0f}%"  # Formata o suporte como porcentagem
+            name_func=lambda x: f"{x*100:.0f}%"
         )
-        
-        # Carrega a árvore de consenso
-        consensus = toytree.tree(consensus_newick)
         
         # Salva a árvore de consenso
-        consensus.write(consensus_output)
+        with open(consensus_output, 'w', encoding='utf-8') as f:
+            f.write(consensus_newick)
         logger.info("Árvore de consenso (80%%) gerada em: %s", consensus_output)
         
-        # Gera visualização da árvore de consenso
-        plot_path = os.path.join(final_dir, "consensus_tree.png")
-        canvas = consensus.draw(
-            width=1200,
-            height=800,
-            node_labels="support",
-            node_sizes=12,
-            node_style={"stroke": "#262626"},
-            tip_labels_style={"font-size": "10px"}
-        )
-        canvas.save(plot_path)
-        logger.info("Visualização da árvore de consenso salva em: %s", plot_path)
+        # Carrega a árvore de consenso para visualização
+        consensus = toytree.tree(consensus_newick)
         
-        # Calcula similaridade entre árvores
-        similarity_file = os.path.join(final_dir, "tree_similarity.txt")
+        # Gera visualizações da árvore de consenso (PDF e PNG)
+        for fmt in ['pdf', 'png']:
+            plot_path = os.path.join(consensus_dir, f"consensus_tree.{fmt}")
+            canvas = consensus.draw(
+                width=1200,
+                height=800,
+                node_labels="support",
+                node_sizes=12,
+                node_style={"stroke": "#262626"},
+                tip_labels_style={"font-size": "10px"}
+            )
+            canvas.save(plot_path)
+            logger.info("Visualização da árvore de consenso salva em: %s", plot_path)
+        
+        # Gera visualização da nuvem de árvores
+        if len(trees) > 1:  # Só gera se houver mais de uma árvore
+            try:
+                canvas = toytree.mtree(trees).draw_tree_grid(
+                    width=1000,
+                    height=600,
+                    start=0,
+                    ncols=min(3, len(trees)),
+                    tip_labels_style={"font-size": "8px"}
+                )
+                for fmt in ['pdf', 'png']:
+                    cloud_path = os.path.join(cloud_dir, f"cloud_tree.{fmt}")
+                    canvas.save(cloud_path)
+                    logger.info("Visualização da nuvem de árvores salva em: %s", cloud_path)
+            except Exception as e:
+                logger.warning("Não foi possível gerar a nuvem de árvores: %s", str(e))
+        
+        # Gera análise de similaridade
         with open(similarity_file, 'w', encoding='utf-8') as f:
             f.write("Análise de Similaridade entre Árvores\n")
             f.write("="*50 + "\n\n")
             
-            # Cabeçalho
             f.write(f"{'Chunk':<15} {'RF Dist.':<15} {'RF Norm.':<15} "
                    f"{'Eucl. Dist.':<15} {'Eucl. Norm.':<15} "
                    f"{'Similaridade':<15}\n")
             f.write("-"*90 + "\n")
             
-            # Calcula similaridade para cada árvore
             total_similarity = 0.0
             valid_trees = 0
             
@@ -435,13 +411,11 @@ def consolidate_results(results_dir: str) -> None:
                     total_similarity += similarity['similarity_score']
                     valid_trees += 1
             
-            # Média de similaridade
             if valid_trees > 0:
                 avg_similarity = (total_similarity / valid_trees) * 100
                 f.write("\n" + "="*90 + "\n")
                 f.write(f"Média de similaridade: {avg_similarity:.2f}%\n")
                 
-                # Classificação de qualidade
                 if avg_similarity >= 90:
                     quality = "Excelente"
                 elif avg_similarity >= 75:
@@ -456,14 +430,11 @@ def consolidate_results(results_dir: str) -> None:
         logger.info("Análise de similaridade salva em: %s", similarity_file)
         
     except ImportError:
-        logger.warning("toytree não encontrado. Usando árvore do primeiro chunk como consenso.")
-        import shutil
-        shutil.copy2(chunk_trees[0], consensus_output)
-        logger.info("Árvore de consenso gerada a partir do primeiro chunk: %s", consensus_output)
+        logger.error("Erro: toytree não encontrado. É necessário instalar o pacote toytree.")
+        raise
     except Exception as e:
-        logger.error("Erro ao gerar árvore de consenso: %s", str(e))
-        import shutil
-        shutil.copy2(chunk_trees[0], consensus_output)
+        logger.error("Erro ao gerar resultados consolidados: %s", str(e), exc_info=True)
+        raise
         logger.info("Usando árvore do primeiro chunk como fallback: %s", consensus_output)
 
 
