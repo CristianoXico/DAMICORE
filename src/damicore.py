@@ -45,6 +45,11 @@ def calc_weights(lengths, min_length=1):
   mean = float(sum(lengths)) / n
   var = sum((l - mean)**2 for l in lengths) / n
   stddev = math.sqrt(var)
+  
+  # Evitar divisão por zero quando todos os valores são iguais
+  if stddev < 1e-10:  # Praticamente zero
+    return [min_length] * n
+    
   scores = [(l - mean)/stddev for l in lengths]
   min_score = min(scores)
   norm_length = [min_length + (score - min_score) for score in scores]
