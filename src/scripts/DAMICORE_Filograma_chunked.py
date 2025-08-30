@@ -185,9 +185,14 @@ def process_chunk(
                 noise = [random.uniform(-0.0001, 0.0001) for _ in range(len(df))]
                 df[col] = df[col] + noise
         
-        # Salva o arquivo processado
-        input_copy = os.path.join(damicore_input_dir, f"chunk_{chunk_id:04d}.txt")
-        df.to_csv(input_copy, index=False, header=False)
+        # Cria um diretório para os arquivos de entrada do DAMICORE
+        chunk_input_dir = os.path.join(damicore_input_dir, f"chunk_{chunk_id:04d}_input")
+        os.makedirs(chunk_input_dir, exist_ok=True)
+        
+        # Salva cada coluna como um arquivo separado para o DAMICORE processar
+        for col_idx, col in enumerate(df.columns):
+            col_file = os.path.join(chunk_input_dir, f"col_{col_idx:04d}.txt")
+            df[[col]].to_csv(col_file, index=False, header=False)
         
         # Configura o comando para executar o DAMICORE
         cmd = [
@@ -197,7 +202,7 @@ def process_chunk(
             "gzip",
             "--tree-output",
             chunk_result_file,  # Saída para o arquivo da árvore
-            input_copy  # Arquivo de entrada
+            chunk_input_dir  # Diretório com os arquivos de entrada
         ]
         
         if num_bootstraps > 0:
