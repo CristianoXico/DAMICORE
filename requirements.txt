@@ -28,6 +28,9 @@ psutil>=5.9.0
 h5py>=3.9.0
 tables>=3.8.0
 
+# Visualization backend
+pycairo>=1.23.0
+
 # Statistical analysis
 statsmodels>=0.14.0
 

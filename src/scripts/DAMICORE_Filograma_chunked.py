@@ -375,16 +375,22 @@ def consolidate_results(results_dir: str) -> None:
         # Carrega todas as árvores
         trees = [toytree.tree(tree_file) for tree_file in chunk_trees]
         
-        # Cria um objeto mtree (multi-tree) com as árvores
-        mtree = toytree.mtree(trees)
+        # Gera a árvore de consenso usando o método majority_rule_consensus
+        # que é o método correto nas versões mais recentes do toytree
+        from toytree.utils import consensus as consensus_util
         
-        # Gera árvore de consenso com 80% de suporte mínimo
-        # Usa majority_consensus com 80% de suporte
-        consensus = mtree.consensus(
-            min_support=0.8,  # 80% de suporte mínimo
-            rooted=True,      # Mantém a raiz
+        # Converte as árvores para newick strings
+        newicks = [t.write() for t in trees]
+        
+        # Gera a árvore de consenso com 80% de suporte
+        consensus_newick = consensus_util.majority_rule_consensus(
+            newicks,
+            min_freq=0.8,  # 80% de suporte mínimo
             name_func=lambda x: f"{x*100:.0f}%"  # Formata o suporte como porcentagem
         )
+        
+        # Carrega a árvore de consenso
+        consensus = toytree.tree(consensus_newick)
         
         # Salva a árvore de consenso
         consensus.write(consensus_output)
