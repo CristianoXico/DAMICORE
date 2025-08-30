@@ -23,6 +23,14 @@ def clustering(directory, compression_name='ppmd', pairing_name='concat',
 
   sys.stderr.write('\nClustering elements...\n')
   g = to_graph(tree)
+  
+  # Ensure all edge weights are positive by adding a small constant
+  min_weight = min(g.es['length'])
+  if min_weight < 0:
+      epsilon = abs(min_weight) + 1e-10  # Add a small constant to make all weights positive
+      for e in g.es:
+          e['length'] += epsilon
+  
   fast_newman = g.community_fastgreedy(weights="length").as_clustering()
 
   # Maps leaf ID to cluster number
