@@ -1285,27 +1285,45 @@ def save_consensus_tree(newick_files, output_dir, slice_idx):
     """
     print("\n🌳 Gerando árvore de consenso...")
     
-    # Contar topologias para encontrar a mais frequenso se não existir
     try:
         import toytree
+        from toytree.utils import consensus as consensus_util
         
         # Criar diretório para árvores de consenso se não existir
         consensus_dir = os.path.join(output_dir, "compiled_newick")
         os.makedirs(consensus_dir, exist_ok=True)
         
-        # Gerar árvore de consenso
-        mtree = toytree.mtree(trees)
-        consensus = mtree.get_consensus()
+        # Carregar as árvores
+        trees = [toytree.tree(f) for f in newick_files if os.path.exists(f)]
+        
+        if not trees:
+            print("⚠️  Nenhuma árvore válida encontrada para gerar consenso")
+            return None
+            
+        # Converter árvores para newick strings
+        newicks = [t.write() for t in trees]
+        
+        # Gerar consenso (método compatível com versões recentes do toytree)
+        consensus_newick = consensus_util.majority_rule_consensus(
+            newicks,
+            min_freq=0.8,  # 80% de suporte mínimo
+            name_func=lambda x: f"{x*100:.0f}%"  # Formata os rótulos de suporte
+        )
+        
+        # Criar objeto de árvore a partir do newick do consenso
+        consensus = toytree.tree(consensus_newick)
         
         # Salvar árvore de consenso
         consensus_file = os.path.join(consensus_dir, f"consensus_slice_{slice_idx:04d}.newick")
         consensus.write(consensus_file, tree_format=0)
         
-        print(f"✅ Árvore de consenso salva: {consensus_file}")
+        print(f"✅ Árvore de consenso gerada com sucesso: {consensus_file}")
         return consensus_file
         
     except Exception as e:
-        print(f"⚠️  Erro ao salvar árvore de consenso: {e}")
+        import traceback
+        print(f"⚠️  Erro ao gerar árvore de consenso: {str(e)}")
+        print(f"Detalhes: {traceback.format_exc()}")
         return None
 
 def generate_slice_visualization(newick_files, slice_output_dir, slice_idx, slice_file):
