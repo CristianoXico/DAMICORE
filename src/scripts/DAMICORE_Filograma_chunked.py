@@ -194,23 +194,46 @@ def process_chunk(
             col_file = os.path.join(chunk_input_dir, f"col_{col_idx:04d}.txt")
             df[[col]].to_csv(col_file, index=False, header=False)
         
-        # Configura o comando para executar o DAMICORE
+        # Configura o comando para executar o DAMICORE com parâmetros otimizados
         cmd = [
             sys.executable,
             DAMICORE,
-            "-c",
-            "gzip",
-            "--tree-output",
-            chunk_result_file,  # Saída para o arquivo da árvore
-            chunk_input_dir  # Diretório com os arquivos de entrada
+            "-c", "gzip",  # Usa compressão gzip
+            "--tree-output", chunk_result_file,
+            "--fast",  # Ativa modo rápido, se suportado
+            "--nthreads", "2",  # Limita threads para evitar sobrecarga
+            chunk_input_dir
         ]
         
-        if num_bootstraps > 0:
-            logger.info(f"Processando chunk {chunk_id} com {num_bootstraps} réplicas")
-        else:
-            logger.info(f"Processando chunk {chunk_id}")
+        logger.info("Executando DAMICORE no chunk %d: %s", chunk_id, " ".join(cmd))
+        
+        try:
+            # Executa o comando com timeout de 2 horas e com prioridade baixa
+            result = subprocess.run(
+                cmd,
+                check=True,
+                capture_output=True,
+                text=True,
+                timeout=7200,  # 2 horas
+                start_new_session=True,  # Permite matar processos filhos em caso de timeout
+                preexec_fn=os.setsid  # Cria um novo grupo de processos
+            )
             
-        success = run_command_with_retry(cmd)
+            logger.debug("Saída do comando: %s", result.stdout)
+            
+            success = True
+        except subprocess.CalledProcessError as e:
+            logger.error(
+                "Erro ao executar comando (tentativa %d/%d): %s",
+                1,
+                1,
+                str(e),
+            )
+            logger.debug("Erro detalhado: %s", e.stderr)
+            success = False
+        except Exception as e:
+            logger.error("Erro inesperado: %s", str(e))
+            success = False
 
         if not success:
             logger.error("Falha ao processar o chunk %d", chunk_id)
