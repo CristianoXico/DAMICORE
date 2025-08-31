@@ -194,14 +194,13 @@ def process_chunk(
             col_file = os.path.join(chunk_input_dir, f"col_{col_idx:04d}.txt")
             df[[col]].to_csv(col_file, index=False, header=False)
         
-        # Configura o comando para executar o DAMICORE com parâmetros otimizados
+        # Configura o comando para executar o DAMICORE
         cmd = [
             sys.executable,
             DAMICORE,
             "-c", "gzip",  # Usa compressão gzip
             "--tree-output", chunk_result_file,
-            "--fast",  # Ativa modo rápido, se suportado
-            "--nthreads", "2",  # Limita threads para evitar sobrecarga
+            "--parallel",  # Usa processamento paralelo
             chunk_input_dir
         ]
         
