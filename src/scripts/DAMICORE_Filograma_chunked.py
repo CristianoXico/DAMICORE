@@ -207,13 +207,33 @@ def process_chunk(
         logger.info("Executando DAMICORE no chunk %d: %s", chunk_id, " ".join(cmd))
         
         try:
-            # Executa o comando com timeout de 2 horas
+            # Calcula o timeout baseado no tamanho do arquivo em MB
+            # Baseado em observações empíricas:
+            # - 1MB: ~5 minutos
+            # - 10MB: ~15 minutos
+            # - 100MB: ~60 minutos
+            # - 200MB: ~120 minutos
+            # Fórmula: base_timeout = min(14400, max(300, file_size_mb * 60))  # Entre 5 minutos e 4 horas
+            file_size_mb = os.path.getsize(input_file) / (1024 * 1024)  # Tamanho em MB
+            base_timeout = min(14400, max(300, file_size_mb * 60))  # 5 min to 4 hours
+            
+            # Ajusta o timeout com base no número de colunas (arquivos no diretório de entrada)
+            num_columns = len([f for f in os.listdir(chunk_input_dir) if f.startswith('col_')])
+            column_factor = 1 + (num_columns / 50)  # Aumenta 1% por coluna acima de 50
+            adaptive_timeout = int(base_timeout * column_factor)
+            
+            logger.info(
+                "Chunk %d: %.2f MB, %d colunas, timeout ajustado para %d segundos (%.1f horas)",
+                chunk_id, file_size_mb, num_columns, adaptive_timeout, adaptive_timeout/3600
+            )
+            
+            # Executa o comando com timeout adaptativo
             result = subprocess.run(
                 cmd,
                 check=True,
                 capture_output=True,
                 text=True,
-                timeout=7200,  # 2 horas
+                timeout=adaptive_timeout,
                 start_new_session=True  # Permite matar processos filhos em caso de timeout
             )
             
