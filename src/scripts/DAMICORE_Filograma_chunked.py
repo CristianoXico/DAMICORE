@@ -341,19 +341,17 @@ def consolidate_results(results_dir: str) -> None:
     
     try:
         import toytree
-        # In toytree 3.0.10, consensus is a method of the toytree module
-        consensus_util = toytree.tree_consensus
         
         # Carrega todas as árvores
         trees = [toytree.tree(tree_file) for tree_file in chunk_trees]
         
-        # Gera a árvore de consenso
-        newicks = [t.write() for t in trees]
-        consensus_newick = consensus_util.majority_rule_consensus(
-            newicks,
-            min_freq=0.8,  # 80% de suporte mínimo
+        # Gera a árvore de consenso usando o método multitree
+        mtree = toytree.mtree(trees)
+        consensus_tree = mtree.get_consensus(
+            min_support=0.8,  # 80% de suporte mínimo
             name_func=lambda x: f"{x*100:.0f}%"
         )
+        consensus_newick = consensus_tree.write()
         
         # Salva a árvore de consenso
         with open(consensus_output, 'w', encoding='utf-8') as f:
