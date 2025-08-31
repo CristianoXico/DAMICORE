@@ -208,15 +208,14 @@ def process_chunk(
         logger.info("Executando DAMICORE no chunk %d: %s", chunk_id, " ".join(cmd))
         
         try:
-            # Executa o comando com timeout de 2 horas e com prioridade baixa
+            # Executa o comando com timeout de 2 horas
             result = subprocess.run(
                 cmd,
                 check=True,
                 capture_output=True,
                 text=True,
                 timeout=7200,  # 2 horas
-                start_new_session=True,  # Permite matar processos filhos em caso de timeout
-                preexec_fn=os.setsid  # Cria um novo grupo de processos
+                start_new_session=True  # Permite matar processos filhos em caso de timeout
             )
             
             logger.debug("Saída do comando: %s", result.stdout)
