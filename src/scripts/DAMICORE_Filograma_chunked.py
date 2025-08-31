@@ -364,14 +364,17 @@ def consolidate_results(results_dir: str) -> None:
         # Gera visualizações da árvore de consenso (PDF e PNG)
         for fmt in ['pdf', 'png']:
             plot_path = os.path.join(consensus_dir, f"consensus_tree.{fmt}")
-            canvas = consensus.draw(
-                width=1200,
-                height=800,
-                node_labels="support",
-                node_sizes=12,
-                node_style={"stroke": "#262626"},
-                tip_labels_style={"font-size": "10px"}
+            # draw_consensus_tree returns (canvas, axes) in toytree 3.0.10
+            canvas, _ = consensus.draw_consensus_tree(
+                width=800,
+                height=600,
+                node_labels=True,
+                node_sizes=10,
+                tip_labels_align=True,
+                show_support=True
             )
+            
+            # Salva a visualização
             canvas.save(plot_path)
             logger.info("Visualização da árvore de consenso salva em: %s", plot_path)
         
