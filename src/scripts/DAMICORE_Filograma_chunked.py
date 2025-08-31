@@ -347,7 +347,7 @@ def consolidate_results(results_dir: str) -> None:
         
         # Gera a árvore de consenso usando o método multitree
         mtree = toytree.mtree(trees)
-        consensus_tree = mtree.get_consensus(
+        consensus_tree = mtree.get_consensus_tree(
             min_support=0.8,  # 80% de suporte mínimo
             name_func=lambda x: f"{x*100:.0f}%"
         )
