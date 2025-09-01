@@ -405,14 +405,39 @@ def consolidate_results(results_dir: str) -> None:
         # Gera visualizações da árvore de consenso (PDF e PNG)
         for fmt in ['pdf', 'png']:
             plot_path = os.path.join(consensus_dir, f"consensus_tree.{fmt}")
-            # draw_consensus_tree returns (canvas, axes) in toytree 3.0.10
-            canvas, _ = consensus.draw_consensus_tree(
-                width=800,
-                height=600,
-                node_labels=True,
+            
+            # Configura o estilo dos rótulos com base no número de dicas
+            n_tips = len(consensus.get_tip_labels())
+            if n_tips <= 50:
+                tip_labels_style = {"font-size": "10px", "max-width": 40}
+                width, height = 1000, 700
+            elif n_tips <= 100:
+                tip_labels_style = {"font-size": "9px", "max-width": 35}
+                width, height = 1200, 900
+            else:
+                tip_labels_style = {"font-size": "8px", "max-width": 30}
+                width, height = 1600, 1200
+            
+            # Desenha a árvore de consenso
+            canvas, axes, mark = consensus.draw(
+                width=width,
+                height=height,
+                node_labels='support',
                 node_sizes=10,
+                node_colors='lightgray',
+                tip_labels_style=tip_labels_style,
                 tip_labels_align=True,
-                show_support=True
+                scale_bar=True,
+                use_edge_lengths=True
+            )
+            
+            # Adiciona título
+            axes.text(
+                0.5, 1.02,
+                "Consensus Tree (80% support)",
+                horizontalalignment='center',
+                transform=axes.transAxes,
+                fontsize=12
             )
             
             # Salva a visualização
@@ -422,19 +447,53 @@ def consolidate_results(results_dir: str) -> None:
         # Gera visualização da nuvem de árvores
         if len(trees) > 1:  # Só gera se houver mais de uma árvore
             try:
-                canvas = toytree.mtree(trees).draw_tree_grid(
-                    width=1000,
-                    height=600,
+                # Configura o estilo dos rótulos com base no número de dicas
+                n_tips = len(trees[0].get_tip_labels()) if trees else 0
+                if n_tips <= 50:
+                    tip_style = {"font-size": "8px", "max-width": 30}
+                    width, height = 1200, 900
+                elif n_tips <= 100:
+                    tip_style = {"font-size": "7px", "max-width": 25}
+                    width, height = 1500, 1200
+                else:
+                    tip_style = {"font-size": "6px", "max-width": 20}
+                    width, height = 2000, 1500
+                
+                # Limita o número de árvores a serem exibidas para evitar sobrecarga
+                max_trees = min(9, len(trees))  # Máximo de 9 árvores (3x3 grid)
+                
+                # Cria a grade de árvores
+                mtree = toytree.mtree(trees[:max_trees])
+                canvas, axes, _ = mtree.draw_tree_grid(
+                    width=width,
+                    height=height,
                     start=0,
-                    ncols=min(3, len(trees)),
-                    tip_labels_style={"font-size": "8px"}
+                    ncols=3,  # Sempre 3 colunas para melhor visualização
+                    tip_labels_style=tip_style,
+                    node_sizes=8,
+                    node_colors='lightgray',
+                    use_edge_lengths=True,
+                    scale_bar=True,
+                    node_labels='support' if hasattr(trees[0], 'support') else None
                 )
+                
+                # Adiciona título
+                axes[0].text(
+                    0.5, 1.08,
+                    f"Cloud Tree - {len(trees)} trees (showing {max_trees})",
+                    horizontalalignment='center',
+                    transform=axes[0].transAxes,
+                    fontsize=12
+                )
+                
+                # Salva as visualizações
                 for fmt in ['pdf', 'png']:
                     cloud_path = os.path.join(cloud_dir, f"cloud_tree.{fmt}")
                     canvas.save(cloud_path)
                     logger.info("Visualização da nuvem de árvores salva em: %s", cloud_path)
+                    
             except Exception as e:
-                logger.warning("Não foi possível gerar a nuvem de árvores: %s", str(e))
+                logger.warning("Não foi possível gerar a nuvem de árvores: %s", str(e), exc_info=True)
         
         # Gera análise de similaridade
         with open(similarity_file, 'w', encoding='utf-8') as f:
