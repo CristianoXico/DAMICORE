@@ -201,16 +201,28 @@ def process_chunk(
         
         # Configura o comando para executar o DAMICORE
         logger.info(f"Iniciando execução do DAMICORE para o chunk {chunk_id} com {len(df.columns)} colunas")
+        
+        # Garante que o diretório de saída existe
+        os.makedirs(os.path.dirname(chunk_result_file), exist_ok=True)
+        
+        # Configura o comando DAMICORE para processar todas as colunas
         cmd = [
             sys.executable,
             DAMICORE,
             "-c", "gzip",  # Usa compressão gzip
             "--tree-output", chunk_result_file,
-            "--parallel",  # Usa processamento paralelo
+            "--parallel",   # Usa processamento paralelo
+            "--all-columns", # Garante que todas as colunas serão processadas
             chunk_input_dir
         ]
         
-        logger.info("Executando DAMICORE no chunk %d: %s", chunk_id, " ".join(cmd))
+        # Log detalhado do comando e ambiente
+        logger.info("Executando DAMICORE no chunk %d com %d colunas", chunk_id, len(df.columns))
+        logger.debug("Comando completo: %s", " ".join(cmd))
+        logger.debug("Diretório de trabalho: %s", os.getcwd())
+        logger.debug("Arquivos no diretório de entrada (%d): %s", 
+                    len(os.listdir(chunk_input_dir)), 
+                    ", ".join(os.listdir(chunk_input_dir)[:10]) + ("..." if len(os.listdir(chunk_input_dir)) > 10 else ""))
         
         try:
             # Calcula o timeout baseado no tamanho do arquivo em MB
@@ -225,22 +237,88 @@ def process_chunk(
             
             # Ajusta o timeout com base no número de colunas (arquivos no diretório de entrada)
             num_columns = len([f for f in os.listdir(chunk_input_dir) if f.startswith('col_')])
-            column_factor = 1 + (num_columns / 50)  # Aumenta 1% por coluna acima de 50
+            logger.info(f"Encontradas {num_columns} colunas no diretório de entrada")
+            
+            # Ajuste mais agressivo para arquivos com muitas colunas
+            if num_columns > 100:
+                column_factor = 2.0 + (num_columns / 100)  # Aumenta 1% por coluna acima de 100
+            else:
+                column_factor = 1.0 + (num_columns / 50)   # Aumenta 1% por coluna acima de 50
+                
             adaptive_timeout = int(base_timeout * column_factor)
+            
+            # Log detalhado do cálculo do timeout
+            logger.debug(f"Base timeout: {base_timeout}s, Column factor: {column_factor:.2f}, Adaptive timeout: {adaptive_timeout}s")
             
             logger.info(
                 "Chunk %d: %.2f MB, %d colunas, timeout ajustado para %d segundos (%.1f horas)",
                 chunk_id, file_size_mb, num_columns, adaptive_timeout, adaptive_timeout/3600
             )
             
-            # Executa o comando com timeout adaptativo
-            result = subprocess.run(
+            # Executa o comando com timeout adaptativo e captura saída em tempo real
+            logger.info(f"Iniciando execução do DAMICORE (timeout: {adaptive_timeout}s)")
+            
+            # Usamos Popen para capturar saída em tempo real
+            process = subprocess.Popen(
                 cmd,
-                check=True,
-                capture_output=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
                 text=True,
-                timeout=adaptive_timeout,
-                start_new_session=True  # Permite matar processos filhos em caso de timeout
+                bufsize=1,
+                universal_newlines=True
+            )
+            
+            # Captura saída em tempo real
+            stdout_lines = []
+            stderr_lines = []
+            
+            # Função para ler linhas em tempo real
+            def read_output(pipe, lines, label):
+                for line in pipe:
+                    lines.append(line)
+                    logger.debug(f"DAMICORE {label}: {line.strip()}")
+            
+            # Inicia threads para capturar saída
+            import threading
+            stdout_thread = threading.Thread(
+                target=read_output, 
+                args=(process.stdout, stdout_lines, 'stdout')
+            )
+            stderr_thread = threading.Thread(
+                target=read_output, 
+                args=(process.stderr, stderr_lines, 'stderr')
+            )
+            
+            stdout_thread.daemon = True
+            stderr_thread.daemon = True
+            stdout_thread.start()
+            stderr_thread.start()
+            
+            # Aguarda o processo terminar ou timeout
+            try:
+                process.wait(timeout=adaptive_timeout)
+                return_code = process.returncode
+            except subprocess.TimeoutExpired:
+                logger.error(f"Timeout de {adaptive_timeout}s atingido para o chunk {chunk_id}")
+                # Tenta terminar o processo de forma limpa
+                process.terminate()
+                try:
+                    process.wait(timeout=30)
+                except subprocess.TimeoutExpired:
+                    logger.warning("Processo não terminou após 30s, forçando término...")
+                    process.kill()
+                return False
+                
+            # Aguarda as threads terminarem
+            stdout_thread.join(timeout=5)
+            stderr_thread.join(timeout=5)
+            
+            # Cria objeto de resultado compatível
+            result = subprocess.CompletedProcess(
+                args=cmd,
+                returncode=return_code,
+                stdout=''.join(stdout_lines),
+                stderr=''.join(stderr_lines)
             )
             
             logger.debug("Saída do comando: %s", result.stdout)
