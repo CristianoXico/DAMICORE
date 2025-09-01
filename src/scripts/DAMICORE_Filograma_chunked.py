@@ -722,8 +722,6 @@ def consolidate_results(results_dir: str):
     Args:
         results_dir: Diretório base contendo os resultados
     """
-        return
-
     # Lista todos os diretórios de chunks processados que contêm árvores
     chunk_trees = []
     chunk_dirs = sorted(glob.glob(os.path.join(results_dir, "chunk_*")))
