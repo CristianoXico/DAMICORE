@@ -190,11 +190,17 @@ def process_chunk(
         os.makedirs(chunk_input_dir, exist_ok=True)
         
         # Salva cada coluna como um arquivo separado para o DAMICORE processar
+        logger.info(f"Processando {len(df.columns)} colunas do chunk {chunk_id}")
         for col_idx, col in enumerate(df.columns):
             col_file = os.path.join(chunk_input_dir, f"col_{col_idx:04d}.txt")
             df[[col]].to_csv(col_file, index=False, header=False)
+            
+            # Log a cada 10 colunas para acompanhar o progresso
+            if (col_idx + 1) % 10 == 0 or (col_idx + 1) == len(df.columns):
+                logger.info(f"  - Processadas {col_idx + 1}/{len(df.columns)} colunas")
         
         # Configura o comando para executar o DAMICORE
+        logger.info(f"Iniciando execução do DAMICORE para o chunk {chunk_id} com {len(df.columns)} colunas")
         cmd = [
             sys.executable,
             DAMICORE,
