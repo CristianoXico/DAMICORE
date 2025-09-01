@@ -361,13 +361,64 @@ def process_chunk(
         
         # Salva cada coluna como um arquivo separado para o DAMICORE processar
         logger.info(f"Processando {len(df.columns)} colunas do chunk {chunk_id}")
-        for col_idx, col in enumerate(df.columns):
-            col_file = os.path.join(chunk_input_dir, f"col_{col_idx:04d}.txt")
-            df[[col]].to_csv(col_file, index=False, header=False)
+        col_files = []
+        
+        # Primeiro, limpa o diretório para garantir que não haja arquivos antigos
+        for f in os.listdir(chunk_input_dir):
+            if f.startswith('col_') and f.endswith('.txt'):
+                try:
+                    os.remove(os.path.join(chunk_input_dir, f))
+                except Exception as e:
+                    logger.warning(f"Não foi possível remover arquivo antigo {f}: {str(e)}")
+        
+        # Garante que o diretório está vazio
+        time.sleep(1)  # Dá tempo para o sistema de arquivos
+        
+        # Processa as colunas em lotes para evitar problemas de memória
+        batch_size = 10
+        for batch_start in range(0, len(df.columns), batch_size):
+            batch_end = min(batch_start + batch_size, len(df.columns))
+            batch_columns = df.columns[batch_start:batch_end]
             
-            # Log a cada 10 colunas para acompanhar o progresso
-            if (col_idx + 1) % 10 == 0 or (col_idx + 1) == len(df.columns):
-                logger.info(f"  - Processadas {col_idx + 1}/{len(df.columns)} colunas")
+            # Processa cada coluna do lote atual
+            for col_idx in range(batch_start, batch_end):
+                col = df.columns[col_idx]
+                col_file = os.path.join(chunk_input_dir, f"col_{col_idx:04d}.txt")
+                try:
+                    # Salva a coluna em um arquivo temporário primeiro
+                    temp_file = f"{col_file}.tmp"
+                    df[[col]].to_csv(temp_file, index=False, header=False)
+                    
+                    # Verifica se o arquivo foi criado corretamente
+                    if not os.path.exists(temp_file) or os.path.getsize(temp_file) == 0:
+                        logger.error(f"Erro ao salvar o arquivo temporário da coluna {col_idx}")
+                        continue
+                        
+                    # Renomeia o arquivo temporário para o nome final
+                    if os.path.exists(col_file):
+                        os.remove(col_file)
+                    os.rename(temp_file, col_file)
+                    
+                    # Verifica novamente após o rename
+                    if not os.path.exists(col_file) or os.path.getsize(col_file) == 0:
+                        logger.error(f"Arquivo final da coluna {col_idx} está vazio ou não foi criado")
+                    else:
+                        col_files.append(col_file)
+                        
+                except Exception as e:
+                    logger.error(f"Erro ao processar coluna {col_idx} ({col}): {str(e)}")
+                    # Tenta remover arquivos temporários em caso de erro
+                    if os.path.exists(temp_file):
+                        try:
+                            os.remove(temp_file)
+                        except:
+                            pass
+            
+            # Log de progresso
+            logger.info(f"  - Lote concluído: {min(batch_end, len(df.columns))}/{len(df.columns)} colunas processadas")
+            
+            # Pequena pausa entre lotes para evitar sobrecarga
+            time.sleep(0.5)
         
         # Configura o comando para executar o DAMICORE
         logger.info(f"Iniciando execução do DAMICORE para o chunk {chunk_id} com {len(df.columns)} colunas")
@@ -385,13 +436,64 @@ def process_chunk(
             chunk_input_dir  # Já inclui todos os arquivos de colunas
         ]
         
+        # Verifica os arquivos gerados
+        saved_files = [f for f in os.listdir(chunk_input_dir) if f.startswith('col_') and f.endswith('.txt')]
+        logger.info(f"Verificação final: {len(saved_files)} arquivos de coluna salvos em {chunk_input_dir}")
+        
         # Log detalhado do comando e ambiente
-        logger.info("Executando DAMICORE no chunk %d com %d colunas", chunk_id, len(df.columns))
+        logger.info("Executando DAMICORE no chunk %d com %d colunas (arquivos: %d)", 
+                   chunk_id, len(df.columns), len(saved_files))
         logger.debug("Comando completo: %s", " ".join(cmd))
         logger.debug("Diretório de trabalho: %s", os.getcwd())
-        logger.debug("Arquivos no diretório de entrada (%d): %s", 
-                    len(os.listdir(chunk_input_dir)), 
-                    ", ".join(os.listdir(chunk_input_dir)[:10]) + ("..." if len(os.listdir(chunk_input_dir)) > 10 else ""))
+        
+        # Log das primeiras 10 colunas e últimas 10 colunas
+        if len(saved_files) > 20:
+            logger.debug("Primeiras 5 colunas: %s", ", ".join(sorted(saved_files)[:5]))
+            logger.debug("...")
+            logger.debug("Últimas 5 colunas: %s", ", ".join(sorted(saved_files)[-5:]))
+        else:
+            logger.debug("Arquivos de coluna: %s", ", ".join(sorted(saved_files)))
+            
+        # Verifica se há alguma inconsistência
+        expected_files = {f"col_{i:04d}.txt" for i in range(len(df.columns))}
+        actual_files = set(saved_files)
+        missing_files = expected_files - actual_files
+        extra_files = actual_files - expected_files
+        
+        if missing_files:
+            logger.warning(f"Arquivos de coluna faltando: {len(missing_files)}/{len(expected_files)}")
+            logger.debug(f"Exemplos de arquivos faltando: {list(missing_files)[:5]}")
+            
+            # Tenta recriar os arquivos faltantes
+            for missing in list(missing_files)[:10]:  # Limita a 10 tentativas para não sobrecarregar
+                try:
+                    col_idx = int(missing[4:-4])  # Extrai o número do nome do arquivo
+                    col = df.columns[col_idx]
+                    col_file = os.path.join(chunk_input_dir, missing)
+                    df[[col]].to_csv(col_file, index=False, header=False)
+                    if os.path.exists(col_file) and os.path.getsize(col_file) > 0:
+                        logger.info(f"Arquivo {missing} recriado com sucesso")
+                        saved_files.append(missing)
+                        actual_files.add(missing)
+                        missing_files.remove(missing)
+                except Exception as e:
+                    logger.error(f"Falha ao recriar {missing}: {str(e)}")
+        
+        if extra_files:
+            logger.warning(f"Arquivos de coluna extras encontrados: {len(extra_files)}")
+            logger.debug(f"Exemplos de arquivos extras: {list(extra_files)[:5]}")
+            
+        if not saved_files:
+            logger.error("NENHUM arquivo de coluna foi salvo corretamente!")
+            return False
+            
+        # Verificação final
+        if missing_files:
+            logger.error(f"Ainda faltam {len(missing_files)} arquivos de coluna. Verifique os logs para mais detalhes.")
+            # Continua mesmo com arquivos faltando, mas com aviso
+            logger.warning("Continuando com arquivos disponíveis, mas resultados podem estar incompletos.")
+        else:
+            logger.info("Todas as colunas foram processadas com sucesso!")
         
         try:
             # Calcula o timeout baseado no tamanho do arquivo em MB
@@ -424,31 +526,63 @@ def process_chunk(
                 chunk_id, file_size_mb, num_columns, adaptive_timeout, adaptive_timeout/3600
             )
             
+            # Log detalhado do diretório de entrada do DAMICORE
+            input_files = [f for f in os.listdir(chunk_input_dir) if f.startswith('col_') and f.endswith('.txt')]
+            logger.info(f"Total de arquivos de coluna no diretório de entrada: {len(input_files)}")
+            logger.debug(f"Primeiros 10 arquivos: {sorted(input_files)[:10]}")
+            
+            # Verifica se o número de arquivos corresponde ao número de colunas
+            if len(input_files) != num_columns:
+                logger.warning(f"Número de arquivos de coluna ({len(input_files)}) diferente do número de colunas esperado ({num_columns})")
+                # Tenta recriar os arquivos faltantes
+                for i in range(num_columns):
+                    expected_file = f"col_{i:04d}.txt"
+                    if expected_file not in input_files:
+                        logger.warning(f"Arquivo de coluna faltando: {expected_file}")
+                        try:
+                            col = df.columns[i]
+                            col_file = os.path.join(chunk_input_dir, expected_file)
+                            df[[col]].to_csv(col_file, index=False, header=False)
+                            logger.info(f"Recriado arquivo de coluna: {expected_file}")
+                        except Exception as e:
+                            logger.error(f"Falha ao recriar {expected_file}: {str(e)}")
+            
             # Executa o comando com timeout adaptativo e captura saída em tempo real
             logger.info(f"Iniciando execução do DAMICORE (timeout: {adaptive_timeout}s)")
+            logger.info(f"Comando: {' '.join(cmd)}")
+            logger.info(f"Diretório de trabalho: {os.path.dirname(DAMICORE)}")
             
-            # Usamos Popen para capturar saída em tempo real
+            # Cria pipes para capturar saída em tempo real
+            import subprocess
+            from subprocess import PIPE, STDOUT
+            
+            # Usamos Popen com pipes separados para stdout e stderr
             process = subprocess.Popen(
                 cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                cwd=os.path.dirname(DAMICORE),
+                stdout=PIPE,
+                stderr=PIPE,
                 text=True,
                 bufsize=1,
                 universal_newlines=True
             )
             
-            # Captura saída em tempo real
-            stdout_lines = []
-            stderr_lines = []
-            
-            # Função para ler linhas em tempo real
+            # Função para ler a saída em tempo real
             def read_output(pipe, lines, label):
-                for line in pipe:
-                    lines.append(line)
-                    logger.debug(f"DAMICORE {label}: {line.strip()}")
+                try:
+                    for line in pipe:
+                        line = line.strip()
+                        if line:
+                            logger.info(f"DAMICORE {label.upper()}: {line}")
+                            lines.append(line)
+                except Exception as e:
+                    logger.error(f"Erro ao ler {label}: {str(e)}")
             
             # Inicia threads para capturar saída
             import threading
+            stdout_lines = []
+            stderr_lines = []
+            
             stdout_thread = threading.Thread(
                 target=read_output, 
                 args=(process.stdout, stdout_lines, 'stdout')
@@ -465,30 +599,82 @@ def process_chunk(
             
             # Aguarda o processo terminar ou timeout
             try:
+                logger.info(f"Aguardando término do DAMICORE (timeout: {adaptive_timeout}s)")
                 process.wait(timeout=adaptive_timeout)
                 return_code = process.returncode
+                logger.info(f"DAMICORE finalizado com código {return_code}")
+                
+                # Verifica se o processo foi bem-sucedido
+                if return_code != 0:
+                    logger.error(f"DAMICORE falhou com código de saída {return_code}")
+                    if "error" in '\n'.join(stderr_lines).lower():
+                        logger.error("Erros encontrados na saída do DAMICORE:")
+                        for line in stderr_lines[-20:]:  # Mostra os últimos 20 erros
+                            logger.error(f"  {line}")
+                    return False
+                
             except subprocess.TimeoutExpired:
                 logger.error(f"Timeout de {adaptive_timeout}s atingido para o chunk {chunk_id}")
                 # Tenta terminar o processo de forma limpa
                 process.terminate()
                 try:
+                    logger.info("Aguardando término limpo do processo...")
                     process.wait(timeout=30)
                 except subprocess.TimeoutExpired:
                     logger.warning("Processo não terminou após 30s, forçando término...")
                     process.kill()
+                    process.wait()
+                
+                # Log do estado final
+                logger.error("Estado do diretório de saída:")
+                try:
+                    output_files = os.listdir(os.path.dirname(chunk_result_file) if chunk_result_file else '.')
+                    logger.info(f"Arquivos de saída encontrados: {len(output_files)}")
+                    logger.debug(f"Arquivos: {output_files}")
+                except Exception as e:
+                    logger.error(f"Erro ao listar diretório de saída: {str(e)}")
+                
                 return False
                 
-            # Aguarda as threads terminarem
-            stdout_thread.join(timeout=5)
-            stderr_thread.join(timeout=5)
+            finally:
+                # Garante que as threads sejam finalizadas
+                logger.debug("Finalizando threads de leitura...")
+                stdout_thread.join(timeout=5)
+                stderr_thread.join(timeout=5)
+                
+                # Fecha os pipes para evitar vazamentos
+                if process.stdout:
+                    process.stdout.close()
+                if process.stderr:
+                    process.stderr.close()
             
             # Cria objeto de resultado compatível
             result = subprocess.CompletedProcess(
                 args=cmd,
                 returncode=return_code,
-                stdout=''.join(stdout_lines),
-                stderr=''.join(stderr_lines)
+                stdout='\n'.join(stdout_lines) if stdout_lines else '',
+                stderr='\n'.join(stderr_lines) if stderr_lines else ''
             )
+            
+            # Log de diagnóstico
+            if result.returncode == 0:
+                logger.info("DAMICORE executado com sucesso!")
+                if not os.path.exists(chunk_result_file):
+                    logger.error(f"Arquivo de resultado não encontrado: {chunk_result_file}")
+                    logger.info("Conteúdo do diretório de saída:")
+                    try:
+                        out_dir = os.path.dirname(chunk_result_file) or '.'
+                        for f in os.listdir(out_dir):
+                            logger.info(f"- {f}")
+                    except Exception as e:
+                        logger.error(f"Erro ao listar diretório: {str(e)}")
+                    return False
+                elif os.path.getsize(chunk_result_file) == 0:
+                    logger.error(f"Arquivo de resultado vazio: {chunk_result_file}")
+                    return False
+                else:
+                    logger.info(f"Arquivo de resultado gerado: {chunk_result_file} ({os.path.getsize(chunk_result_file)} bytes)")
+                    return True
             
             logger.debug("Saída do comando: %s", result.stdout)
             
