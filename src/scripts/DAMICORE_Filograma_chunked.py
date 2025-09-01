@@ -336,7 +336,18 @@ def process_chunk(
         
         # Lê o arquivo CSV forçando todas as colunas a serem lidas como string
         # Isso evita que o pandas tente inferir tipos e acabe descartando colunas
+        logger.info(f"Carregando arquivo CSV: {input_file}")
         df = pd.read_csv(input_file, dtype=str, keep_default_na=False)
+        
+        # Log detalhado sobre o arquivo carregado
+        logger.info(f"Arquivo CSV carregado com {len(df)} linhas e {len(df.columns)} colunas")
+        logger.info(f"Primeiras colunas: {', '.join(df.columns.tolist()[:10])}")
+        if len(df.columns) > 10:
+            logger.info(f"... e mais {len(df.columns) - 10} colunas")
+            
+        # Log das primeiras linhas para diagnóstico
+        logger.debug("Primeiras linhas do CSV:")
+        logger.debug(df.head().to_string())
         
         # Converte colunas numéricas para float e adiciona ruído se necessário
         for col in df.columns:
