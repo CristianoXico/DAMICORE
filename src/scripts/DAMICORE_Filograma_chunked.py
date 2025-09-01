@@ -1,5 +1,6 @@
 import argparse
 import glob
+import json
 import logging
 import multiprocessing as mp
 import os
@@ -8,8 +9,165 @@ import subprocess
 import sys
 import time
 import traceback
+from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union, Tuple
+
+class CheckpointManager:
+    """Gerenciador de checkpoint para retomada automática do pipeline"""
+    
+    def __init__(self, output_dir: str):
+        """Inicializa o gerenciador de checkpoint
+        
+        Args:
+            output_dir: Diretório onde o arquivo de checkpoint será salvo
+        """
+        self.output_dir = output_dir
+        self.checkpoint_file = os.path.join(output_dir, "damicore_checkpoint.json")
+        self.progress = self._load_checkpoint()
+        
+    def _load_checkpoint(self) -> Dict[str, Any]:
+        """Carrega o checkpoint existente ou cria um novo"""
+        if os.path.exists(self.checkpoint_file):
+            try:
+                with open(self.checkpoint_file, 'r') as f:
+                    return json.load(f)
+            except Exception as e:
+                logger.warning(f"Erro ao carregar checkpoint: {e}. Criando novo checkpoint.")
+                return self._create_new_checkpoint()
+        return self._create_new_checkpoint()
+    
+    def _create_new_checkpoint(self) -> Dict[str, Any]:
+        """Cria uma nova estrutura de checkpoint"""
+        return {
+            "start_time": datetime.now().isoformat(),
+            "last_updated": None,
+            "status": "running",
+            "completed_steps": [],
+            "current_step": None,
+            "chunks": {},
+            "statistics": {
+                "total_chunks": 0,
+                "completed_chunks": 0,
+                "failed_chunks": 0,
+                "pending_chunks": 0
+            },
+            "metadata": {
+                "version": "1.0",
+                "created_with": "DAMICORE Chunked Processor"
+            }
+        }
+    
+    def save_checkpoint(self) -> bool:
+        """Salva o checkpoint atual no arquivo"""
+        try:
+            self.progress["last_updated"] = datetime.now().isoformat()
+            with open(self.checkpoint_file, 'w') as f:
+                json.dump(self.progress, f, indent=2)
+            return True
+        except Exception as e:
+            logger.error(f"Erro ao salvar checkpoint: {e}")
+            return False
+    
+    def mark_step_completed(self, step_name: str) -> bool:
+        """Marca uma etapa como concluída"""
+        if step_name not in self.progress["completed_steps"]:
+            self.progress["completed_steps"].append(step_name)
+            return self.save_checkpoint()
+        return True
+    
+    def is_step_completed(self, step_name: str) -> bool:
+        """Verifica se uma etapa foi concluída"""
+        return step_name in self.progress["completed_steps"]
+    
+    def update_chunk_status(self, chunk_id: str, status: str, 
+                          error: Optional[str] = None) -> bool:
+        """Atualiza o status de um chunk específico
+        
+        Args:
+            chunk_id: ID do chunk
+            status: Status atual ('pending', 'processing', 'completed', 'failed')
+            error: Mensagem de erro, se houver
+        """
+        if chunk_id not in self.progress["chunks"]:
+            self.progress["chunks"][chunk_id] = {
+                "start_time": datetime.now().isoformat(),
+                "status": status,
+                "end_time": None,
+                "error": None
+            }
+            self.progress["statistics"]["total_chunks"] += 1
+            self.progress["statistics"]["pending_chunks"] += 1
+        else:
+            prev_status = self.progress["chunks"][chunk_id].get("status")
+            
+            # Atualiza contadores
+            if prev_status == "completed":
+                self.progress["statistics"]["completed_chunks"] -= 1
+            elif prev_status == "failed":
+                self.progress["statistics"]["failed_chunks"] -= 1
+            elif prev_status == "processing":
+                # Não altera contadores
+                pass
+            else:  # pending
+                self.progress["statistics"]["pending_chunks"] -= 1
+            
+            # Atualiza status
+            self.progress["chunks"][chunk_id]["status"] = status
+            
+            if status == "completed":
+                self.progress["chunks"][chunk_id]["end_time"] = datetime.now().isoformat()
+                self.progress["statistics"]["completed_chunks"] += 1
+            elif status == "failed":
+                self.progress["chunks"][chunk_id]["end_time"] = datetime.now().isoformat()
+                self.progress["chunks"][chunk_id]["error"] = error
+                self.progress["statistics"]["failed_chunks"] += 1
+            elif status == "processing":
+                self.progress["chunks"][chunk_id]["start_time"] = datetime.now().isoformat()
+            else:  # pending
+                self.progress["statistics"]["pending_chunks"] += 1
+        
+        return self.save_checkpoint()
+    
+    def get_pending_chunks(self) -> List[str]:
+        """Retorna a lista de chunks pendentes"""
+        return [
+            chunk_id for chunk_id, chunk in self.progress["chunks"].items()
+            if chunk.get("status") in ["pending", "failed"]
+        ]
+    
+    def get_progress_summary(self) -> Dict[str, Any]:
+        """Retorna um resumo do progresso atual"""
+        stats = self.progress["statistics"]
+        total = stats["total_chunks"] or 1  # Evita divisão por zero
+        completed = stats["completed_chunks"]
+        
+        return {
+            "total_chunks": stats["total_chunks"],
+            "completed_chunks": completed,
+            "failed_chunks": stats["failed_chunks"],
+            "pending_chunks": stats["pending_chunks"],
+            "progress_percentage": round((completed / total) * 100, 2) if total > 0 else 0,
+            "start_time": self.progress.get("start_time"),
+            "last_updated": self.progress.get("last_updated"),
+            "current_step": self.progress.get("current_step")
+        }
+    
+    def print_progress_summary(self) -> None:
+        """Imprime um resumo do progresso atual"""
+        summary = self.get_progress_summary()
+        print("\n" + "=" * 80)
+        print(" RESUMO DO PROGRESSO".center(80))
+        print("=" * 80)
+        print(f"Total de chunks:       {summary['total_chunks']}")
+        print(f"Chunks concluídos:     {summary['completed_chunks']}")
+        print(f"Chunks com falha:      {summary['failed_chunks']}")
+        print(f"Chunks pendentes:      {summary['pending_chunks']}")
+        print(f"Progresso:             {summary['progress_percentage']}%")
+        print(f"Etapa atual:           {summary['current_step'] or 'N/A'}")
+        print(f"Iniciado em:           {summary['start_time']}")
+        print(f"Última atualização:    {summary['last_updated']}")
+        print("=" * 80 + "\n")
 
 # Configura logging
 logging.basicConfig(
@@ -172,18 +330,30 @@ def process_chunk(
         damicore_input_dir = os.path.join(chunk_result_dir, "damicore_input")
         os.makedirs(damicore_input_dir, exist_ok=True)
         
-        # Lê o arquivo CSV e adiciona ruído aleatório para evitar desvio padrão zero
+        # Lê o arquivo CSV garantindo que todas as colunas sejam lidas
         import random
         import pandas as pd
         
-        # Lê o arquivo CSV
-        df = pd.read_csv(input_file)
+        # Lê o arquivo CSV forçando todas as colunas a serem lidas como string
+        # Isso evita que o pandas tente inferir tipos e acabe descartando colunas
+        df = pd.read_csv(input_file, dtype=str, keep_default_na=False)
         
-        # Adiciona ruído aleatório a colunas numéricas com valores iguais
-        for col in df.select_dtypes(include=['float64', 'int64']).columns:
-            if df[col].nunique() == 1:  # Se todos os valores forem iguais
-                noise = [random.uniform(-0.0001, 0.0001) for _ in range(len(df))]
-                df[col] = df[col] + noise
+        # Converte colunas numéricas para float e adiciona ruído se necessário
+        for col in df.columns:
+            try:
+                # Tenta converter para numérico
+                df[col] = pd.to_numeric(df[col], errors='ignore')
+                
+                # Se for numérico, verifica se precisa adicionar ruído
+                if pd.api.types.is_numeric_dtype(df[col]):
+                    if df[col].nunique() == 1:  # Se todos os valores forem iguais
+                        noise = [random.uniform(-0.0001, 0.0001) for _ in range(len(df))]
+                        df[col] = df[col].astype(float) + noise
+            except Exception as e:
+                logger.debug(f"Não foi possível processar a coluna {col} como numérica: {str(e)}")
+        
+        logger.info(f"Total de colunas carregadas: {len(df.columns)}")
+        logger.debug(f"Colunas: {', '.join(df.columns[:10])}{'...' if len(df.columns) > 10 else ''}")
         
         # Cria um diretório para os arquivos de entrada do DAMICORE
         chunk_input_dir = os.path.join(damicore_input_dir, f"chunk_{chunk_id:04d}_input")
@@ -212,8 +382,7 @@ def process_chunk(
             "-c", "gzip",  # Usa compressão gzip
             "--tree-output", chunk_result_file,
             "--parallel",   # Usa processamento paralelo
-            "--all-columns", # Garante que todas as colunas serão processadas
-            chunk_input_dir
+            chunk_input_dir  # Já inclui todos os arquivos de colunas
         ]
         
         # Log detalhado do comando e ambiente
@@ -422,7 +591,125 @@ def calculate_tree_similarity(consensus, tree):
         logger.error(f"Erro ao calcular similaridade: {str(e)}")
         return None
 
-def consolidate_results(results_dir: str) -> None:
+def generate_correlation_analysis(df, output_dir: str):
+    """Gera análises de correlação avançadas.
+    
+    Gera:
+    - correlation_matrix_pearson.png: Matriz de correlação de Pearson
+    - correlation_matrix_spearman.png: Matriz de correlação de Spearman
+    - pca_biplot.png: Biplot de Análise de Componentes Principais
+    - hierarchical_clustering_dendrogram.png: Dendrograma de agrupamento hierárquico
+    - correlation_network.png: Rede de correlações significativas
+    
+    Args:
+        df: DataFrame com os dados
+        output_dir: Diretório de saída para os gráficos
+    """
+    try:
+        import matplotlib.pyplot as plt
+        import seaborn as sns
+        from sklearn.decomposition import PCA
+        from scipy.cluster.hierarchy import dendrogram, linkage
+        import networkx as nx
+        import numpy as np
+        
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # 1. Matriz de Correlação de Pearson
+        plt.figure(figsize=(12, 10))
+        corr_pearson = df.corr()
+        sns.heatmap(corr_pearson, annot=True, cmap='coolwarm', center=0, 
+                   fmt='.2f', linewidths=0.5)
+        plt.title('Matriz de Correlação de Pearson')
+        plt.tight_layout()
+        plt.savefig(os.path.join(output_dir, 'correlation_matrix_pearson.png'), 
+                   dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        # 2. Matriz de Correlação de Spearman
+        plt.figure(figsize=(12, 10))
+        corr_spearman = df.corr(method='spearman')
+        sns.heatmap(corr_spearman, annot=True, cmap='viridis', center=0,
+                   fmt='.2f', linewidths=0.5)
+        plt.title('Matriz de Correlação de Spearman')
+        plt.tight_layout()
+        plt.savefig(os.path.join(output_dir, 'correlation_matrix_spearman.png'),
+                   dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        # 3. PCA Biplot
+        pca = PCA(n_components=2)
+        pca_result = pca.fit_transform(df)
+        
+        plt.figure(figsize=(12, 10))
+        plt.scatter(pca_result[:, 0], pca_result[:, 1], alpha=0.5)
+        
+        # Adiciona setas para as variáveis
+        for i, feature in enumerate(df.columns):
+            plt.arrow(0, 0, pca.components_[0, i] * 3, 
+                     pca.components_[1, i] * 3, 
+                     color='r', alpha=0.5)
+            plt.text(pca.components_[0, i] * 3.2, 
+                    pca.components_[1, i] * 3.2,
+                    feature, color='r', ha='center', va='center')
+        
+        plt.xlabel(f'PC1 ({pca.explained_variance_ratio_[0]:.1%})')
+        plt.ylabel(f'PC2 ({pca.explained_variance_ratio_[1]:.1%})')
+        plt.title('PCA Biplot')
+        plt.grid(True, alpha=0.3)
+        plt.tight_layout()
+        plt.savefig(os.path.join(output_dir, 'pca_biplot.png'), 
+                   dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        # 4. Dendrograma de Agrupamento Hierárquico
+        plt.figure(figsize=(15, 8))
+        Z = linkage(df.T, 'ward')
+        dendrogram(Z, labels=df.columns, leaf_rotation=90)
+        plt.title('Dendrograma de Agrupamento Hierárquico')
+        plt.xlabel('Variáveis')
+        plt.ylabel('Distância')
+        plt.tight_layout()
+        plt.savefig(os.path.join(output_dir, 'hierarchical_clustering_dendrogram.png'),
+                   dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        # 5. Rede de Correlações
+        plt.figure(figsize=(15, 15))
+        G = nx.Graph()
+        
+        # Adiciona arestas apenas para correlações significativas (|r| > 0.5)
+        for i in range(len(corr_pearson.columns)):
+            for j in range(i+1, len(corr_pearson.columns)):
+                if abs(corr_pearson.iloc[i, j]) > 0.5:  # Ajuste o limiar conforme necessário
+                    G.add_edge(corr_pearson.columns[i], corr_pearson.columns[j], 
+                              weight=abs(corr_pearson.iloc[i, j]))
+        
+        # Layout da rede
+        pos = nx.spring_layout(G, k=0.5, iterations=50)
+        
+        # Desenha a rede
+        nx.draw_networkx_nodes(G, pos, node_size=700, node_color='skyblue')
+        nx.draw_networkx_edges(G, pos, width=1.0, alpha=0.5, 
+                             edge_color='gray')
+        nx.draw_networkx_labels(G, pos, font_size=10, font_family='sans-serif')
+        
+        plt.title('Rede de Correlações (|r| > 0.5)')
+        plt.axis('off')
+        plt.tight_layout()
+        plt.savefig(os.path.join(output_dir, 'correlation_network.png'),
+                   dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        logger.info("Análises de correlação geradas com sucesso")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Erro ao gerar análises de correlação: {str(e)}")
+        logger.error(traceback.format_exc())
+        return False
+
+def consolidate_results(results_dir: str):
     """Consolida os resultados dos chunks processados gerando apenas as saídas finais.
     
     Saídas geradas:
@@ -430,23 +717,11 @@ def consolidate_results(results_dir: str) -> None:
     - results_dir/Consensus_tree/: Visualizações da árvore de consenso
     - results_dir/Cloud_tree/: Visualização da nuvem de árvores
     - results_dir/tree_similarity.txt: Análise de similaridade
+    - results_dir/correlation_analysis/: Análises de correlação avançadas
 
     Args:
         results_dir: Diretório base contendo os resultados
     """
-    # Cria diretórios de saída
-    consensus_dir = os.path.join(results_dir, "Consensus_tree")
-    cloud_dir = os.path.join(results_dir, "Cloud_tree")
-    os.makedirs(consensus_dir, exist_ok=True)
-    os.makedirs(cloud_dir, exist_ok=True)
-
-    # Caminhos dos arquivos de saída
-    consensus_output = os.path.join(results_dir, "consensus_tree.newick")
-    similarity_file = os.path.join(results_dir, "tree_similarity.txt")
-    
-    # Verifica se já existe um arquivo de consenso
-    if os.path.exists(consensus_output):
-        logger.info("Arquivo de consenso já existe: %s", consensus_output)
         return
 
     # Lista todos os diretórios de chunks processados que contêm árvores
@@ -629,18 +904,64 @@ def consolidate_results(results_dir: str) -> None:
         logger.info("Usando árvore do primeiro chunk como fallback: %s", consensus_output)
 
 
+def process_chunk_with_checkpoint(chunk_id: int, chunk_path: str, results_dir: str, 
+                                num_bootstraps: int, checkpoint_manager: CheckpointManager) -> bool:
+    """Processa um chunk com suporte a checkpoint.
+    
+    Args:
+        chunk_id: ID do chunk
+        chunk_path: Caminho para o arquivo do chunk
+        results_dir: Diretório de saída
+        num_bootstraps: Número de amostras bootstrap
+        checkpoint_manager: Gerenciador de checkpoint
+        
+    Returns:
+        True se o processamento foi bem-sucedido, False caso contrário
+    """
+    chunk_name = f"chunk_{chunk_id:04d}"
+    
+    try:
+        # Verifica se o chunk já foi processado com sucesso
+        if checkpoint_manager.progress["chunks"].get(chunk_name, {}).get("status") == "completed":
+            logger.info(f"Chunk {chunk_name} já processado. Pulando...")
+            return True
+            
+        # Atualiza status para processando
+        checkpoint_manager.update_chunk_status(chunk_name, "processing")
+        
+        # Processa o chunk
+        result = process_chunk(chunk_id, chunk_path, results_dir, num_bootstraps)
+        
+        if result:
+            checkpoint_manager.update_chunk_status(chunk_name, "completed")
+            logger.info(f"Chunk {chunk_name} processado com sucesso")
+        else:
+            checkpoint_manager.update_chunk_status(chunk_name, "failed", "Erro ao processar chunk")
+            logger.error(f"Falha ao processar chunk {chunk_name}")
+            
+        return result
+        
+    except Exception as e:
+        error_msg = f"Erro inesperado ao processar chunk {chunk_name}: {str(e)}"
+        logger.error(error_msg)
+        logger.error(traceback.format_exc())
+        checkpoint_manager.update_chunk_status(chunk_name, "failed", error_msg)
+        return False
+
 def main() -> None:
-    """Função principal do script."""
+    """Função principal do script com suporte a checkpoint e otimizações de memória."""
     # Configura manipuladores de sinal
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
     parser = argparse.ArgumentParser(
-        description=("DAMICORE em modo chunked " "(para arquivos grandes)."),
+        description=("DAMICORE em modo chunked (para arquivos grandes) com suporte a checkpoint"),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
-        "--input", required=True, help="Arquivo CSV de entrada (grande)"
+        "--input", 
+        required=True, 
+        help="Arquivo CSV de entrada (grande)"
     )
     parser.add_argument(
         "--workdir",
@@ -651,7 +972,7 @@ def main() -> None:
         "--chunk-size-mb",
         type=int,
         default=DEFAULT_CHUNK_SIZE_MB,
-        help="Tamanho máximo de cada chunk em MB (padrão: %(default)sMB)",
+        help=f"Tamanho máximo de cada chunk em MB (padrão: {DEFAULT_CHUNK_SIZE_MB}MB)",
     )
     parser.add_argument(
         "--n-processes",
@@ -670,6 +991,16 @@ def main() -> None:
         action="store_true",
         help="Ativa modo debug com mais informações de log",
     )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Retoma o processamento a partir do último checkpoint"
+    )
+    parser.add_argument(
+        "--no-consolidate",
+        action="store_true",
+        help="Não executa a consolidação final dos resultados"
+    )
 
     args = parser.parse_args()
 
@@ -677,11 +1008,31 @@ def main() -> None:
     if args.debug:
         logger.setLevel(logging.DEBUG)
         logger.debug("Modo debug ativado")
+    
     logger.info("Iniciando processamento de %s", args.input)
     logger.info("Diretório de trabalho: %s", args.workdir)
     logger.info("Usando %d processos paralelos", args.n_processes)
     logger.info("Tamanho do chunk: %dMB", args.chunk_size_mb)
     logger.info("Compressor: %s", args.compressor)
+    logger.info("Modo retomada: %s", "Ativado" if args.resume else "Desativado")
+    
+    # Configurações de memória
+    try:
+        import resource
+        import psutil
+        
+        # Aumenta o limite de memória para 90% da memória física disponível
+        mem_limit = int(psutil.virtual_memory().available * 0.9)
+        soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+        if soft != resource.RLIM_INFINITY:
+            resource.setrlimit(resource.RLIMIT_AS, (mem_limit, hard))
+            logger.info(f"Limite de memória definido para {mem_limit/1024/1024:.2f} MB")
+    except Exception as e:
+        logger.warning(f"Não foi possível configurar o limite de memória: {e}")
+    
+    # Configura garbage collector para ser mais agressivo
+    import gc
+    gc.set_threshold(50, 10, 10)  # Mais frequente, mas menos intensivo
 
     try:
         # Usa um hash do caminho absoluto do arquivo de entrada para criar um diretório consistente
@@ -696,74 +1047,137 @@ def main() -> None:
         chunks_dir = os.path.join(workdir, "chunks")
         results_dir = os.path.join(workdir, "damicore_results")
         final_dir = os.path.join(workdir, "final")
-
-        for directory in [chunks_dir, results_dir, final_dir]:
-            os.makedirs(directory, exist_ok=True)
-            logger.debug("Diretório criado/verificado: %s", directory)
-
-        # 1. Dividir arquivo em chunks
-        logger.info("Dividindo arquivo em chunks...")
-        chunk_files = split_file_by_size(args.input, chunks_dir, args.chunk_size_mb)
-
-        if not chunk_files:
-            logger.error(
-                "Nenhum chunk foi criado. Verifique o tamanho do chunk e o "
-                "arquivo de entrada."
-            )
-            sys.exit(1)
-
-        logger.info("%d chunks criados com sucesso", len(chunk_files))
-
-        # 2. Processar em paralelo apenas os chunks não processados
-        logger.info("Verificando chunks já processados...")
         
-        # Filtra apenas os chunks que ainda não foram processados
-        chunks_to_process = []
-        for i, chunk_path in enumerate(chunk_files, 1):
-            chunk_id = f"{i:04d}"
-            chunk_result_dir = os.path.join(results_dir, f"chunk_{chunk_id}")
-            chunk_tree = os.path.join(chunk_result_dir, "tree.newick")
+        # Inicializa o gerenciador de checkpoint
+        checkpoint_manager = CheckpointManager(workdir)
+        
+        try:
+            # 1. Cria diretórios necessários
+            for directory in [chunks_dir, results_dir, final_dir]:
+                os.makedirs(directory, exist_ok=True)
+                logger.debug("Diretório criado/verificado: %s", directory)
             
-            if os.path.exists(chunk_tree):
-                logger.debug("Chunk %s já processado anteriormente", chunk_id)
+            # 2. Dividir arquivo em chunks (se não estiver em modo de retomada)
+            chunk_files = []
+            if not args.resume or not checkpoint_manager.is_step_completed("file_splitting"):
+                logger.info("Dividindo arquivo em chunks...")
+                checkpoint_manager.progress["current_step"] = "file_splitting"
+                checkpoint_manager.save_checkpoint()
+                
+                # Limpa chunks antigos se não estiver em modo de retomada
+                if not args.resume:
+                    for f in glob.glob(os.path.join(chunks_dir, "chunk_*")):
+                        if os.path.isfile(f):
+                            os.remove(f)
+                
+                chunk_files = split_file_by_size(args.input, chunks_dir, args.chunk_size_mb)
+                
+                if not chunk_files:
+                    logger.error("Nenhum chunk foi criado. Verifique o arquivo de entrada.")
+                    sys.exit(1)
+                
+                logger.info("%d chunks criados com sucesso", len(chunk_files))
+                checkpoint_manager.mark_step_completed("file_splitting")
             else:
-                chunks_to_process.append((i, chunk_path, results_dir, 22))  # 22 bootstraps
-        
-        if not chunks_to_process:
-            logger.info("Todos os chunks já foram processados anteriormente")
-        else:
-            logger.info("Processando %d/%d chunks em paralelo...", 
-                       len(chunks_to_process), len(chunk_files))
+                # Em modo de retomada, encontra os chunks existentes
+                chunk_files = sorted(glob.glob(os.path.join(chunks_dir, "chunk_*")))
+                logger.info("Retomando processamento de %d chunks existentes", len(chunk_files))
             
-            successful_chunks = 0
-            with mp.Pool(args.n_processes) as pool:
-                results = pool.starmap(process_chunk, chunks_to_process)
-                successful_chunks = sum(1 for r in results if r is not None)
+            # 3. Processar chunks em paralelo com suporte a checkpoint
+            if not checkpoint_manager.is_step_completed("chunk_processing"):
+                checkpoint_manager.progress["current_step"] = "chunk_processing"
+                checkpoint_manager.save_checkpoint()
+                
+                logger.info("Verificando chunks já processados...")
+                
+                # Prepara argumentos para cada chunk
+                chunks_to_process = []
+                for i, chunk_path in enumerate(chunk_files, 1):
+                    chunk_name = f"chunk_{i:04d}"
+                    chunk_result_dir = os.path.join(results_dir, chunk_name)
+                    chunk_tree = os.path.join(chunk_result_dir, "tree.newick")
+                    
+                    # Verifica se o chunk já foi processado com sucesso
+                    if os.path.exists(chunk_tree) and \
+                       checkpoint_manager.progress["chunks"].get(chunk_name, {}).get("status") == "completed":
+                        logger.debug("Chunk %s já processado com sucesso anteriormente", chunk_name)
+                    else:
+                        chunks_to_process.append((i, chunk_path, results_dir, 22, checkpoint_manager))
+                
+                if not chunks_to_process:
+                    logger.info("Todos os chunks já foram processados com sucesso")
+                else:
+                    logger.info("Processando %d/%d chunks em paralelo...", 
+                              len(chunks_to_process), len(chunk_files))
+                    
+                    # Processa em lotes para evitar sobrecarga de memória
+                    batch_size = max(1, args.n_processes * 2)
+                    for batch_start in range(0, len(chunks_to_process), batch_size):
+                        batch = chunks_to_process[batch_start:batch_start + batch_size]
+                        logger.info("Processando lote %d/%d (%d chunks)", 
+                                  batch_start // batch_size + 1,
+                                  (len(chunks_to_process) - 1) // batch_size + 1,
+                                  len(batch))
+                        
+                        with mp.Pool(processes=args.n_processes) as pool:
+                            results = pool.starmap(process_chunk_with_checkpoint, batch)
+                        
+                        # Força coleta de lixo entre lotes
+                        import gc
+                        gc.collect()
+                    
+                    # Verifica resultados
+                    successful_chunks = sum(1 for r in results if r is True)
+                    logger.info("%d/%d chunks processados com sucesso no lote", 
+                              successful_chunks, len(batch))
+                
+                checkpoint_manager.mark_step_completed("chunk_processing")
             
-            logger.info("%d novos chunks processados com sucesso", successful_chunks)
-        
-        # Conta o total de chunks processados (antigos + novos)
-        processed_chunks = sum(1 for i in range(1, len(chunk_files) + 1)
-                             if os.path.exists(os.path.join(results_dir, f"chunk_{i:04d}", "tree.newick")))
-        successful_chunks = processed_chunks
-
-        logger.info(
-            "Processamento concluído: %d/%d chunks processados com sucesso",
-            successful_chunks,
-            len(chunk_files),
-        )
-
-        if successful_chunks == 0:
-            logger.error("Nenhum chunk foi processado com sucesso")
-            sys.exit(1)
-
-        # 3. Consolidar e gerar imagens
-        logger.info("Consolidando resultados...")
-        consolidate_results(results_dir)
-        logger.info("Processamento concluído com sucesso!")
-
+            # 4. Conta o total de chunks processados
+            processed_chunks = sum(1 for i in range(1, len(chunk_files) + 1)
+                                 if checkpoint_manager.progress["chunks"].get(f"chunk_{i:04d}", {}).get("status") == "completed")
+            
+            logger.info(
+                "Processamento concluído: %d/%d chunks processados com sucesso",
+                processed_chunks,
+                len(chunk_files),
+            )
+            
+            if processed_chunks == 0:
+                logger.error("Nenhum chunk foi processado com sucesso")
+                sys.exit(1)
+            
+            # 5. Consolidar e gerar imagens (se não estiver desativado)
+            if not args.no_consolidate and not checkpoint_manager.is_step_completed("result_consolidation"):
+                checkpoint_manager.progress["current_step"] = "result_consolidation"
+                checkpoint_manager.save_checkpoint()
+                
+                logger.info("Consolidando resultados...")
+                consolidate_results(results_dir)
+                checkpoint_manager.mark_step_completed("result_consolidation")
+            
+            # Atualiza status final
+            checkpoint_manager.progress["status"] = "completed"
+            checkpoint_manager.progress["end_time"] = datetime.now().isoformat()
+            checkpoint_manager.save_checkpoint()
+            
+            logger.info("\n" + "="*80)
+            logger.info("PROCESSAMENTO CONCLUÍDO COM SUCESSO".center(80))
+            logger.info("="*80)
+            checkpoint_manager.print_progress_summary()
+            
+        except Exception as e:
+            logger.critical("Erro durante o processamento: %s", str(e), exc_info=True)
+            
+            # Atualiza status de erro no checkpoint
+            checkpoint_manager.progress["status"] = f"failed: {str(e)}"
+            checkpoint_manager.save_checkpoint()
+            checkpoint_manager.print_progress_summary()
+            raise
+            
     except Exception as e:
         logger.critical("Erro fatal: %s", str(e), exc_info=True)
+        sys.exit(1)
         sys.exit(1)
 
 

@@ -709,7 +709,12 @@ def generate_adaptive_visualizations_for_slice(slice_idx, output_dir, csv_file):
 
 def slice_large_file(csv_file, output_dir, chunk_size=CHUNK_SIZE):
     """
-    Fatia arquivo grande em múltiplos arquivos menores.
+    Fatia arquivo grande em múltiplos arquivos menores de forma eficiente em memória.
+    
+    Otimizações implementadas:
+    - Leitura linha a linha para evitar carregar todo o arquivo na memória
+    - Processamento em blocos para reduzir alocações de memória
+    - Gerenciamento explícito de memória com garbage collection
     
     Args:
         csv_file (str): Caminho para o arquivo CSV original
@@ -719,7 +724,7 @@ def slice_large_file(csv_file, output_dir, chunk_size=CHUNK_SIZE):
     Returns:
         list: Lista de caminhos das fatias criadas
     """
-    print(f"\n🔪 INICIANDO FATIAMENTO DO ARQUIVO")
+    print(f"\n🔪 INICIANDO FATIAMENTO DO ARQUIVO (MODO OTIMIZADO)")
     print(f"📁 Arquivo original: {csv_file}")
     print(f"📊 Tamanho: {get_file_size_gb(csv_file):.2f} GB")
     print(f"✂️  Fatias de: {chunk_size} linhas cada")
@@ -728,39 +733,82 @@ def slice_large_file(csv_file, output_dir, chunk_size=CHUNK_SIZE):
     slices_dir = os.path.join(output_dir, "slices")
     os.makedirs(slices_dir, exist_ok=True)
     
-    # Ler cabeçalho
+    # Ler apenas o cabeçalho
     print("📋 Lendo cabeçalho do arquivo...")
-    header = pd.read_csv(csv_file, nrows=0, encoding="utf-8").columns.tolist()
-    print(f"📊 Colunas detectadas: {len(header)}")
+    with open(csv_file, 'r', encoding='utf-8') as f:
+        header = f.readline().strip()
     
-    # Contar total de linhas
+    # Contar total de linhas de forma eficiente
     print("🔢 Contando linhas totais...")
-    total_lines = sum(1 for _ in open(csv_file, 'r', encoding='utf-8')) - 1  # -1 para o cabeçalho
+    with open(csv_file, 'r', encoding='utf-8') as f:
+        total_lines = sum(1 for _ in f) - 1  # -1 para o cabeçalho
+    
     total_slices = (total_lines + chunk_size - 1) // chunk_size
     
+    print(f"📊 Colunas detectadas: {len(header.split(','))}")
     print(f"📈 Total de linhas: {total_lines:,}")
     print(f"🔪 Total de fatias: {total_slices}")
     
     slice_files = []
+    current_chunk = []
+    current_chunk_size = 0
+    slice_idx = 0
     
-    # Processar arquivo em chunks
     print(f"\n🚀 Iniciando fatiamento...")
     
     with tqdm(total=total_slices, desc="Fatiando arquivo") as pbar:
-        for slice_idx, chunk_df in enumerate(pd.read_csv(csv_file, chunksize=chunk_size, encoding="utf-8")):
-            slice_filename = f"slice_{slice_idx:04d}.csv"
-            slice_path = os.path.join(slices_dir, slice_filename)
+        with open(csv_file, 'r', encoding='utf-8') as f:
+            # Pular cabeçalho
+            next(f)
             
-            # Salvar fatia
-            chunk_df.to_csv(slice_path, index=False, encoding="utf-8")
-            slice_files.append(slice_path)
+            for line in f:
+                current_chunk.append(line)
+                current_chunk_size += 1
+                
+                if current_chunk_size >= chunk_size:
+                    # Gerar nome do arquivo de saída
+                    slice_filename = f"slice_{slice_idx:04d}.csv"
+                    slice_path = os.path.join(slices_dir, slice_filename)
+                    
+                    # Escrever chunk atual no arquivo
+                    with open(slice_path, 'w', encoding='utf-8') as out_f:
+                        out_f.write(header + '\n')  # Escrever cabeçalho
+                        out_f.writelines(current_chunk)
+                    
+                    slice_files.append(slice_path)
+                    
+                    # Limpar chunk atual
+                    current_chunk = []
+                    current_chunk_size = 0
+                    slice_idx += 1
+                    
+                    # Atualizar barra de progresso
+                    pbar.update(1)
+                    pbar.set_postfix({
+                        'Fatia': f'{slice_idx}/{total_slices}',
+                        'Linhas': len(current_chunk),
+                        'Arquivo': slice_filename
+                    })
+                    
+                    # Forçar coleta de lixo após cada chunk
+                    if slice_idx % 10 == 0:
+                        gc.collect()
             
-            pbar.set_postfix({
-                'Fatia': f'{slice_idx + 1}/{total_slices}',
-                'Linhas': len(chunk_df),
-                'Arquivo': slice_filename
-            })
-            pbar.update(1)
+            # Processar último chunk se não estiver vazio
+            if current_chunk:
+                slice_filename = f"slice_{slice_idx:04d}.csv"
+                slice_path = os.path.join(slices_dir, slice_filename)
+                
+                with open(slice_path, 'w', encoding='utf-8') as out_f:
+                    out_f.write(header + '\n')
+                    out_f.writelines(current_chunk)
+                
+                slice_files.append(slice_path)
+                pbar.update(1)
+    
+    # Limpeza final de memória
+    del current_chunk
+    gc.collect()
     
     print(f"\n✅ Fatiamento concluído!")
     print(f"📁 {len(slice_files)} fatias criadas em: {slices_dir}")
