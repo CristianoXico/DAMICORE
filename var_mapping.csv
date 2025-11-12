@@ -1,0 +1,102 @@
+original,mapped,category
+col_0.txt,Estado Nutricional (IMC),Nutrição
+col_1.txt,Peso (kg),Antropometria
+col_2.txt,Altura (cm),Antropometria
+col_3.txt,Perímetro Cefálico (cm),Antropometria
+col_4.txt,Idade (meses),Dados Demográficos
+col_5.txt,Sexo,Dados Demográficos
+col_6.txt,Raça/Cor,Dados Demográficos
+col_7.txt,Localização Geográfica,Localização
+col_8.txt,Tipo de Moradia,Condições de Vida
+col_9.txt,Acesso à Água,Condições de Vida
+col_10.txt,Acesso à Saneamento,Condições de Vida
+col_11.txt,Renda Familiar (R$),Renda
+col_12.txt,Escolaridade do Responsável,Educação
+col_13.txt,Profissão do Responsável,Trabalho
+col_14.txt,Situação de Emprego,Trabalho
+col_15.txt,Histórico de Aleitamento,Alimentação
+col_16.txt,Tempo de Aleitamento (meses),Alimentação
+col_17.txt,Tipo de Leite Oferecido,Alimentação
+col_18.txt,Alimentação Complementar,Alimentação
+col_19.txt,Presença de Alergia,Saúde
+col_20.txt,Tipo de Alergia,Saúde
+col_21.txt,Presença de Doença Crônica,Saúde
+col_22.txt,Tipo de Doença Crônica,Saúde
+col_23.txt,Histórico de Vacinação,Saúde
+col_24.txt,Cobertura Vacinal (%),Saúde
+col_25.txt,Última Consulta Médica,Acesso à Saúde
+col_26.txt,Frequência de Consultas,Acesso à Saúde
+col_27.txt,Acesso a Medicamentos,Acesso à Saúde
+col_28.txt,Uso de Medicamentos,Medicação
+col_29.txt,Tipo de Medicamento,Medicação
+col_30.txt,Presença de Diarreia (últimos 30 dias),Saúde
+col_31.txt,Frequência de Diarreia,Saúde
+col_32.txt,Presença de Infecção Respiratória,Saúde
+col_33.txt,Frequência de Infecção Respiratória,Saúde
+col_34.txt,Histórico de Hospitalização,Saúde
+col_35.txt,Motivo de Hospitalização,Saúde
+col_36.txt,Desenvolvimento Psicomotor,Desenvolvimento
+col_37.txt,Avaliação de Linguagem,Desenvolvimento
+col_38.txt,Avaliação Cognitiva,Desenvolvimento
+col_39.txt,Comportamento Social,Desenvolvimento
+col_40.txt,Acesso a Programas de Assistência,Assistência Social
+col_41.txt,Tipo de Programa de Assistência,Assistência Social
+col_42.txt,Beneficiário de Auxílio Brasil,Assistência Social
+col_43.txt,Beneficiário de Bolsa Família,Assistência Social
+col_44.txt,Beneficiário de PBF Complementar,Assistência Social
+col_45.txt,Acesso a Centro Infantil,Educação
+col_46.txt,Tipo de Cuidado Infantil,Educação
+col_47.txt,Frequência em Pré-Escola,Educação
+col_48.txt,Acesso a Serviços de Saúde Mental,Saúde Mental
+col_49.txt,Presença de Transtorno Emocional,Saúde Mental
+col_50.txt,Histórico de Ansiedade,Saúde Mental
+col_51.txt,Histórico de Depressão,Saúde Mental
+col_52.txt,Acesso a Dentista,Acesso à Saúde
+col_53.txt,Condição de Saúde Bucal,Saúde Bucal
+col_54.txt,Número de Cáries,Saúde Bucal
+col_55.txt,Presença de Sangramento Gengival,Saúde Bucal
+col_56.txt,Higiene Bucal (frequência),Higiene
+col_57.txt,Frequência de Escovação,Higiene
+col_58.txt,Uso de Fio Dental,Higiene
+col_59.txt,Presença de Fluorose,Saúde Bucal
+col_60.txt,Práticas de Higiene Pessoal,Higiene
+col_61.txt,Frequência de Banho,Higiene
+col_62.txt,Uso de Sabonete,Higiene
+col_63.txt,Limpeza de Ambiente,Higiene
+col_64.txt,Destinação de Lixo,Higiene
+col_65.txt,Presença de Pragas,Condições de Vida
+col_66.txt,Presença de Umidade na Moradia,Condições de Vida
+col_67.txt,Presença de Mofo/Fungos,Condições de Vida
+col_68.txt,Acesso a Eletricidade,Condições de Vida
+col_69.txt,Acesso a Internet,Condições de Vida
+col_70.txt,Dispositivos Eletrônicos (quantidade),Tecnologia
+col_71.txt,Tempo em Telas (horas/dia),Tecnologia
+col_72.txt,Acesso a Livros/Literatura,Educação
+col_73.txt,Prática de Leitura (frequência),Educação
+col_74.txt,Prática de Atividades Físicas,Atividade Física
+col_75.txt,Frequência de Exercício (dias/semana),Atividade Física
+col_76.txt,Tipo de Atividade Física,Atividade Física
+col_77.txt,Tempo de Atividade Física (minutos),Atividade Física
+col_78.txt,Participação em Esportes,Atividade Física
+col_79.txt,Acesso a Espaço de Lazer,Lazer
+col_80.txt,Frequência de Lazer,Lazer
+col_81.txt,Presença de Violência Doméstica,Segurança
+col_82.txt,Tipo de Violência,Segurança
+col_83.txt,Frequência de Violência,Segurança
+col_84.txt,Suporte Psicológico (violência),Segurança
+col_85.txt,Presença de Abuso de Substâncias,Saúde Mental
+col_86.txt,Tipo de Substância,Saúde Mental
+col_87.txt,Frequência de Uso,Saúde Mental
+col_88.txt,Acesso a Reabilitação,Saúde
+col_89.txt,Histórico Familiar de Doença Crônica,Genética
+col_90.txt,Tipo de Doença Familiar,Genética
+col_91.txt,Presença de Deficiência,Deficiência
+col_92.txt,Tipo de Deficiência,Deficiência
+col_93.txt,Acesso a Reabilitação (Deficiência),Deficiência
+col_94.txt,Suporte Familiar,Suporte Social
+col_95.txt,Suporte da Comunidade,Suporte Social
+col_96.txt,Presença de Cuidador,Suporte Social
+col_97.txt,Tipo de Cuidador,Suporte Social
+col_98.txt,Qualidade de Vida (Escala),Bem-estar
+col_99.txt,Satisfação com a Vida,Bem-estar
+col_100.txt,Perspectiva Futura,Bem-estar
