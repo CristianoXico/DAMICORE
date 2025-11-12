@@ -243,3 +243,51 @@ git help workflow
 ---
 
 **Última atualização:** 12 de novembro de 2025
+
+---
+
+## 📦 Workflow adicional: `Run analyze_newicks` (GitHub Actions)
+
+Adicionei um workflow executável manualmente em `.github/workflows/run_analyze_newicks.yml` que permite rodar o script `src/scripts/analyze_newicks.py` a partir da interface do GitHub (workflow_dispatch). Abaixo estão as instruções rápidas para incluir esse workflow via PR e executá-lo.
+
+O que o workflow faz:
+- Recebe inputs: `newicks_path` (obrigatório), `metadata` (opcional) e `var_mapping` (opcional).
+- Instala dependências via `requirements.txt` (se existir).
+- Executa: `python src/scripts/analyze_newicks.py <newicks_path> [metadata] [var_mapping]`.
+- Publica os artefatos gerados (`clados_summary.csv`, `clados_summary.docx`, `clados_summary_plain_newicks.txt`) como artifacts do workflow.
+
+Observações importantes:
+- Runners públicos do GitHub Actions não têm acesso ao seu filesystem local. Se os `.newick` estiverem fora do repositório (por exemplo `/home/cristiano/...` no seu computador), o workflow em github.com não conseguirá acessá-los.
+- Para executar com seus dados locais, use uma das opções abaixo:
+  - Copiar os dados para dentro do repositório (diretório `data/` ou similar) e referenciar `newicks_path` relativo.
+  - Usar um runner self-hosted (configurar um runner na sua máquina/servidor) e então disparar o workflow — o runner terá acesso ao seu filesystem local.
+  - Fazer o upload dos arquivos `.newick` para um storage acessível (S3, GCS) e adaptar o workflow para baixar os dados antes da execução.
+
+Como abrir uma PR que inclua o workflow
+1. Criar branch a partir de `sandbox` (ou branch base adequada):
+```bash
+git checkout sandbox
+git pull origin sandbox
+git checkout -b feature/add-analyze-newicks-workflow
+```
+2. Adicionar o arquivo do workflow (já criado localmente em `.github/workflows/run_analyze_newicks.yml`) e commitar:
+```bash
+git add .github/workflows/run_analyze_newicks.yml
+git commit -m "Adiciona workflow GitHub Actions: Run analyze_newicks (workflow_dispatch)"
+git push origin feature/add-analyze-newicks-workflow
+```
+3. Criar PR apontando para `sandbox` como base. Na descrição da PR inclua:
+   - Objetivo do workflow (executar `analyze_newicks.py` via Actions).
+   - Observações sobre acesso a dados externos e sugestão para self-hosted runner se necessário.
+
+Como executar o workflow (após merge ou em branch de PR)
+1. No GitHub → Actions → selecione "Run analyze_newicks".
+2. Clique em "Run workflow" (botão direito) e preencha os inputs:
+   - `newicks_path`: caminho relativo (ex: `src/scripts`) ou absoluto (apenas em self-hosted runner).
+   - `metadata`: (opcional) caminho para CSV de metadata.
+   - `var_mapping`: (opcional) caminho para `var_mapping.csv`.
+3. Aguarde a execução e baixe o artefato "analyze_newicks-results".
+
+Se quiser, posso:
+- Abrir o PR eu mesmo na sua branch (`feature/add-analyze-newicks-workflow`) e preparar a descrição da PR.
+- Adicionar instruções no README com exemplos práticos e um pequeno script de preparação de dados para executar no Actions.

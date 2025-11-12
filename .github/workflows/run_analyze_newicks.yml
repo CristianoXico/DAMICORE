@@ -1,0 +1,79 @@
+name: Run analyze_newicks
+
+on:
+  workflow_dispatch:
+    inputs:
+      newicks_path:
+        description: 'Caminho (relativo ao workspace ou absoluto) para o diretório contendo arquivos .newick'
+        required: true
+        default: 'src/scripts'
+      metadata:
+        description: '(Opcional) Caminho para metadata CSV'
+        required: false
+        default: ''
+      var_mapping:
+        description: '(Opcional) Caminho para var_mapping.csv'
+        required: false
+        default: ''
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies (if requirements.txt exists)
+        run: |
+          if [ -f requirements.txt ]; then
+            python -m pip install --upgrade pip
+            python -m pip install -r requirements.txt
+          else
+            echo "requirements.txt not found — skipping install"
+          fi
+
+      - name: Show inputs
+        run: |
+          echo "NEWICKS_PATH=${{ github.event.inputs.newicks_path }}"
+          echo "METADATA=${{ github.event.inputs.metadata }}"
+          echo "VAR_MAPPING=${{ github.event.inputs.var_mapping }}"
+
+      - name: Run analyze_newicks script
+        id: run_script
+        run: |
+          set -euo pipefail
+          NEWICKS_PATH="${{ github.event.inputs.newicks_path }}"
+          METADATA="${{ github.event.inputs.metadata }}"
+          VAR_MAPPING="${{ github.event.inputs.var_mapping }}"
+
+          # Se o input for vazio, passe apenas os argumentos necessários
+          CMD=(python src/scripts/analyze_newicks.py "$NEWICKS_PATH")
+          if [ -n "$METADATA" ]; then
+            CMD+=("$METADATA")
+          fi
+          if [ -n "$VAR_MAPPING" ]; then
+            CMD+=("$VAR_MAPPING")
+          fi
+
+          echo "Executando: ${CMD[*]}"
+          "${CMD[@]}"
+
+      - name: List generated files
+        run: |
+          echo "Procurando arquivos de saída em ${{ github.event.inputs.newicks_path }}"
+          ls -la "${{ github.event.inputs.newicks_path }}" || true
+          ls -la "${{ github.event.inputs.newicks_path }}"/clados_summary* || true
+
+      - name: Upload artifacts (CSV, DOCX, plain_newicks)
+        uses: actions/upload-artifact@v4
+        with:
+          name: analyze_newicks-results
+          path: |
+            ${{ github.event.inputs.newicks_path }}/clados_summary.csv
+            ${{ github.event.inputs.newicks_path }}/clados_summary.docx
+            ${{ github.event.inputs.newicks_path }}/clados_summary_plain_newicks.txt

@@ -1,0 +1,85 @@
+name: PR checks — analyze_newicks
+
+on:
+  pull_request:
+    branches:
+      - sandbox
+      - main
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then
+            python -m pip install -r requirements.txt
+          else
+            echo "No requirements.txt found; installing minimal deps"
+            python -m pip install pandas biopython python-docx
+          fi
+
+      - name: Run linters (flake8) if available
+        run: |
+          if python -c "import pkgutil; print(pkgutil.find_loader('flake8') is not None)" | grep True >/dev/null 2>&1; then
+            flake8 src || true
+          else
+            echo 'flake8 not installed; installing and running'
+            python -m pip install flake8
+            flake8 src || true
+          fi
+
+      - name: Run pytest (if tests exist)
+        run: |
+          if [ -d tests ]; then
+            python -m pip install pytest
+            pytest -q || exit 1
+          else
+            echo "No tests/ directory found — skipping pytest"
+          fi
+
+      - name: Prepare smoke-test newicks directory
+        run: |
+          set -euo pipefail
+          TEST_DIR="$GITHUB_WORKSPACE/tmp_newicks_test"
+          rm -rf "$TEST_DIR"
+          mkdir -p "$TEST_DIR"
+          # create small newick files with terminal names matching col_X.txt pattern
+          echo "(col_0.txt,col_1.txt,(col_2.txt,col_3.txt));" > "$TEST_DIR/resample_00-tree.newick"
+          echo "(col_0.txt,(col_2.txt,col_4.txt));" > "$TEST_DIR/resample_01-tree.newick"
+          echo "((col_2.txt,col_3.txt),col_5.txt);" > "$TEST_DIR/resample_02-tree.newick"
+          # simple metadata
+          cat > "$TEST_DIR/metadata.csv" <<'CSV'
+filename,region
+resample_00-tree.newick,TEST
+resample_01-tree.newick,TEST
+resample_02-tree.newick,TEST
+CSV
+          # minimal var_mapping with a few entries
+          cat > "$TEST_DIR/var_mapping.csv" <<'CSV'
+original,mapped,category
+col_0.txt,spatial_id,Spatial
+col_1.txt,idade,Demografia
+col_2.txt,altura,Saude
+col_3.txt,sexo,Demografia
+col_4.txt,ado,Saude
+col_5.txt,renda,Socio
+CSV
+
+      - name: Run analyze_newicks smoke-test
+        run: |
+          set -euo pipefail
+          python src/scripts/analyze_newicks.py "$GITHUB_WORKSPACE/tmp_newicks_test" "$GITHUB_WORKSPACE/tmp_newicks_test/metadata.csv" "$GITHUB_WORKSPACE/tmp_newicks_test/var_mapping.csv"
+
+      - name: Verify outputs
+        run: |
+          ls -la "$GITHUB_WORKSPACE/tmp_newicks_test"/clados_summary* || (echo 'Outputs not found' && exit 1)
