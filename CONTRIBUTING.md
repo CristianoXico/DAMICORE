@@ -22,7 +22,7 @@ Este projeto adere ao [Código de Conduta de Código Aberto](https://www.contrib
 
 ### Pré-requisitos
 
-- Python 3.8+
+- Python 3.12+ (obrigatório)
 - Git
 - Docker (opcional, mas recomendado para consistência)
 - pip (gerenciador de pacotes Python)
@@ -38,13 +38,20 @@ Este projeto adere ao [Código de Conduta de Código Aberto](https://www.contrib
    cd DAMICORE
    ```
 
-3. **Configure o ambiente virtual**
+3. **Ative o ambiente virtual do projeto**
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # No Windows: venv\Scripts\activate
+   # Ative damicore_env (Python 3.12 — ambiente padrão)
+   source damicore_env/bin/activate
+   
+   # No Windows:
+   # damicore_env\Scripts\activate
+   
+   # Verifique a versão
+   python --version  # Deve ser 3.12+
+   which python      # Deve conter "damicore_env"
    ```
 
-4. **Instale as dependências**
+4. **Instale as dependências de desenvolvimento**
    ```bash
    pip install -r requirements-dev.txt
    pip install -e .
@@ -55,66 +62,134 @@ Este projeto adere ao [Código de Conduta de Código Aberto](https://www.contrib
    pre-commit install
    ```
 
+### ⚠️ Ambientes Virtuais — Informações Importantes
+
+**✅ Use APENAS `damicore_env`** para todo o desenvolvimento:
+
+- ✅ **Ambiente obrigatório:** `damicore_env/` (Python 3.12)
+- ❌ **NÃO use:** venv genérico, .venv, ou outros ambientes
+- 🗑️ **Ambientes duplicados foram removidos** (venv, notebooks/.venv)
+
+```bash
+# Verificar ambiente correto
+python --version       # Deve exibir 3.12.x
+which python           # Deve conter "damicore_env"
+pip list | grep numpy  # Verificar dependências instaladas
+```
+
+Se tiver problemas, recrie o ambiente:
+```bash
+rm -rf damicore_env
+python3.12 -m venv damicore_env
+source damicore_env/bin/activate
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
+```
+
 ## 🏗️ Estrutura do Projeto
 
 ```
 DAMICORE/
-├── config/                  # Arquivos de configuração
-├── docs/                    # Documentação adicional
-├── examples/                # Exemplos de uso
-├── scripts_modulares/       # Módulos auxiliares
-├── src/                     # Código-fonte principal
-│   ├── scripts/             # Scripts de análise
-│   └── tree_simplification.py  # Funções de simplificação de árvores
-├── tests/                   # Testes automatizados
+├── config/                      # Arquivos de configuração
+├── docs/                        # Documentação adicional
+├── examples/                    # Exemplos de uso
+├── src/                         # Código-fonte principal
+│   ├── __init__.py
+│   ├── damicore.py             # Script principal de clustering
+│   ├── ncd.py                  # Cálculo de distância NCD
+│   ├── tree.py                 # Manipulação de árvores
+│   ├── tree_simplification.py  # Simplificação de grafos
+│   ├── progress_bar.py         # Utilidades
+│   └── scripts/                # Scripts de análise
+│       ├── checkpoint_manager.py
+│       ├── DAMICORE_Filograma_script.py
+│       ├── DAMICORE_File_Slicer_Processor.py
+│       └── ...
+├── notebooks/                  # Notebooks e dados de teste
+├── damicore_env/              # Ambiente virtual (Python 3.12)
 ├── .gitignore
-├── Dockerfile               # Configuração do Docker
-├── README.md                # Documentação principal
-├── CONTRIBUTING.md          # Este arquivo
-└── requirements.txt         # Dependências Python
+├── .pre-commit-config.yaml    # Configuração pre-commit
+├── Dockerfile                  # Imagem Docker
+├── DOCKER.md                   # Guia Docker consolidado
+├── README.md                   # Documentação principal
+├── CONTRIBUTING.md             # Este arquivo
+├── WORKFLOW_PR.md              # Workflow de Pull Requests
+└── requirements.txt            # Dependências Python
 ```
 
-## 🔄 Fluxo de Trabalho
+## 🔄 Fluxo de Trabalho com Branches
 
-1. **Crie uma branch**
+### Branches do Projeto
+
+- **`main`:** Código consolidado e pronto para produção
+- **`sandbox`:** Experimentações e testes — use para PR de features
+
+### Criando uma Feature/Fix
+
+1. **Sincronize a branch base**
    ```bash
-   git checkout -b feature/nome-da-feature
+   git checkout sandbox
+   git pull origin sandbox
+   ```
+
+2. **Crie uma branch de feature**
+   ```bash
+   # Nomes recomendados:
+   git checkout -b feature/minha-nova-funcionalidade
    # ou
-   git checkout -b fix/corrigir-bug
+   git checkout -b fix/corrigir-esse-bug
+   # ou
+   git checkout -b docs/melhorar-documentacao
    ```
 
-2. **Faça suas alterações**
-   - Siga os padrões de código
-   - Adicione testes quando necessário
-   - Atualize a documentação
+3. **Faça suas alterações**
+   - Modifique código, testes, documentação conforme necessário
+   - Siga os padrões de código (veja seção abaixo)
+   - Adicione testes para novas funcionalidades
 
-3. **Verifique seu código**
+4. **Verifique seu código**
    ```bash
-   # Execute os testes
-   pytest
+   # Execute testes
+   pytest tests/
    
-   # Verifique a formatação
-   black .
+   # Formatação com black
+   black src/ tests/
    
-   # Verifique erros estáticos
-   flake8
+   # Verificação estática
+   flake8 src/ tests/
+   
+   # Type checking (opcional)
+   mypy src/ --ignore-missing-imports
    ```
 
-4. **Faça commit das alterações**
+5. **Faça commit das alterações**
    ```bash
-   git add .
-   git commit -m "feat: adiciona nova funcionalidade"
+   git add src/ tests/
+   git commit -m "feat: descrição clara da mudança"
    ```
 
-5. **Envie as alterações**
+6. **Envie para o remoto**
    ```bash
-   git push origin feature/nome-da-feature
+   git push origin feature/minha-nova-funcionalidade
    ```
 
-6. **Abra um Pull Request**
-   - Vá para o repositório original
+7. **Abra um Pull Request**
+   - Vá para [GitHub DAMICORE](https://github.com/CristianoXico/DAMICORE)
    - Clique em "New Pull Request"
-   - Siga o template de PR
+   - **Base:** `sandbox` (não main!)
+   - **Compare:** sua branch `feature/...`
+   - Preencha o template de PR com:
+     - Descrição clara do que foi mudado
+     - Por quê essa mudança é necessária
+     - Como testar
+     - Screenshots/exemplos se apropriado
+   - Submeta
+
+### Revisar e Mergear
+
+- Seu PR será revisado
+- Faça ajustes conforme sugerido
+- Após aprovação, será merged automaticamente
 
 ## 📝 Padrões de Código
 
@@ -122,36 +197,98 @@ DAMICORE/
 
 Utilizamos [Conventional Commits](https://www.conventionalcommits.org/):
 
+```
+<tipo>(<escopo>): <assunto>
+
+<corpo>
+
+<rodapé>
+```
+
+**Tipos:**
 - `feat:` Nova funcionalidade
 - `fix:` Correção de bug
 - `docs:` Mudanças na documentação
-- `style:` Formatação, ponto e vírgula, etc. (sem mudança de código)
-- `refactor:` Mudança que não corrige um bug nem adiciona uma funcionalidade
-- `perf:` Mudança de código que melhora o desempenho
-- `test:` Adicionando testes ausentes
-- `chore:` Atualização de tarefas, configuração do gerenciador de pacotes, etc.
+- `style:` Formatação, sem mudança funcional
+- `refactor:` Refatoração de código
+- `perf:` Melhoria de desempenho
+- `test:` Adicionando/atualizando testes
+- `chore:` Tarefas, dependências, etc.
 
-Exemplo:
+**Exemplos:**
 ```
-feat: adiciona suporte a arquivos CSV grandes
+feat(clustering): adiciona algoritmo HDBSCAN
 
-Adiciona processamento em lotes para arquivos maiores que 1GB.
-Inclui testes de desempenho e tratamento de erros.
+Implementa novo algoritmo de clustering HDBSCAN como alternativa ao
+fastgreedy. Inclui testes de desempenho e comparação com métodos
+anteriores.
 
-Fixes #123
+Fixes #42
 ```
 
-### Formatação
+```
+fix(ncd): corrige cálculo de distância com pesos negativos
 
-- Use `black` para formatação automática
-- Tamanho máximo de linha: 88 caracteres
-- Use aspas duplas (`"`) para strings
+Garante que todos os pesos sejam positivos após normalização,
+evitando erros no algoritmo community_fastgreedy.
 
-### Documentação
+Fixes #38
+```
 
-- Documente todas as funções públicas com docstrings no formato Google Style
-- Mantenha o README.md atualizado
-- Adicione exemplos de uso quando apropriado
+### Formatação de Código
+
+```bash
+# Formatação automática com black
+black src/
+
+# Verificação de estilo com flake8
+flake8 src/ --max-line-length=88
+
+# Sorted imports
+isort src/
+```
+
+**Regras:**
+- Tamanho máximo de linha: **88 caracteres**
+- Aspas: **duplas** (`"string"`) por padrão
+- Indentação: **4 espaços**
+- Sem imports não utilizados
+
+### Docstrings
+
+Use formato Google Style:
+
+```python
+def funcao_exemplo(parametro1: str, parametro2: int) -> bool:
+    """Descrição breve em uma linha.
+    
+    Descrição mais detalhada se necessário. Explique o comportamento
+    da função, seus usos e qualquer informação importante.
+    
+    Args:
+        parametro1: Descrição do primeiro parâmetro.
+        parametro2: Descrição do segundo parâmetro.
+    
+    Returns:
+        Descrição do valor retornado.
+    
+    Raises:
+        ValueError: Quando parametro1 é vazio.
+        TypeError: Quando parametro2 não é inteiro.
+    
+    Example:
+        >>> resultado = funcao_exemplo("teste", 42)
+        >>> print(resultado)
+        True
+    """
+    if not parametro1:
+        raise ValueError("parametro1 não pode ser vazio")
+    
+    if not isinstance(parametro2, int):
+        raise TypeError("parametro2 deve ser inteiro")
+    
+    return True
+```
 
 ## 🧪 Testes
 
@@ -161,59 +298,136 @@ Fixes #123
 # Todos os testes
 pytest
 
-# Testes específicos
-pytest tests/test_meu_modulo.py
+# Com verbose
+pytest -v
 
-# Com cobertura de código
+# Cobertura de código
 pytest --cov=src tests/
+
+# Testes específicos
+pytest tests/test_ncd.py::test_distance_matrix
 ```
 
 ### Escrevendo Testes
 
-- Testes devem ser colocados no diretório `tests/`
-- Nomeie os arquivos de teste como `test_*.py`
-- Use fixtures do pytest para código compartilhado
-- Mantenha os testes independentes e rápidos
+Coloque testes em `tests/`:
 
-## 📤 Enviando Mudanças
+```python
+import pytest
+from src.ncd import distance_matrix
 
-1. Atualize sua branch com a branch principal
-   ```bash
-   git fetch origin main
-   git rebase origin/main
-   ```
+class TestDistanceMatrix:
+    """Testes para cálculo de matriz de distância NCD."""
+    
+    def test_distance_matrix_basic(self):
+        """Testa cálculo básico de matriz de distância."""
+        # Setup
+        data = {"file1": b"data1", "file2": b"data2"}
+        
+        # Execute
+        result = distance_matrix(data)
+        
+        # Assert
+        assert result.shape == (2, 2)
+        assert result[0, 0] == 0  # Diagonal deve ser 0
+        assert result[0, 1] == result[1, 0]  # Simétrica
+    
+    def test_distance_matrix_empty(self):
+        """Testa comportamento com entrada vazia."""
+        with pytest.raises(ValueError):
+            distance_matrix({})
+```
 
-2. Resolva quaisquer conflitos
+**Dicas:**
+- Mantenha testes independentes
+- Use fixtures para código compartilhado
+- Nomeie testes de forma descritiva
+- Aim para >80% cobertura
 
-3. Execute os testes novamente
+## 📤 Enviando Mudanças (PR)
 
-4. Envie suas alterações
-   ```bash
-   git push --force-with-lease origin feature/nome-da-feature
-   ```
+### Checklist Antes de Submeter
 
-5. Abra um Pull Request
+- [ ] Código foi testado localmente
+- [ ] Testes novos foram adicionados
+- [ ] Documentação foi atualizada
+- [ ] Commits seguem Conventional Commits
+- [ ] Sem merge conflicts com `sandbox`
+- [ ] Black, flake8 passam
+- [ ] Cobertura de testes mantida/melhorada
+
+### Atualizando PR Existente
+
+Se precisar fazer ajustes após feedback:
+
+```bash
+# Faça ajustes no código
+# ... edite arquivos ...
+
+# Faça commit dos ajustes
+git add .
+git commit -m "refactor: ajusta conforme feedback"
+
+# Force push para atualizar a PR
+git push --force-with-lease origin feature/sua-branch
+```
 
 ## 🐛 Relatando Problemas
 
-Antes de abrir uma issue:
+Antes de abrir uma issue, verifique se já existe similitude.
 
-1. Verifique se já existe uma issue semelhante
-2. Use o template de issue fornecido
-3. Inclua informações detalhadas:
-   - Passos para reproduzir
-   - Comportamento esperado vs. real
-   - Capturas de tela, se aplicável
-   - Versão do Python e dependências
+**Template de Issue:**
+
+```markdown
+## Descrição do Problema
+Descrição clara e concisa do que está acontecendo.
+
+## Passos para Reproduzir
+1. Passo 1
+2. Passo 2
+3. Passo 3...
+
+## Comportamento Esperado
+O que deveria acontecer.
+
+## Comportamento Atual
+O que realmente está acontecendo.
+
+## Ambiente
+- Python: 3.12.x
+- Sistema: Linux/macOS/Windows
+- Versão DAMICORE: (branch ou commit)
+- Dependências relevantes: (output de pip freeze)
+
+## Logs/Traceback
+```
+Colar erro aqui
+```
+
+## Capturas de Tela
+(se aplicável)
+```
 
 ## 💡 Solicitando Recursos
 
-Para solicitar novos recursos:
+**Template de Feature Request:**
 
-1. Verifique se o recurso já foi solicitado
-2. Explique por que o recurso seria útil
-3. Inclua casos de uso específicos
-4. Se possível, sugira uma implementação
+```markdown
+## Descrição
+Descrição clara do recurso solicitado.
+
+## Motivação
+Por quê esse recurso seria útil? Quais problemas resolveria?
+
+## Casos de Uso
+Exemplos específicos de como seria usado.
+
+## Alternativas Consideradas
+Outras formas de resolver o mesmo problema?
+
+## Contexto Adicional
+Qualquer outra informação relevante.
+```
 
 ## 📄 Licença
 
@@ -221,4 +435,12 @@ Ao contribuir, você concorda que suas contribuições serão licenciadas sob a 
 
 ---
 
+## 📞 Dúvidas?
+
+- 📖 Leia [WORKFLOW_PR.md](WORKFLOW_PR.md) para detalhes do workflow
+- 🐳 Leia [DOCKER.md](DOCKER.md) para deploy com Docker
+- 📚 Leia [README.md](README.md) para documentação geral
+
 Obrigado por ajudar a melhorar o DAMICORE! Seu tempo e esforço são muito apreciados. 🚀
+
+**Última Atualização:** 12 de novembro de 2025

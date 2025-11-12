@@ -57,7 +57,30 @@ pip install -r requirements.txt
 ```
 
 ## 📊 Uso Básico
+#### Método 2: Instalação Local
 
+1. Clone o repositório:
+```bash
+git clone https://github.com/CristianoXico/DAMICORE.git
+cd DAMICORE
+```
+
+2. Ative o ambiente virtual existente:
+```bash
+source damicore_env/bin/activate  # No Windows: damicore_env\Scripts\activate
+# Ou crie um novo se não existir:
+# python -m venv damicore_env
+# source damicore_env/bin/activate
+```
+
+3. Instale as dependências (se não estiverem instaladas):
+```bash
+pip install -r requirements.txt
+```
+
+⚠️ **Nota:** Use apenas o ambiente `damicore_env` (Python 3.12). Não use outros ambientes virtuais (venv ou .venv).
+
+## 📊 Uso Básico
 ### Processando um Arquivo CSV
 
 ```bash
