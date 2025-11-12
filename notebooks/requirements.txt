@@ -1,0 +1,25 @@
+# Bibliotecas básicas
+pandas>=1.3.0
+numpy>=1.21.0
+
+# Análise e visualização de dados
+matplotlib>=3.4.0
+seaborn>=0.11.0
+plotly>=5.1.0
+
+# Processamento de dados geoespaciais
+geopandas>=0.9.0
+shapely>=1.7.0
+pyproj>=3.0.0
+
+# Otimização
+pymoo>=0.5.0
+
+# Requisitos para Jupyter
+jupyter>=1.0.0
+ipykernel>=6.0.0
+
+# Outras bibliotecas úteis
+requests>=2.25.0
+scikit-learn>=0.24.0
+scipy>=1.7.0

@@ -1,0 +1,70 @@
+import pandas as pd
+import numpy as np
+from collections import Counter
+
+# Identificar colunas candidatas (objetos que parecem listas)
+potential_array_columns = []
+for col in df.columns:
+    if df[col].dtype == 'object':
+        if df[col].dropna().astype(str).str.contains(',').any():
+            potential_array_columns.append(col)
+
+print(f"Identified columns for modal element processing: {potential_array_columns}")
+
+categorization_legends = {}
+df_categorized = df.copy()
+
+for col in potential_array_columns:
+    print(f"\nProcessing column: {col}")
+
+    modal_elements_list = []
+
+    for _, row in df.iterrows():
+        val = row[col]
+
+        if isinstance(val, str):
+            elements = [e.strip() for e in val.split(',') if e.strip()]
+            if elements:
+                counts = Counter(elements)
+                modal_element = counts.most_common(1)[0][0]
+                modal_elements_list.append(modal_element)
+            else:
+                modal_elements_list.append(np.nan)
+        elif pd.notna(val):
+            modal_elements_list.append(val)
+        else:
+            modal_elements_list.append(np.nan)
+
+    # Criar série de elementos modais
+    modal_elements_series = pd.Series(modal_elements_list, index=df.index)
+
+    # 🔹 Padronizar valores "nan" (string) como np.nan
+    modal_elements_series = modal_elements_series.replace(["nan", "NaN", "None", ""], np.nan)
+
+    # 🔹 Frequências sem NaN
+    modal_element_counts_series = modal_elements_series.dropna().value_counts()
+
+    # Ordenar os elementos do menos frequente para o mais frequente
+    sorted_unique_modal_elements = modal_element_counts_series.sort_values(ascending=True).index.tolist()
+
+    # 🔹 Criar mapping sem NaN
+    legend_mapping = {modal_value: code for code, modal_value in enumerate(sorted_unique_modal_elements)}
+
+    # Guardar a legenda
+    categorization_legends[col] = legend_mapping
+
+    # Aplicar mapping (NaN continua como NaN no DataFrame final)
+    df_categorized.loc[:, col] = modal_elements_series.map(legend_mapping)
+
+    # --- Impressão ---
+    print(f"Column '{col}':")
+    if len(legend_mapping) == 0:
+        print("{}")
+    else:
+        print("{", end="")
+        for i, (key, value) in enumerate(legend_mapping.items()):
+            freq = modal_element_counts_series.get(key, 0)
+            print(f"'{key}': {value} ({int(freq)})", end="")
+            if i < len(legend_mapping) - 1:
+                print(", ", end="")
+        print("}")
